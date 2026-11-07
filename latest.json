@@ -1,5 +1,5 @@
 {
-  "version": "1.8.0",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.8.0/StreamDonations-Setup-1.8.0.exe",
-  "notes": "Novedades de la 1.8.0:\n- Filtros: palabras prohibidas (se tapan en OBS y la voz las saltea) y usuarios bloqueados (también desde la donación en grande).\n- OBS: fondo transparente (recorte por color con \"Clave cromática\" en OBS).\n- Exportar a Excel (.csv): todas, esta sesión, hoy o lo que estás viendo.\n- Atajos nuevos: M marcar leída, S callar la voz, V voz, B sonido.\n- Idioma: la app ahora también está en inglés (Opciones → Pantalla)."
+  "version": "1.8.1",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.8.1/StreamDonations-Setup-1.8.1.exe",
+  "notes": "Novedades de la 1.8.1:\n- Tutorial corto la primera vez que abrís la app: dónde prender sonido y voz, los filtros y cómo conectar tu cuenta.\n- En instalaciones nuevas, el sonido, la voz y los atajos de teclado vienen apagados (si ya los usabas, quedan como los tenías).\n- Los atajos de teclado ahora se prenden y apagan en Opciones → Pantalla.\n\nNovedades de la 1.8.0:\n- Filtros: palabras prohibidas y usuarios bloqueados.\n- OBS: fondo transparente (recorte por color).\n- Exportar a Excel (.csv) e idioma inglés."
 }
