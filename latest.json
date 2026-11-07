@@ -1,5 +1,5 @@
 {
-  "version": "1.7.2",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.7.2/StreamDonations-Setup-1.7.2.exe",
-  "notes": "- Sincronizar con otra PC: si un aviso no se puede enviar (sin internet o el servidor pide esperar), se reintenta solo. Las marcas hechas en el mismo segundo viajan juntas en un solo aviso."
+  "version": "1.8.0",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.8.0/StreamDonations-Setup-1.8.0.exe",
+  "notes": "Novedades de la 1.8.0:\n- Filtros: palabras prohibidas (se tapan en OBS y la voz las saltea) y usuarios bloqueados (también desde la donación en grande).\n- OBS: fondo transparente (recorte por color con \"Clave cromática\" en OBS).\n- Exportar a Excel (.csv): todas, esta sesión, hoy o lo que estás viendo.\n- Atajos nuevos: M marcar leída, S callar la voz, V voz, B sonido.\n- Idioma: la app ahora también está en inglés (Opciones → Pantalla)."
 }
