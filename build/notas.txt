@@ -1,1 +1,6 @@
-- Sincronizar con otra PC: si un aviso no se puede enviar (sin internet o el servidor pide esperar), se reintenta solo. Las marcas hechas en el mismo segundo viajan juntas en un solo aviso.
+Novedades de la 1.8.0:
+- Filtros: palabras prohibidas (se tapan en OBS y la voz las saltea) y usuarios bloqueados (también desde la donación en grande).
+- OBS: fondo transparente (recorte por color con "Clave cromática" en OBS).
+- Exportar a Excel (.csv): todas, esta sesión, hoy o lo que estás viendo.
+- Atajos nuevos: M marcar leída, S callar la voz, V voz, B sonido.
+- Idioma: la app ahora también está en inglés (Opciones → Pantalla).

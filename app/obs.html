@@ -487,6 +487,19 @@
         :root.has-obs-bg, :root.has-obs-bg body { background: transparent !important; }
         :root.has-obs-bg #obs-bg { display: block; }
 
+        /* Modo transparente: fondo de un color puro para recortarlo en OBS (Clave cromática).
+           Sin sombras, brillos ni transparencias, así el recorte queda limpio. */
+        :root.obs-chroma, :root.obs-chroma body { background: var(--obs-chroma) !important; }
+        :root.obs-chroma #obs-bg { display: none !important; }
+        :root.obs-chroma *, :root.obs-chroma *::before, :root.obs-chroma *::after {
+            box-shadow: none !important; text-shadow: none !important; filter: none !important;
+            backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+        }
+        :root.obs-chroma .obs-alert, :root.obs-chroma .obs-status-box, :root.obs-chroma .obs-preview-bar, :root.obs-chroma #obs-top { background: rgb(var(--obs-bg-rgb)) !important; }
+        :root.obs-chroma #obs-scroll-area { scrollbar-width: none; }
+        :root.obs-chroma #obs-scroll-area::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        :root.obs-chroma #xfiles-fx, :root.obs-chroma canvas { display: none !important; }
+
         /* Tamaño de nombre, foto y botón (separado del mensaje) */
         :root { --obs-head-scale: 0.75; }
         .obs-nick { font-size: calc(1.15rem * var(--obs-scale) * var(--obs-head-scale)) !important; }
@@ -528,6 +541,8 @@
 
 
 
+    <script src="i18n-en.js"></script>
+    <script src="i18n.js"></script>
     <script src="xfiles-fx.js"></script>
     <script src="sd-store.js"></script>
     <script>
@@ -845,6 +860,8 @@
             payload.items.forEach(item => {
                 const el = document.querySelector('[data-alert-id="' + item.id + '"]');
                 if (!el) return;
+                const nickEl = el.querySelector('.obs-nick span:first-child');
+                if (nickEl && typeof item.nick === 'string' && item.nick) nickEl.textContent = item.nick;
                 let msgEl = el.querySelector('.obs-msg');
                 if (item.obsHideMessage || !item.message) {
                     if (msgEl) msgEl.remove();
@@ -918,6 +935,14 @@
         function applyObsBg(bg) {
             const root = document.documentElement, el = document.getElementById('obs-bg');
             if (!el) return;
+            const chroma = !!bg && bg.type === 'chroma';
+            root.classList.toggle('obs-chroma', chroma);
+            if (chroma) {
+                const c = ['#FF00FF', '#00FF00', '#0000FF'].includes(bg.chroma) ? bg.chroma : '#FF00FF';
+                root.style.setProperty('--obs-chroma', c);
+                root.classList.remove('has-obs-bg'); el.style.background = '';
+                return;
+            }
             if (!bg || bg.type === 'theme') { root.classList.remove('has-obs-bg'); el.style.background = ''; return; }
             if (bg.type === 'color') {
                 el.style.background = /^#[0-9a-fA-F]{6}$/.test(bg.color || '') ? bg.color : '#000';
@@ -941,6 +966,14 @@
                 paint();
             });
         }
+
+        // Si cambiás el idioma en el panel, esta ventana se recarga sola en el idioma nuevo
+        setInterval(() => {
+            try {
+                const st = JSON.parse(localStorage.getItem('streamdonations_settings') || '{}');
+                if ((st.language === 'en' || st.language === 'es') && window.SD_LANG && st.language !== window.SD_LANG) location.reload();
+            } catch (e) {}
+        }, 2000);
 
         function readStyle() {
             try { const raw = localStorage.getItem('obs_style'); if (raw) applyStyle(JSON.parse(raw)); } catch (e) {}

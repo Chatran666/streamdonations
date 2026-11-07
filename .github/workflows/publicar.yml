@@ -9,9 +9,12 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: read
 jobs:
   instalador:
     runs-on: ubuntu-latest
+    env:
+      FIRMAR: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Versión desde package.json
@@ -30,6 +33,35 @@ jobs:
       - name: Armar el instalador
         if: env.YA_EXISTE != '1'
         run: bash build/armar.sh
+      # ---- Firma digital con SignPath (se activa sola cuando cargás el secreto SIGNPATH_API_TOKEN
+      #      y las variables SIGNPATH_ORGANIZATION_ID / SIGNPATH_PROJECT_SLUG en el repo) ----
+      - name: Subir instalador sin firmar (para SignPath)
+        id: sin-firmar
+        if: env.YA_EXISTE != '1' && env.FIRMAR == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: instalador-sin-firmar
+          path: dist/StreamDonations-Setup-${{ env.VERSION }}.exe
+          if-no-files-found: error
+      - name: Firmar con SignPath
+        if: env.YA_EXISTE != '1' && env.FIRMAR == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          github-artifact-id: ${{ steps.sin-firmar.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: dist/firmado
+      - name: Usar el instalador firmado
+        if: env.YA_EXISTE != '1' && env.FIRMAR == 'true'
+        run: |
+          F="dist/firmado/StreamDonations-Setup-${VERSION}.exe"
+          test -f "$F" || F=$(find dist/firmado -name '*.exe' | head -1)
+          cp "$F" "dist/StreamDonations-Setup-${VERSION}.exe"
+          echo "Instalador firmado listo"
       - name: Armar latest.json
         if: env.YA_EXISTE != '1'
         run: |

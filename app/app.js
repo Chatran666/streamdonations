@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isRead: !!d.isRead,
             tier: str(d.tier, 40).replace(/[^A-Za-z0-9-]/g, ''),
             avatar,
-            isTest: !!d.isTest
+            isTest: !!d.isTest,
+            ...(d.blocked ? { blocked: true } : {})
         };
     }
 
@@ -109,7 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
             customAccent: '#00E676', // Color elegido para el tema personalizado
             panelTextScale: 1, // Tamaño del texto de las tarjetas del panel (1 = 100%)
             obsTextScale: 1, // Tamaño del texto de las alertas en la ventana de OBS
-            obsAmountScale: 0.8 // Tamaño de los montos ($) en OBS, relativo al texto
+            obsAmountScale: 0.8, // Tamaño de los montos ($) en OBS, relativo al texto
+            bannedWords: '', // Palabras prohibidas (una por línea o con comas; * al final = variantes)
+            censorObs: true, censorTts: true, censorPanel: false,
+            blockedUsers: '' // Usuarios bloqueados (uno por línea)
         },
         lastReadId: null
     };
@@ -272,9 +276,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ordena las voces en español de mejor a peor para Chrome:
     // primero las de Google (más naturales que las de Windows), luego por acento:
     // Argentina > Latinoamérica/EE.UU. > México > resto > España
+    const UI_EN = window.SD_LANG === 'en';
+    const T = (txt) => (window.SDi18n ? window.SDi18n.t(txt) : txt);
     function voiceScore(v) {
         const lang = (v.lang || '').toLowerCase().replace('_', '-');
         const name = (v.name || '').toLowerCase();
+        if (UI_EN) {
+            // En inglés: voces en inglés, primero las de Google / naturales
+            if (!lang.startsWith('en') && !name.includes('english')) return -1;
+            let sc = 0;
+            if (name.includes('google')) sc += 100;
+            if (name.includes('natural') || name.includes('online')) sc += 80;
+            if (lang === 'en-us') sc += 30; else if (lang === 'en-gb') sc += 20; else sc += 10;
+            if (v.localService === false) sc += 5;
+            return sc;
+        }
         if (!lang.startsWith('es') && !name.includes('spanish') && !name.includes('español')) return -1;
         let score = 0;
         if (name.includes('google')) score += 100;
@@ -343,7 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const amountText = isForeignCurrency(donation)
                 ? donation.formattedAmount
                 : `${Math.round(donation.amount)} pesos`;
-            const text = `${donation.nick} ha enviado ${amountText}. ${spokenMessage(donation.message)}`;
+            const who = censorText(donation.nick, 'tts'), said = spokenMessage(censorText(donation.message, 'tts'));
+            const text = UI_EN ? `${who} sent ${amountText}. ${said}` : `${who} ha enviado ${amountText}. ${said}`;
             speakText(text, false);
         } catch (e) {
             console.warn('TTS speech blocked:', e);
@@ -467,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     utterance.voice = voice;
                     utterance.lang = voice.lang;
                 } else {
-                    utterance.lang = 'es-AR';
+                    utterance.lang = UI_EN ? 'en-US' : 'es-AR';
                 }
                 utterance.rate = clampNum(state.settings.voiceRate, 0.5, 2, 1);
                 utterance.pitch = clampNum(state.settings.voicePitch, 0.5, 1.5, 1);
@@ -913,6 +930,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {}
 
+    // ==========================================================================
+    // FILTROS: palabras prohibidas y usuarios bloqueados
+    // ==========================================================================
+    const ACCENT_CLASS = { a: '[aáàäâ]', e: '[eéèëê]', i: '[iíìïî1]', o: '[oóòöô0]', u: '[uúùüû]', n: '[nñ]', c: '[cç]' };
+    function bannedList(src) {
+        return String(src || '').split(/[\n,;]+/).map(w => w.trim()).filter(w => w && w.replace(/\*/g, '').length >= 2).slice(0, 500);
+    }
+    function wordPattern(w) {
+        const wild = /\*$/.test(w);
+        const core = w.replace(/\*+$/, '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        let out = '';
+        for (const ch of core) {
+            if (ACCENT_CLASS[ch]) out += ACCENT_CLASS[ch];
+            else if (/\s/.test(ch)) out += '\\s+';
+            else if (ch === '*') out += '[\\p{L}\\p{N}]*';
+            else out += ch.replace(/[.*+?^${}()|[\]\\\/-]/g, '\\$&');
+        }
+        return out + (wild ? '[\\p{L}\\p{N}]*' : '');
+    }
+    let censorCacheKey = null, censorRe = null;
+    function censorRegex() {
+        const src = state.settings.bannedWords || '';
+        if (src === censorCacheKey) return censorRe;
+        censorCacheKey = src;
+        const parts = bannedList(src).map(wordPattern).sort((a, b) => b.length - a.length);
+        try {
+            censorRe = parts.length ? new RegExp('(?<![\\p{L}\\p{N}])(?:' + parts.join('|') + ')(?![\\p{L}\\p{N}])', 'giu') : null;
+        } catch (e) { censorRe = null; }
+        return censorRe;
+    }
+    // where: 'obs' | 'tts' | 'panel'
+    function censorOn(where) {
+        const st = state.settings;
+        if (where === 'obs') return st.censorObs !== false;
+        if (where === 'tts') return st.censorTts !== false;
+        return !!st.censorPanel;
+    }
+    function censorText(text, where, force) {
+        if (!text) return text || '';
+        if (!force && !censorOn(where)) return text;
+        const re = censorRegex();
+        if (!re) return text;
+        re.lastIndex = 0;
+        return String(text).replace(re, m => where === 'tts' ? ' ' : '*'.repeat(Math.min(12, Math.max(3, [...m].length))));
+    }
+    function nickKey(n) { return String(n || '').trim().replace(/^@+/, '').toLowerCase(); }
+    function blockedSet() {
+        return new Set(String(state.settings.blockedUsers || '').split(/\n+/).map(nickKey).filter(Boolean));
+    }
+    function isBlocked(nick) { const k = nickKey(nick); return !!k && blockedSet().has(k); }
+    function setBlocked(nick, on) {
+        const k = nickKey(nick);
+        if (!k) return;
+        const lines = String(state.settings.blockedUsers || '').split(/\n+/).map(x => x.trim()).filter(Boolean)
+            .filter(x => nickKey(x) !== k);
+        if (on) lines.push(String(nick).trim().replace(/^@+/, ''));
+        state.settings.blockedUsers = lines.join('\n');
+        persistSettings();
+    }
+    // Lo que se manda a OBS (nombre y mensaje ya filtrados)
+    function overlayPayload(d) {
+        return {
+            ...d,
+            nick: censorText(d.nick, 'obs'),
+            message: obsMessage(censorText(d.message, 'obs')),
+            obsHideMessage: !!state.settings.obsHideMessage,
+            obsDuration: state.settings.obsDuration || 0
+        };
+    }
+    function panelNick(n) { return censorText(n, 'panel'); }
+
     // --- Core Action: Add Donation ---
     function addDonation(item) {
         if (!item) return;
@@ -936,6 +1024,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Object.assign(donation, safeDonation(donation));
         if (typeof syncPendingRead === 'function' && syncPendingRead(donation.id)) donation.isRead = true;
+        // Usuario bloqueado: se guarda (suma a los totales) pero va directo a "Leídos", sin sonido, voz ni OBS
+        if (!donation.isTest && isBlocked(donation.nick)) { donation.isRead = true; donation.blocked = true; }
         state.donations.unshift(donation);
         saveDonationsToStorage();
 
@@ -1127,12 +1217,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-header">
                     <div class="donor-info">
                         <div class="donor-avatar">
-                            ${item.avatar ? `<img src="${item.avatar}" alt="${escapeHTML(item.nick)}">` : escapeHTML(item.nick.charAt(0).toUpperCase())}
+                            ${item.avatar ? `<img src="${item.avatar}" alt="">` : escapeHTML(panelNick(item.nick).charAt(0).toUpperCase())}
                         </div>
                         <div class="donor-meta">
                             <div class="donor-nick">
-                                <span class="donor-nick-text">${escapeHTML(item.nick)}</span>
+                                <span class="donor-nick-text">${escapeHTML(panelNick(item.nick))}</span>
                                 ${item.isTest ? '<span class="test-tag">PRUEBA</span>' : ''}
+                                ${item.blocked ? '<span class="test-tag blocked-tag"><i class="fa-solid fa-user-slash"></i> BLOQUEADO</span>' : ''}
                                 <span class="platform-tag ${platformBadgeClass}">
                                     <i class="${platformIcon}"></i> ${platformInfo(item.platform).label}
                                 </span>
@@ -1562,13 +1653,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         state.activeFocusId = id;
 
-        els.focusNick.textContent = item.nick;
+        els.focusNick.textContent = panelNick(item.nick);
+        const bb = $('btn-focus-block');
+        if (bb) {
+            const blk = isBlocked(item.nick);
+            bb.classList.toggle('hidden', !!item.isTest);
+            bb.querySelector('span').textContent = blk ? 'Desbloquear' : 'Bloquear';
+            bb.classList.toggle('is-blocked', blk);
+        }
         els.focusAmount.textContent = item.formattedAmount;
         els.focusMessage.innerHTML = item.message ? `"${messageHTML(item.message)}"` : '(Sin mensaje)';
         
         els.focusAvatar.innerHTML = item.avatar 
             ? `<img src="${item.avatar}" style="width:100%;height:100%;border-radius:50%">` 
-            : escapeHTML(item.nick.charAt(0).toUpperCase());
+            : escapeHTML(panelNick(item.nick).charAt(0).toUpperCase());
 
         const pInfo = platformInfo(item.platform);
         els.focusPlatformTag.className = `platform-tag ${platformKey(item.platform)}`;
@@ -1588,6 +1686,27 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     els.btnCloseFocus.addEventListener('click', window.closeFocusModal);
+
+    $('btn-focus-block').addEventListener('click', () => {
+        const item = state.donations.find(d => d.id === state.activeFocusId);
+        if (!item) return;
+        const on = !isBlocked(item.nick);
+        setBlocked(item.nick, on);
+        const k = nickKey(item.nick);
+        let hidden = 0;
+        state.donations.forEach(d => {
+            if (d.isTest || nickKey(d.nick) !== k) return;
+            if (on) {
+                d.blocked = true;
+                if (!d.isRead) { d.isRead = true; dismissOverlayAlert(d.id); hidden++; }
+            } else delete d.blocked;
+        });
+        saveDonationsToStorage();
+        render();
+        window.closeFocusModal();
+        showToast(on ? `${escapeHTML(item.nick)} bloqueado${hidden ? ` (${hidden} pendiente${hidden > 1 ? 's' : ''} pasaron a Leídos)` : ''}. Se desbloquea en Opciones → Filtros.`
+                     : `${escapeHTML(item.nick)} desbloqueado`, 'info');
+    });
 
     els.btnFocusSpeak.addEventListener('click', () => {
         if (state.activeFocusId) {
@@ -2356,12 +2475,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const payload = { 
-            ...donation, 
-            message: obsMessage(donation.message),
-            obsHideMessage: !!state.settings.obsHideMessage,
-            obsDuration: state.settings.obsDuration || 0
-        };
+        const payload = overlayPayload(donation);
 
         const msg = { type: 'NEW_DONATION', data: payload };
 
@@ -2421,13 +2535,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Orden cronológico inverso (las más antiguas primero, para que al hacer prepend queden en orden)
             [...unread].reverse().forEach(donation => {
                 if (!existingIds.has(donation.id)) {
-                    queue.push({
-                        ...donation,
-                        message: obsMessage(donation.message),
-                        obsHideMessage: !!state.settings.obsHideMessage,
-                        obsDuration: state.settings.obsDuration || 0,
-                        _t: Date.now()
-                    });
+                    queue.push({ ...overlayPayload(donation), _t: Date.now() });
                 }
             });
             localStorage.setItem('obs_donation_queue', JSON.stringify(queue));
@@ -2439,12 +2547,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     state.overlayWindow.postMessage({
                         type: 'NEW_DONATION',
-                        data: {
-                            ...donation,
-                            message: obsMessage(donation.message),
-                            obsHideMessage: !!state.settings.obsHideMessage,
-                            obsDuration: state.settings.obsDuration || 0
-                        }
+                        data: overlayPayload(donation)
                     }, '*');
                 } catch (e) {}
             });
@@ -2723,7 +2826,7 @@ document.addEventListener('DOMContentLoaded', () => {
         persistSettings();
         syncHeaderToggles();
         if (state.ttsEnabled) {
-            speakText('Lectura en voz alta activada.');
+            speakText(UI_EN ? 'Read aloud on.' : 'Lectura en voz alta activada.');
             showToast('Lectura en voz alta activada', 'info');
         } else {
             stopAllSpeech();
@@ -2936,6 +3039,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Exportar base de datos a archivo .json descargable
+    // Exportar a planilla (.csv con ; para Excel en español, con BOM para que respete las tildes)
+    function csvCell(v) {
+        let t = String(v == null ? '' : v).replace(/\r?\n/g, ' ');
+        if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; // evita que Excel lo tome como fórmula
+        return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    }
+    function exportDonationsCSV(range) {
+        let list = state.donations.slice();
+        if (range === 'session') list = sessionDonations();
+        else if (range === 'today') { const t0 = startOfDay(new Date()).getTime(); list = list.filter(d => d.timestamp >= t0); }
+        else if (range === 'view') list = getFilteredDonations();
+        list = list.filter(d => !d.isTest).sort((a, b) => a.timestamp - b.timestamp);
+        if (!list.length) { showToast('No hay donaciones para exportar', 'info'); return; }
+        const pad = n => String(n).padStart(2, '0');
+        const head = ['Fecha', 'Hora', 'Plataforma', 'Usuario', 'Monto', 'Moneda', 'Monto en pesos (aprox.)', 'Mensaje', 'Leída', 'Bloqueado'];
+        const rows = list.map(d => {
+            const dt = new Date(d.timestamp);
+            const ars = toARS(d);
+            return [
+                `${pad(dt.getDate())}/${pad(dt.getMonth() + 1)}/${dt.getFullYear()}`,
+                `${pad(dt.getHours())}:${pad(dt.getMinutes())}`,
+                platformInfo(d.platform).label, d.nick,
+                String(Math.round((d.amount || 0) * 100) / 100).replace('.', ','), d.currency,
+                ars == null || isNaN(ars) ? '' : String(Math.round(ars)), d.message,
+                d.isRead ? 'Sí' : 'No', d.blocked ? 'Sí' : ''
+            ].map(csvCell).join(';');
+        });
+        const csv = '﻿' + head.join(';') + '\r\n' + rows.join('\r\n') + '\r\n';
+        const now = new Date();
+        const filename = `donaciones_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.csv`;
+        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        showToast(`Planilla "${filename}" guardada con ${list.length} donaciones`, 'success');
+    }
+
     function exportDonationsToFile() {
         if (state.donations.length === 0) {
             showToast('No hay chats en la base de datos para exportar', 'info');
@@ -3107,6 +3248,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.dbSelectFilterStatus) els.dbSelectFilterStatus.addEventListener('change', renderDbList);
 
     if (els.dbBtnExport) els.dbBtnExport.addEventListener('click', exportDonationsToFile);
+    if ($('db-btn-export-csv')) $('db-btn-export-csv').addEventListener('click', () => exportDonationsCSV('all'));
+    if ($('btn-export-csv')) $('btn-export-csv').addEventListener('click', () => exportDonationsCSV($('cfg-csv-range').value));
     if (els.dbBtnImportTrigger && els.dbFileInput) {
         els.dbBtnImportTrigger.addEventListener('click', () => els.dbFileInput.click());
         els.dbFileInput.addEventListener('change', (e) => {
@@ -3465,7 +3608,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function sendTestAlerts() {
         initAudioContext();
         testPlatforms().forEach((k, i) => {
-            setTimeout(() => addDonation({ platform: k, ...TEST_SAMPLES[k], isTest: true }), i * 1500);
+            const smp = TEST_SAMPLES[k];
+            setTimeout(() => addDonation({ platform: k, ...smp, nick: T(smp.nick), message: T(smp.message), isTest: true }), i * 1500);
         });
     }
 
@@ -3637,6 +3781,14 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-links').value = st.obsLinkMode || 'hide';
         $('cfg-strip-tracking').checked = st.stripTracking !== false;
         $('cfg-recover-missed').checked = st.recoverMissed !== false;
+        $('cfg-language').value = window.SD_LANG === 'en' ? 'en' : 'es';
+        $('cfg-banned-words').value = st.bannedWords || '';
+        $('cfg-censor-obs').checked = st.censorObs !== false;
+        $('cfg-censor-tts').checked = st.censorTts !== false;
+        $('cfg-censor-panel').checked = !!st.censorPanel;
+        $('cfg-blocked-users').value = st.blockedUsers || '';
+        $('cfg-censor-test').value = '';
+        $('cfg-censor-result').innerHTML = '&nbsp;';
         $('cfg-tts-links').value = st.ttsLinkMode || 'domain';
         $('cfg-voice-rate').value = clampNum(st.voiceRate, 0.5, 2, 1);
         $('cfg-voice-pitch').value = clampNum(st.voicePitch, 0.5, 1.5, 1);
@@ -3693,7 +3845,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function refreshOverlayMessages() {
         const items = state.donations
             .filter(d => !d.isRead)
-            .map(d => ({ id: d.id, message: obsMessage(d.message), obsHideMessage: !!state.settings.obsHideMessage }));
+            .map(d => ({ id: d.id, nick: censorText(d.nick, 'obs'), message: obsMessage(censorText(d.message, 'obs')), obsHideMessage: !!state.settings.obsHideMessage }));
         const payload = { ts: Date.now(), items };
         try { localStorage.setItem('obs_alerts_update', JSON.stringify(payload)); } catch (e) {}
         if (state.overlayWindow && !state.overlayWindow.closed) {
@@ -3722,7 +3874,14 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsHeadScale = clampNum($('cfg-obs-head').value, 0.5, 1.4, 0.75);
         Object.assign(st, readLookForm());
         lookDraft = null;
-        const obsBefore = JSON.stringify([st.obsLinkMode, st.obsHideMessage, st.stripTracking]);
+        const obsBefore = JSON.stringify([st.obsLinkMode, st.obsHideMessage, st.stripTracking, st.bannedWords, st.censorObs]);
+        const langBefore = window.SD_LANG || 'es';
+        st.language = $('cfg-language').value === 'en' ? 'en' : 'es';
+        st.bannedWords = $('cfg-banned-words').value.slice(0, 20000);
+        st.censorObs = $('cfg-censor-obs').checked;
+        st.censorTts = $('cfg-censor-tts').checked;
+        st.censorPanel = $('cfg-censor-panel').checked;
+        st.blockedUsers = $('cfg-blocked-users').value.slice(0, 20000);
         const simSpeedBefore = st.simSpeed;
         const newToken = $('cfg-sl-token').value.trim();
         const tokenChanged = newToken !== (st.slToken || '');
@@ -3794,9 +3953,10 @@ document.addEventListener('DOMContentLoaded', () => {
         syncHeaderToggles();
         updateAudioUnlockBanner();
         forceGoalSync();
-        if (JSON.stringify([st.obsLinkMode, st.obsHideMessage, st.stripTracking]) !== obsBefore) { refreshOverlayMessages(); render(); }
+        if (JSON.stringify([st.obsLinkMode, st.obsHideMessage, st.stripTracking, st.bannedWords, st.censorObs]) !== obsBefore) { refreshOverlayMessages(); render(); }
         render();
         closeSettings();
+        if (st.language !== langBefore) { setTimeout(() => location.reload(), 150); return; }
         showToast('Configuración guardada', 'success');
     }
 
@@ -3871,7 +4031,7 @@ document.addEventListener('DOMContentLoaded', () => {
             st.voicePitch = $('cfg-voice-pitch').value;
             st.voiceVolume = $('cfg-voice-volume').value / 100;
             st.ttsLinkMode = $('cfg-tts-links').value;
-            speakDonation({ nick: 'Prueba de voz', amount: 1500, currency: 'ARS', message: 'Así se van a escuchar las donaciones. Miren este video: youtube.com/watch?v=abc123' }, true, true);
+            speakDonation({ nick: T('Prueba de voz'), amount: 1500, currency: 'ARS', message: UI_EN ? 'This is how donations will sound. Check out this video: youtube.com/watch?v=abc123' : 'Así se van a escuchar las donaciones. Miren este video: youtube.com/watch?v=abc123' }, true, true);
             Object.assign(st, prev);
         });
         ['cfg-voice-rate', 'cfg-voice-pitch', 'cfg-voice-volume'].forEach(id => $(id).addEventListener('input', updateVoiceSliderLabels));
@@ -3906,6 +4066,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Leer siguiente
         $('btn-read-next').addEventListener('click', readNext);
+
+        // Probar el filtro de palabras con lo que está escrito (sin guardar)
+        const censorPreview = () => {
+            const txt = $('cfg-censor-test').value;
+            const saved = state.settings.bannedWords;
+            state.settings.bannedWords = $('cfg-banned-words').value;
+            const out = txt ? censorText(txt, 'obs', true) : '';
+            state.settings.bannedWords = saved;
+            $('cfg-censor-result').textContent = txt ? 'En OBS: ' + out : '\u00a0';
+        };
+        $('cfg-censor-test').addEventListener('input', censorPreview);
+        $('cfg-banned-words').addEventListener('input', censorPreview);
 
         // Cerrar modales tocando el fondo oscuro
         ['modal-settings', 'modal-session', 'modal-focus'].forEach(id => {
@@ -3943,6 +4115,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 readNext();
             } else if (e.key === 'r' || e.key === 'R') {
                 repeatLast();
+            } else if (e.key === 'm' || e.key === 'M') {
+                const id = state.activeFocusId;
+                if (id) { window.toggleReadState(id); window.closeFocusModal(); }
+                else showToast('Abrí una donación (o usá Espacio) para marcarla con M', 'info');
+            } else if (e.key === 's' || e.key === 'S') {
+                stopAllSpeech(); if (typeof stopLocalSpeech === 'function') stopLocalSpeech();
+                showToast('Voz callada', 'info');
+            } else if (e.key === 'v' || e.key === 'V') {
+                els.btnToggleTts.click();
+            } else if (e.key === 'b' || e.key === 'B') {
+                els.btnToggleSound.click();
             }
         });
 
@@ -4029,6 +4212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mensaje para el panel: texto escapado + links como botón
     function messageHTML(msg) {
         if (!msg) return '';
+        msg = censorText(msg, 'panel');
         if (state.settings.linksInPanel === false) return escapeHTML(msg);
         let out = '', last = 0;
         String(msg).replace(URL_RE, (match, _g, offset) => {
@@ -4084,7 +4268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tail = m.slice(cleanUrlMatch(m).length);
             if (omit) return tail + ' ';
             const l = parseLink(m);
-            return (l ? ` link de ${l.host}` : ' un link') + tail + ' ';
+            return (UI_EN ? (l ? ` ${l.host} link` : ' a link') : (l ? ` link de ${l.host}` : ' un link')) + tail + ' ';
         }).replace(/\s{2,}/g, ' ').trim();
     }
 
@@ -4268,6 +4452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const PLATFORM_COLOR_DEFAULTS = { ceneka: '#8B5CF6', youtube: '#FF2E4D', twitch: '#9146FF', kick: '#53FC18' };
     const PLATFORM_COLOR_VARS = { ceneka: '--ceneka-purple', youtube: '--youtube-red', twitch: '--twitch-purple', kick: '--kick-green' };
     const MAX_BG_BYTES = 8 * 1024 * 1024;
+    const CHROMA_COLORS = ['#FF00FF', '#00FF00', '#0000FF'];
     var lookDraft = null; // vista previa sin guardar
 
     function cleanColor(c, def) { return /^#[0-9a-fA-F]{6}$/.test(c || '') ? c : def; }
@@ -4349,6 +4534,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-bg-type').value = lk.obsBg.type;
         $('cfg-obs-bg-color').value = cleanColor(lk.obsBg.color, '#000000');
         $('cfg-obs-bg-fit').value = lk.obsBg.fit || 'cover';
+        $('cfg-obs-chroma').value = CHROMA_COLORS.includes(lk.obsBg.chroma) ? lk.obsBg.chroma : '#FF00FF';
         $('cfg-obs-bg-dim').value = clampNum(lk.obsBg.dim, 0, 0.85, 0.3);
         $('obs-bg-name').textContent = lk.obsBg.name || 'Sin imagen';
         $('obs-bg-name').dataset.ver = lk.obsBg.ver || 0;
@@ -4371,6 +4557,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsBg: {
                 type: $('cfg-obs-bg-type').value, color: $('cfg-obs-bg-color').value,
                 fit: $('cfg-obs-bg-fit').value || 'cover',
+                chroma: CHROMA_COLORS.includes($('cfg-obs-chroma').value) ? $('cfg-obs-chroma').value : '#FF00FF',
                 dim: clampNum($('cfg-obs-bg-dim').value, 0, 0.85, 0.3),
                 ver: parseInt($('obs-bg-name').dataset.ver) || 0,
                 name: $('obs-bg-name').textContent === 'Sin imagen' ? '' : $('obs-bg-name').textContent
@@ -4387,6 +4574,8 @@ document.addEventListener('DOMContentLoaded', () => {
         $('obs-bg-file-row').classList.toggle('hidden', ot !== 'image');
         $('obs-bg-fit-row').classList.toggle('hidden', ot !== 'image');
         $('obs-bg-dim-row').classList.toggle('hidden', ot !== 'image');
+        $('obs-chroma-row').classList.toggle('hidden', ot !== 'chroma');
+        $('obs-chroma-help').classList.toggle('hidden', ot !== 'chroma');
         $('obs-custom-accent-row').classList.toggle('hidden', $('cfg-obs-theme').value !== 'custom');
         $('lbl-panel-bg-dim').textContent = Math.round($('cfg-panel-bg-dim').value * 100) + '%';
         $('lbl-obs-bg-dim').textContent = Math.round($('cfg-obs-bg-dim').value * 100) + '%';
@@ -4452,7 +4641,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLook();
         const ids = ['cfg-color-ceneka', 'cfg-color-youtube', 'cfg-color-twitch', 'cfg-color-kick',
             'cfg-panel-bg-type', 'cfg-panel-bg-color', 'cfg-panel-bg-dim',
-            'cfg-obs-theme', 'cfg-obs-custom-accent', 'cfg-obs-bg-type', 'cfg-obs-bg-color', 'cfg-obs-bg-fit', 'cfg-obs-bg-dim'];
+            'cfg-obs-theme', 'cfg-obs-custom-accent', 'cfg-obs-bg-type', 'cfg-obs-bg-color', 'cfg-obs-bg-fit', 'cfg-obs-bg-dim', 'cfg-obs-chroma'];
         ids.forEach(id => { const el = $(id); if (el) { el.addEventListener('input', previewLook); el.addEventListener('change', previewLook); } });
         $('btn-reset-platform-colors').addEventListener('click', () => {
             PLATFORM_KEYS.forEach(k => { $('cfg-color-' + k).value = PLATFORM_COLOR_DEFAULTS[k]; });

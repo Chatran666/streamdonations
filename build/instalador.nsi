@@ -27,10 +27,11 @@ BrandingText "StreamDonations ${VERSION} - Mariano"
 
 VIProductVersion "${VERSION}.0"
 VIAddVersionKey "ProductName" "${APPNAME}"
+VIAddVersionKey "CompanyName" "StreamDonations (github.com/Chatran666/streamdonations)"
 VIAddVersionKey "FileDescription" "Instalador de StreamDonations"
 VIAddVersionKey "FileVersion" "${VERSION}"
 VIAddVersionKey "ProductVersion" "${VERSION}"
-VIAddVersionKey "LegalCopyright" "Mariano - mrlasheras@gmail.com"
+VIAddVersionKey "LegalCopyright" "(c) 2026 Mariano (Chatran666) - MIT License"
 
 !define MUI_ICON "icono.ico"
 !define MUI_UNICON "icono.ico"

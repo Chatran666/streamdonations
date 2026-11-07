@@ -233,6 +233,7 @@
                 </div>
             </div>
             <div class="modal-footer focus-footer">
+                <button class="btn btn-outline btn-focus-block" id="btn-focus-block"><i class="fa-solid fa-user-slash"></i> <span>Bloquear</span></button>
                 <button class="btn btn-outline" id="btn-focus-speak"><i class="fa-solid fa-volume-high"></i> Leer en Voz Alta</button>
                 <button class="btn btn-primary" id="btn-focus-toggle-read"><i class="fa-solid fa-check-circle"></i> Marcar como Leído</button>
             </div>
@@ -346,6 +347,7 @@
                 <nav class="settings-nav" id="settings-nav">
                     <button class="settings-tab active" data-pane="conexion"><i class="fa-solid fa-plug"></i> <span>Conexión</span></button>
                     <button class="settings-tab" data-pane="montos"><i class="fa-solid fa-coins"></i> <span>Montos mínimos</span></button>
+                    <button class="settings-tab" data-pane="filtros"><i class="fa-solid fa-shield-halved"></i> <span>Filtros</span></button>
                     <button class="settings-tab" data-pane="alertas"><i class="fa-solid fa-bell"></i> <span>Sonido y voz</span></button>
                     <button class="settings-tab" data-pane="pantalla"><i class="fa-solid fa-display"></i> <span>Pantalla</span></button>
                     <button class="settings-tab" data-pane="obs"><i class="fa-solid fa-video"></i> <span>OBS</span></button>
@@ -463,6 +465,45 @@
                         <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Los Super Chats en dólares se comparan usando la cotización de "Pantalla y OBS". Si no la cargaste, se muestran y se leen siempre.</p>
                     </section>
 
+                    <!-- FILTROS: palabras prohibidas y usuarios bloqueados -->
+                    <section class="settings-pane" data-pane="filtros">
+                        <h3 class="pane-title">Filtros</h3>
+                        <p class="pane-desc">Para que no salga en vivo lo que no querés: palabras que se tapan y usuarios que se ignoran.</p>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-comment-slash"></i> Palabras prohibidas</div>
+                        <div class="form-group">
+                            <label for="cfg-banned-words">Una por línea (o separadas por coma)</label>
+                            <textarea id="cfg-banned-words" rows="5" spellcheck="false" placeholder="palabra&#10;otra palabra&#10;insult*"></textarea>
+                            <small>No importan mayúsculas ni tildes. Con <strong>*</strong> al final tapás todas las variantes: <code>bolud*</code> tapa "boludo", "boluda", "boludeces". Se tapan con asteriscos (***) y la voz las saltea. También se aplican al nombre de quien dona.</small>
+                        </div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Tapar en OBS</strong><small>Lo que ve tu audiencia.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-censor-obs"><span class="toggle-slider"></span></span>
+                        </label>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Saltear en la voz</strong><small>La voz no las dice.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-censor-tts"><span class="toggle-slider"></span></span>
+                        </label>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Tapar también en el panel</strong><small>Apagado, vos las ves completas y solo se tapan para el público.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-censor-panel"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="setting-row">
+                            <div><strong>Probar el filtro</strong><small>Escribí un mensaje y mirá cómo saldría en OBS.</small></div>
+                        </div>
+                        <div class="form-group" style="margin-top:-8px">
+                            <input type="text" id="cfg-censor-test" placeholder="Escribí un mensaje de prueba…">
+                            <small id="cfg-censor-result" class="censor-result">&nbsp;</small>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-user-slash"></i> Usuarios bloqueados</div>
+                        <div class="form-group">
+                            <label for="cfg-blocked-users">Un nombre por línea, tal como aparece en la donación</label>
+                            <textarea id="cfg-blocked-users" rows="4" spellcheck="false" placeholder="NombreDelUsuario"></textarea>
+                            <small>Sus donaciones no suenan, no se leen, no van a OBS ni quedan pendientes: van directo a "Leídos" con la marca BLOQUEADO (la plata igual suma en los totales). También podés bloquear a alguien desde su donación en grande.</small>
+                        </div>
+                    </section>
+
                     <!-- SONIDO Y VOZ -->
                     <section class="settings-pane" data-pane="alertas">
                         <h3 class="pane-title">Sonido y voz</h3>
@@ -553,6 +594,14 @@
                     <section class="settings-pane" data-pane="pantalla">
                         <h3 class="pane-title">Pantalla</h3>
                         <p class="pane-desc">Cómo se ve el panel principal. Lo de la ventana "Modo OBS" está en la sección <strong>OBS</strong>.</p>
+
+                        <div class="form-group lang-group" data-no-i18n>
+                            <label for="cfg-language"><i class="fa-solid fa-language"></i> Idioma / Language</label>
+                            <select id="cfg-language">
+                                <option value="es">Español</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
 
                         <label class="setting-row toggle-row">
                             <div><strong>Mostrar "Top Donador" en el encabezado</strong><small>El recuadro de arriba con quien más donó. Apagalo para que no ocupe lugar.</small></div>
@@ -665,8 +714,17 @@
                                 <option value="theme">El del tema</option>
                                 <option value="color">Un color</option>
                                 <option value="image">Una imagen o GIF</option>
+                                <option value="chroma">Transparente (recorte por color en OBS)</option>
                             </select>
                             <input type="color" id="cfg-obs-bg-color" value="#000000" class="bg-color-input">
+                            <div class="bg-dim-row" id="obs-chroma-row">
+                                <label for="cfg-obs-chroma">Color a recortar</label>
+                                <select id="cfg-obs-chroma">
+                                    <option value="#FF00FF">Magenta (recomendado)</option>
+                                    <option value="#00FF00">Verde</option>
+                                    <option value="#0000FF">Azul</option>
+                                </select>
+                            </div>
                             <div class="bg-file-row" id="obs-bg-file-row">
                                 <button type="button" class="btn btn-outline btn-sm" id="btn-obs-bg-pick"><i class="fa-solid fa-upload"></i> Elegir imagen o GIF</button>
                                 <span class="bg-file-name" id="obs-bg-name">Sin imagen</span>
@@ -686,6 +744,7 @@
                                 <span class="range-value" id="lbl-obs-bg-dim">30%</span>
                             </div>
                         </div>
+                        <div class="pane-note chroma-help hidden" id="obs-chroma-help"><i class="fa-solid fa-wand-magic-sparkles"></i> <strong>Cómo dejarlo transparente en OBS:</strong> clic derecho en la captura de la ventana → <em>Filtros</em> → <strong>+</strong> → <em>Clave cromática</em> (Chroma Key) → elegí el mismo color de acá (Magenta, Verde o Azul). Las tarjetas quedan flotando sobre tu escena. Si mostrás donaciones de Kick (verde), usá Magenta.</div>
                         <small class="pane-note" style="margin-top:-6px">Los GIF se ven animados. Máximo 8 MB. La imagen queda guardada en esta PC (no va en la "copia completa").</small>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-desktop"></i> Alertas</div>
@@ -803,6 +862,19 @@
                         </div>
 
                         <div class="setting-row">
+                            <div><strong>Exportar a Excel</strong><small>Planilla (.csv) con fecha, plataforma, usuario, monto y mensaje de cada donación. Se abre con Excel o Google Sheets.</small></div>
+                            <div class="backup-actions">
+                                <select id="cfg-csv-range" aria-label="Qué donaciones exportar">
+                                    <option value="all">Todas</option>
+                                    <option value="session">Esta sesión</option>
+                                    <option value="today">Hoy</option>
+                                    <option value="view">Lo que estás viendo (filtros)</option>
+                                </select>
+                                <button type="button" class="btn btn-outline" id="btn-export-csv"><i class="fa-solid fa-file-csv"></i> Exportar</button>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
                             <div><strong>Copia completa (configuración + historial)</strong><small>Guarda en un archivo tus conexiones, tokens, ajustes y todas las donaciones. Sirve para pasar todo a otra PC o a una versión nueva. El archivo tiene tus tokens: no lo compartas.</small></div>
                             <div class="backup-actions">
                                 <button type="button" class="btn btn-outline" id="btn-full-export"><i class="fa-solid fa-download"></i> Exportar</button>
@@ -874,6 +946,19 @@
                             <div class="about-rows">
                                 <div class="about-row"><span>Versión</span><strong id="about-version">1.0</strong></div>
                                 <div class="about-row"><span>Contacto</span><a href="mailto:mrlasheras@gmail.com" class="help-link">mrlasheras@gmail.com</a></div>
+                                <div class="about-row"><span>Código abierto</span><a href="https://github.com/Chatran666/streamdonations" target="_blank" rel="noopener" class="help-link">Licencia MIT</a></div>
+                                <div class="about-row"><span>Privacidad</span><a href="https://github.com/Chatran666/streamdonations/blob/main/PRIVACY.md" target="_blank" rel="noopener" class="help-link">Qué datos salen de la app</a></div>
+                            </div>
+                            <div class="shortcuts-box">
+                                <strong><i class="fa-solid fa-keyboard"></i> Atajos de teclado</strong>
+                                <div class="shortcut-row"><kbd>Espacio</kbd><span>Leer la siguiente pendiente</span></div>
+                                <div class="shortcut-row"><kbd>R</kbd><span>Repetir la última</span></div>
+                                <div class="shortcut-row"><kbd>M</kbd><span>Marcar como leída (o restaurar) la que está abierta</span></div>
+                                <div class="shortcut-row"><kbd>S</kbd><span>Callar la voz ahora</span></div>
+                                <div class="shortcut-row"><kbd>V</kbd><span>Prender / apagar la voz</span></div>
+                                <div class="shortcut-row"><kbd>B</kbd><span>Prender / apagar el sonido</span></div>
+                                <div class="shortcut-row"><kbd>Esc</kbd><span>Cerrar la ventana abierta</span></div>
+                                <small>Funcionan con la ventana de StreamDonations al frente. Con un Stream Deck, usá la acción "Tecla de acceso rápido" con la app al frente.</small>
                             </div>
                             <p class="pane-note">¿Encontraste un error o tenés una idea? Escribime al mail de contacto e indicá la versión.</p>
                             <p class="pane-note about-credits">Usa íconos de <strong>Font Awesome Free</strong> (licencia CC BY 4.0), las tipografías <strong>Plus Jakarta Sans</strong> y <strong>JetBrains Mono</strong> (licencia SIL OFL 1.1) y la librería <strong>Socket.IO</strong> (licencia MIT). StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; esta app no está afiliada a ellos.</p>
@@ -943,6 +1028,9 @@
                 <div class="db-toolbar-left">
                     <button class="btn btn-sm btn-primary" id="db-btn-export" title="Descargar copia de seguridad en archivo .json">
                         <i class="fa-solid fa-download"></i> Guardar Archivo (.json)
+                    </button>
+                    <button class="btn btn-sm btn-outline" id="db-btn-export-csv" title="Planilla para abrir en Excel o Google Sheets">
+                        <i class="fa-solid fa-file-csv"></i> Exportar a Excel (.csv)
                     </button>
                     <button class="btn btn-sm btn-outline" id="db-btn-import-trigger" title="Cargar chats desde un archivo .json guardado previamente">
                         <i class="fa-solid fa-upload"></i> Levantar Archivo (.json)
@@ -1071,6 +1159,8 @@
     <!-- Notification Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
+    <script src="i18n-en.js"></script>
+    <script src="i18n.js"></script>
     <script src="socket.io.js"></script>
     <script src="xfiles-fx.js"></script>
     <script src="sd-store.js"></script>
