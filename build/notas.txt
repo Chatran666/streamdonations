@@ -1,6 +1,9 @@
+Novedades de la 1.8.1:
+- Tutorial corto la primera vez que abrís la app: dónde prender sonido y voz, los filtros y cómo conectar tu cuenta.
+- En instalaciones nuevas, el sonido, la voz y los atajos de teclado vienen apagados (si ya los usabas, quedan como los tenías).
+- Los atajos de teclado ahora se prenden y apagan en Opciones → Pantalla.
+
 Novedades de la 1.8.0:
-- Filtros: palabras prohibidas (se tapan en OBS y la voz las saltea) y usuarios bloqueados (también desde la donación en grande).
-- OBS: fondo transparente (recorte por color con "Clave cromática" en OBS).
-- Exportar a Excel (.csv): todas, esta sesión, hoy o lo que estás viendo.
-- Atajos nuevos: M marcar leída, S callar la voz, V voz, B sonido.
-- Idioma: la app ahora también está en inglés (Opciones → Pantalla).
+- Filtros: palabras prohibidas y usuarios bloqueados.
+- OBS: fondo transparente (recorte por color).
+- Exportar a Excel (.csv) e idioma inglés.

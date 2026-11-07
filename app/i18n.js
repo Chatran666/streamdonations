@@ -9,8 +9,7 @@
             const st = JSON.parse(localStorage.getItem('streamdonations_settings') || '{}');
             if (st.language === 'en' || st.language === 'es') return st.language;
         } catch (e) {}
-        const nav = (navigator.language || 'es').toLowerCase();
-        return nav.startsWith('es') ? 'es' : 'en';
+        return 'es'; // de fábrica en español; el inglés se elige en Opciones → Pantalla
     }
     const LANG = readLang();
     window.SD_LANG = LANG;
@@ -55,7 +54,7 @@
     if (LANG !== 'en') return;
 
     // Lo que escribe la gente (nombres, mensajes) y los campos editables no se traducen
-    const SKIP_SEL = '[data-no-i18n], .card-message, .donor-nick-text, #focus-message, #focus-nick, .obs-msg, .obs-nick > span:first-child, #stat-top-donor, .db-item-msg, .db-item-nick, .session-top, .obs-nick-text, script, style, #about-version, .censor-result';
+    const SKIP_SEL = '[data-no-i18n], .card-message, .donor-nick-text, #focus-message, #focus-nick, .obs-msg, .obs-nick > span:first-child, #stat-top-donor, .db-item-msg, .db-item-nick, .session-top, .obs-nick-text, script, style, #about-version, #update-notes, .censor-result';
     const ATTRS = ['title', 'placeholder', 'aria-label', 'label'];
     function skip(el) { return !el || (el.closest && el.closest(SKIP_SEL)); }
 

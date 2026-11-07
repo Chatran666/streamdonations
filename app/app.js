@@ -59,8 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
         layout: 'unified', // 'split' | 'unified' (se toma de la configuración guardada)
         isSimulating: false,
         simInterval: null,
-        soundEnabled: true,
-        ttsEnabled: true,
+        soundEnabled: false, // vienen apagados: se prenden con los botones del encabezado
+        ttsEnabled: false,
         showAmounts: false, // false = solo mensajes, true = muestra $
         showOnlyRead: false, // false = solo pendientes (los leídos desaparecen), true = ver historial de leídos
         toolbarVisible: true, // visibilidad de la barra de filtros del medio
@@ -83,8 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
             obsDuration: 0, // Segundos que queda cada alerta en OBS (0 = queda hasta marcarla como leída)
             simSpeed: 5,
             autoSaveDb: true, // Auto-guardado permanente en base de datos local
-            soundEnabled: true,
-            ttsEnabled: true,
+            soundEnabled: false,
+            ttsEnabled: false,
+            hotkeys: false, // Atajos de teclado (apagados de fábrica)
             showAmounts: false,
             voiceName: '', // Voz elegida para la lectura (vacío = primera voz en español)
             usdRate: 0, // Cotización: pesos por US$1 (0 = no convertir)
@@ -150,8 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.settings._obsStayMigrated = true;
     }
     state.layout = state.settings.layout === 'split' ? 'split' : 'unified';
-    state.soundEnabled = state.settings.soundEnabled !== false;
-    state.ttsEnabled = state.settings.ttsEnabled !== false;
+    document.documentElement.classList.toggle('hotkeys-off', !state.settings.hotkeys);
+    state.soundEnabled = state.settings.soundEnabled === true;
+    state.ttsEnabled = state.settings.ttsEnabled === true;
     state.showAmounts = !!state.settings.showAmounts;
 
     function persistSettings() {
@@ -1549,7 +1551,12 @@ document.addEventListener('DOMContentLoaded', () => {
             $('modal-update').classList.add('hidden');
             try { sessionStorage.setItem('sd_update_later', info.version); } catch (e) {}
         };
-        $('modal-update').classList.remove('hidden');
+        // Si el tutorial está abierto, el aviso de versión nueva espera a que termine
+        const showWhenFree = () => {
+            if (!$('tour').classList.contains('hidden')) { setTimeout(showWhenFree, 1000); return; }
+            $('modal-update').classList.remove('hidden');
+        };
+        showWhenFree();
     }
 
     function fetchVersionFile(url) {
@@ -1578,11 +1585,91 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(() => {}); // sin internet: no molesta
     }
+    // ==========================================================================
+    // TUTORIAL DE LA PRIMERA VEZ (resalta cada botón y explica para qué sirve)
+    // ==========================================================================
+    const TOUR = [
+        { target: null, icon: 'fa-hand-sparkles', title: '¡Bienvenido a StreamDonations!',
+          text: 'Te muestro en 5 pasos lo básico: dónde prender el sonido y la voz, los filtros y cómo conectar tu cuenta para que lleguen las donaciones.' },
+        { target: '#btn-toggle-sound', title: 'Sonido de alerta',
+          text: 'Viene <strong>apagado</strong>. Tocá este botón para que suene un aviso con cada donación. El tipo de sonido y el volumen se eligen en Opciones → Sonido y voz.' },
+        { target: '#btn-toggle-tts', title: 'Lectura en voz alta',
+          text: 'También viene <strong>apagada</strong>. Prendela acá para que la app lea el nombre, el monto y el mensaje. La voz, la velocidad y desde qué monto se lee están en Opciones → Sonido y voz.' },
+        { target: '#btn-open-settings', title: 'Filtros y atajos',
+          text: 'En <strong>Opciones → Filtros</strong> cargás palabras prohibidas (se tapan en OBS y la voz las saltea) y usuarios bloqueados. Los atajos de teclado vienen apagados: se prenden en Opciones → Pantalla.' },
+        { target: '#btn-open-settings', title: 'Conectá tu cuenta', final: true,
+          text: 'Lo más importante: en <strong>Opciones → Conexión</strong> pegás el <strong>JWT Token de StreamElements</strong> de cada canal (YouTube, Kick, Twitch). Las donaciones de Ceneka entran por el canal que vinculaste en ceneka.net. Si no sabés dónde está el token, mirá la <a href="AYUDA.html" target="_blank" class="help-link">guía paso a paso</a>.' }
+    ];
+    let tourIdx = 0;
+    function tourPlace() {
+        const st = TOUR[tourIdx];
+        const spot = $('tour-spot'), card = $('tour-card');
+        const el = st.target ? document.querySelector(st.target) : null;
+        const r = el && el.offsetParent !== null ? el.getBoundingClientRect() : null;
+        if (!r) {
+            spot.style.cssText = 'left:50%;top:40%;width:0;height:0;';
+            card.style.left = Math.max(16, (innerWidth - card.offsetWidth) / 2) + 'px';
+            card.style.top = Math.max(16, (innerHeight - card.offsetHeight) / 2) + 'px';
+            card.classList.remove('has-arrow');
+            return;
+        }
+        const pad = 6;
+        spot.style.cssText = `left:${r.left - pad}px;top:${r.top - pad}px;width:${r.width + pad * 2}px;height:${r.height + pad * 2}px;`;
+        const cw = card.offsetWidth, ch = card.offsetHeight;
+        let left = r.left + r.width / 2 - cw / 2;
+        left = Math.min(Math.max(16, left), innerWidth - cw - 16);
+        let top = r.bottom + 16;
+        if (top + ch > innerHeight - 16) top = Math.max(16, r.top - ch - 16);
+        card.style.left = left + 'px'; card.style.top = top + 'px';
+        card.classList.add('has-arrow');
+        card.style.setProperty('--arrow-x', Math.min(Math.max(20, r.left + r.width / 2 - left), cw - 20) + 'px');
+        card.classList.toggle('arrow-bottom', top < r.top);
+    }
+    function tourShow(i) {
+        tourIdx = Math.max(0, Math.min(TOUR.length - 1, i));
+        const st = TOUR[tourIdx];
+        $('tour-step').textContent = `Paso ${tourIdx + 1} de ${TOUR.length}`;
+        $('tour-title').textContent = st.title;
+        $('tour-text').innerHTML = st.text;
+        $('tour-prev').classList.toggle('hidden', tourIdx === 0);
+        $('tour-next').innerHTML = st.final ? '<i class="fa-solid fa-plug"></i> Ir a Conexión' : 'Siguiente <i class="fa-solid fa-chevron-right"></i>';
+        $('tour').classList.remove('hidden');
+        requestAnimationFrame(tourPlace);
+    }
+    function tourEnd(goConnection) {
+        $('tour').classList.add('hidden');
+        state.settings.tutorialDone = true;
+        state.settings.hideWelcome = true; // el tutorial ya explica dónde se conecta
+        persistSettings();
+        if (goConnection) {
+            $('btn-open-settings').click();
+            setTimeout(() => { const t = document.querySelector('.settings-tab[data-pane="conexion"]'); if (t) t.click(); }, 50);
+        }
+    }
+    $('tour-next').addEventListener('click', () => { if (TOUR[tourIdx].final) tourEnd(true); else tourShow(tourIdx + 1); });
+    $('tour-prev').addEventListener('click', () => tourShow(tourIdx - 1));
+    $('tour-skip').addEventListener('click', () => tourEnd(false));
+    window.addEventListener('resize', () => { if (!$('tour').classList.contains('hidden')) tourPlace(); });
+    document.addEventListener('keydown', (e) => {
+        if ($('tour').classList.contains('hidden')) return;
+        if (e.key === 'Escape') tourEnd(false);
+        else if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); $('tour-next').click(); }
+        else if (e.key === 'ArrowLeft') tourShow(tourIdx - 1);
+    }, true);
+    $('btn-replay-tour').addEventListener('click', () => { closeSettings(); setTimeout(() => tourShow(0), 200); });
+    function maybeShowTour() {
+        if (state.settings.tutorialDone || hasAnyConnection()) return false;
+        if (!$('modal-update').classList.contains('hidden')) { setTimeout(maybeShowTour, 1500); return true; }
+        tourShow(0);
+        return true;
+    }
+
     // Bienvenida: si todavía no hay ninguna conexión cargada, explica dónde se cargan
     function hasAnyConnection() {
         return (state.settings.seChannels || []).some(c => String(c.token || '').trim()) || !!String(state.settings.slToken || '').trim();
     }
     function maybeShowWelcome() {
+        if (maybeShowTour()) return;
         if (hasAnyConnection() || state.settings.hideWelcome) return;
         if (!$('modal-update').classList.contains('hidden')) { setTimeout(maybeShowWelcome, 1500); return; }
         $('modal-welcome').classList.remove('hidden');
@@ -3782,6 +3869,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-strip-tracking').checked = st.stripTracking !== false;
         $('cfg-recover-missed').checked = st.recoverMissed !== false;
         $('cfg-language').value = window.SD_LANG === 'en' ? 'en' : 'es';
+        $('cfg-hotkeys').checked = !!st.hotkeys;
         $('cfg-banned-words').value = st.bannedWords || '';
         $('cfg-censor-obs').checked = st.censorObs !== false;
         $('cfg-censor-tts').checked = st.censorTts !== false;
@@ -3877,6 +3965,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const obsBefore = JSON.stringify([st.obsLinkMode, st.obsHideMessage, st.stripTracking, st.bannedWords, st.censorObs]);
         const langBefore = window.SD_LANG || 'es';
         st.language = $('cfg-language').value === 'en' ? 'en' : 'es';
+        st.hotkeys = $('cfg-hotkeys').checked;
+        document.documentElement.classList.toggle('hotkeys-off', !st.hotkeys);
         st.bannedWords = $('cfg-banned-words').value.slice(0, 20000);
         st.censorObs = $('cfg-censor-obs').checked;
         st.censorTts = $('cfg-censor-tts').checked;
@@ -4109,6 +4199,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (settingsOpen || sessionOpen || dbOpen || !$('modal-link').classList.contains('hidden')) return;
+            if (!state.settings.hotkeys || !$('tour').classList.contains('hidden')) return; // atajos apagados
 
             if (e.code === 'Space' || e.key === ' ') {
                 e.preventDefault(); // evita que la barra "aprete" el último botón tocado

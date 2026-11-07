@@ -45,10 +45,10 @@
             <!-- Quick Action Controls -->
             <div class="header-actions">
                 <div class="icon-group" role="group" aria-label="Controles rápidos">
-                    <button class="btn-icon active" id="btn-toggle-sound" title="Sonido de alerta: activado">
+                    <button class="btn-icon" id="btn-toggle-sound" title="Sonido de alerta: desactivado">
                         <i class="fa-solid fa-volume-high" id="sound-icon"></i>
                     </button>
-                    <button class="btn-icon active" id="btn-toggle-tts" title="Lectura en voz alta: activada">
+                    <button class="btn-icon" id="btn-toggle-tts" title="Lectura en voz alta: desactivada">
                         <i class="fa-solid fa-comment-dots" id="tts-icon"></i>
                     </button>
                     <button class="btn-icon active" id="btn-toggle-toolbar" title="Barra de filtros: visible">
@@ -167,8 +167,8 @@
                 </div>
 
                 <!-- Leer siguiente (atajo: barra espaciadora) -->
-                <button class="btn btn-sm btn-outline" id="btn-read-next" title="Leer la siguiente donación pendiente. Atajos: Espacio = siguiente, R = repetir, Esc = cerrar">
-                    <i class="fa-solid fa-forward-step"></i> Leer siguiente <kbd>Espacio</kbd>
+                <button class="btn btn-sm btn-outline" id="btn-read-next" title="Leer la siguiente donación pendiente">
+                    <i class="fa-solid fa-forward-step"></i> Leer siguiente <kbd class="hotkey-hint">Espacio</kbd>
                 </button>
 
                 <!-- Mark All Read Button -->
@@ -282,6 +282,23 @@
                 <div class="update-actions">
                     <button type="button" class="btn btn-outline" id="btn-welcome-later">Ahora no</button>
                     <button type="button" class="btn btn-primary" id="btn-welcome-go"><i class="fa-solid fa-plug"></i> Ir a Conexión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TUTORIAL DE LA PRIMERA VEZ -->
+    <div class="tour hidden" id="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+        <div class="tour-spot" id="tour-spot"></div>
+        <div class="tour-card" id="tour-card">
+            <div class="tour-step" id="tour-step">1 de 5</div>
+            <h3 id="tour-title"></h3>
+            <p id="tour-text"></p>
+            <div class="tour-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="tour-skip">Saltar tutorial</button>
+                <div class="tour-nav">
+                    <button type="button" class="btn btn-outline btn-sm" id="tour-prev"><i class="fa-solid fa-chevron-left"></i> Atrás</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="tour-next">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
         </div>
@@ -692,6 +709,21 @@
                             <small>La parte de arriba de cada tarjeta (nombre, red, monto, foto y "Marcar Leído"), sin cambiar el tamaño del mensaje.</small>
                         </div>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-keyboard"></i> Atajos de teclado</div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Activar atajos de teclado</strong><small>Vienen apagados para que una tecla tocada sin querer no lea, marque ni silencie nada en pleno vivo.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-hotkeys"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="shortcuts-box">
+                            <div class="shortcut-row"><kbd>Espacio</kbd><span>Leer la siguiente pendiente</span></div>
+                            <div class="shortcut-row"><kbd>R</kbd><span>Repetir la última</span></div>
+                            <div class="shortcut-row"><kbd>M</kbd><span>Marcar como leída (o restaurar) la que está abierta</span></div>
+                            <div class="shortcut-row"><kbd>S</kbd><span>Callar la voz ahora</span></div>
+                            <div class="shortcut-row"><kbd>V</kbd><span>Prender / apagar la voz</span></div>
+                            <div class="shortcut-row"><kbd>B</kbd><span>Prender / apagar el sonido</span></div>
+                            <small>Funcionan con la ventana de StreamDonations al frente. Con un Stream Deck, usá la acción "Tecla de acceso rápido" con la app al frente. <kbd>Esc</kbd> para cerrar ventanas funciona siempre.</small>
+                        </div>
+
                     </section>
 
                     <!-- OBS -->
@@ -949,17 +981,7 @@
                                 <div class="about-row"><span>Código abierto</span><a href="https://github.com/Chatran666/streamdonations" target="_blank" rel="noopener" class="help-link">Licencia MIT</a></div>
                                 <div class="about-row"><span>Privacidad</span><a href="https://github.com/Chatran666/streamdonations/blob/main/PRIVACY.md" target="_blank" rel="noopener" class="help-link">Qué datos salen de la app</a></div>
                             </div>
-                            <div class="shortcuts-box">
-                                <strong><i class="fa-solid fa-keyboard"></i> Atajos de teclado</strong>
-                                <div class="shortcut-row"><kbd>Espacio</kbd><span>Leer la siguiente pendiente</span></div>
-                                <div class="shortcut-row"><kbd>R</kbd><span>Repetir la última</span></div>
-                                <div class="shortcut-row"><kbd>M</kbd><span>Marcar como leída (o restaurar) la que está abierta</span></div>
-                                <div class="shortcut-row"><kbd>S</kbd><span>Callar la voz ahora</span></div>
-                                <div class="shortcut-row"><kbd>V</kbd><span>Prender / apagar la voz</span></div>
-                                <div class="shortcut-row"><kbd>B</kbd><span>Prender / apagar el sonido</span></div>
-                                <div class="shortcut-row"><kbd>Esc</kbd><span>Cerrar la ventana abierta</span></div>
-                                <small>Funcionan con la ventana de StreamDonations al frente. Con un Stream Deck, usá la acción "Tecla de acceso rápido" con la app al frente.</small>
-                            </div>
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-replay-tour"><i class="fa-solid fa-route"></i> Ver el tutorial de nuevo</button>
                             <p class="pane-note">¿Encontraste un error o tenés una idea? Escribime al mail de contacto e indicá la versión.</p>
                             <p class="pane-note about-credits">Usa íconos de <strong>Font Awesome Free</strong> (licencia CC BY 4.0), las tipografías <strong>Plus Jakarta Sans</strong> y <strong>JetBrains Mono</strong> (licencia SIL OFL 1.1) y la librería <strong>Socket.IO</strong> (licencia MIT). StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; esta app no está afiliada a ellos.</p>
                         </div>
