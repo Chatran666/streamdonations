@@ -1,2 +1,2 @@
-- Se actualiza sola: las versiones nuevas se publican en GitHub y la app avisa con un botón para descargarlas.
-- Opciones → Conexión: StreamElements y Streamlabs quedan en recuadros separados por una línea.
+- Stream entre dos personas: en Opciones → Conexión → "Sincronizar con otra PC". Con un código, lo que uno marca como leído o restaura también se marca en la PC del otro y en su ventana OBS.
+- Opciones → Conexión: cada servicio en su propio recuadro, separados por una línea.

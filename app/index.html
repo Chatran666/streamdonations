@@ -18,7 +18,7 @@
             <div class="brand">
                 <div class="brand-logo brand-logo-img"><img src="icon.png" alt=""></div>
                 <div class="brand-info">
-                    <h1>StreamDonations <span class="badge-live idle" id="live-badge" title="Estado de la conexión con Streamlabs"><i class="fa-solid fa-circle"></i> <span>DESCONECTADO</span></span></h1>
+                    <h1>StreamDonations <span class="badge-live idle" id="live-badge" title="Estado de la conexión con Streamlabs"><i class="fa-solid fa-circle"></i> <span>DESCONECTADO</span></span><span class="sync-badge hidden" id="sync-badge" title="Sincronizado con otra PC"><i class="fa-solid fa-people-arrows"></i></span></h1>
                     <p>Donaciones de Ceneka, YouTube, Twitch y Kick en un solo panel</p>
                 </div>
             </div>
@@ -390,6 +390,35 @@
                             </div>
                             <small>Streamlabs → Settings → API Settings → API Tokens → <em>Your Socket API Token</em>.</small>
                         </div>
+                        </div>
+
+                        <div class="service-divider"><span>Stream entre dos personas</span></div>
+
+                        <div class="service-block">
+                            <div class="pane-subtitle"><i class="fa-solid fa-people-arrows"></i> Sincronizar con otra PC <span class="pill-opt">Opcional</span></div>
+                            <p class="pane-note" style="margin-top:-6px">Para cuando hacen el stream dos personas en lugares distintos. Las dos PCs cargan los mismos canales de arriba y, con este código, lo que uno <strong>marca como leído o restaura</strong> también se marca en la PC del otro (y en su ventana OBS). Solo viajan códigos internos de cada donación: nunca nombres, montos, mensajes ni tokens.</p>
+                            <div class="status-card">
+                                <span class="sl-status" id="sync-status"><i class="fa-solid fa-circle"></i> <span>Apagado</span></span>
+                            </div>
+                            <div id="sync-inactive">
+                                <div class="sync-row">
+                                    <button type="button" class="btn btn-primary" id="btn-sync-create"><i class="fa-solid fa-plus"></i> Crear código</button>
+                                    <span class="sync-or">o pegá el que te pasaron:</span>
+                                </div>
+                                <div class="input-with-btn">
+                                    <input type="text" id="sync-code-input" placeholder="sd-..." autocomplete="off" spellcheck="false">
+                                    <button type="button" class="btn btn-outline" id="btn-sync-join"><i class="fa-solid fa-link"></i> Unirme</button>
+                                </div>
+                            </div>
+                            <div id="sync-active" class="hidden">
+                                <label for="sync-code-show">Código de esta sincronización (pasáselo a la otra persona)</label>
+                                <div class="input-with-btn">
+                                    <input type="text" id="sync-code-show" readonly>
+                                    <button type="button" class="btn btn-outline" id="btn-sync-copy" title="Copiar código"><i class="fa-solid fa-copy"></i></button>
+                                </div>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-sync-stop" style="margin-top:8px"><i class="fa-solid fa-link-slash"></i> Dejar de sincronizar</button>
+                            </div>
+                            <small class="pane-note">Funciona de inmediato, sin tocar "Guardar cambios". El código es como una llave: pasáselo solo a la persona con la que hacés el stream.</small>
                         </div>
 
                         <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Si una misma donación llegara por los dos servicios, la app la muestra una sola vez. Para probar solo la app (tarjetas, sonido, voz y OBS) andá a <strong>Pruebas</strong>.</p>

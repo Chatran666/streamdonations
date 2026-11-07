@@ -2479,3 +2479,11 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .service-block .pane-subtitle { margin-top: 0; }
 .service-divider { display: flex; align-items: center; gap: 12px; margin: 6px 0; color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
 .service-divider::before, .service-divider::after { content: ''; flex: 1; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.55), transparent); }
+
+/* Sincronizar con otra PC */
+.sync-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.sync-or { font-size: 0.8rem; color: var(--text-secondary); }
+#sync-code-show { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+.sl-status.connecting { color: #FBBF24; }
+.sync-badge { display: inline-flex; align-items: center; justify-content: center; margin-left: 6px; width: 24px; height: 20px; border-radius: 999px; font-size: 0.62rem; vertical-align: middle; color: #34D399; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.45); }
+.sync-badge.error { color: #FBBF24; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.45); }

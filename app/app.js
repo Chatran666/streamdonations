@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función de persistencia automática en base de datos local
     function saveDonationsToStorage() {
+        if (typeof syncNoteChanges === 'function') { try { syncNoteChanges(); } catch (e) {} }
         if (state.settings.autoSaveDb !== false) {
             try {
                 localStorage.setItem('streamdonations_chats_db', JSON.stringify(state.donations));
@@ -934,6 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         Object.assign(donation, safeDonation(donation));
+        if (typeof syncPendingRead === 'function' && syncPendingRead(donation.id)) donation.isRead = true;
         state.donations.unshift(donation);
         saveDonationsToStorage();
 
@@ -943,6 +945,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Plataforma sin mostrar (por ej. un canal marcado "Solo Ceneka"): se guarda en el historial,
         // pero no suena, no se lee en voz alta, no va a OBS ni muestra aviso
         if (!isVisiblePlatform(donation.platform)) { render(); return; }
+        // La otra PC ya la marcó como leída antes de que llegara acá: no suena ni va a OBS
+        if (donation.isRead) { render(); return; }
 
         playDonationSound(donation.tier);
         speakDonation(donation);
@@ -1206,6 +1210,194 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     initBackupAndDonate();
+
+    // ==========================================================================
+    // SINCRONIZAR CON OTRA PC (stream entre dos personas)
+    // Las dos PCs tienen los mismos canales; por un canal privado (ntfy.sh) se avisan
+    // qué donaciones se marcaron como leídas o se restauraron. Solo viajan códigos de
+    // donación, nunca nombres, montos, mensajes ni tokens.
+    // ==========================================================================
+    const SYNC_SERVER = 'https://ntfy.sh';
+    const SYNC_DEVICE = (() => {
+        try {
+            let d = localStorage.getItem('sd_device_id');
+            if (!d) { d = 'pc_' + Math.random().toString(36).slice(2, 10); localStorage.setItem('sd_device_id', d); }
+            return d;
+        } catch (e) { return 'pc_' + Math.random().toString(36).slice(2, 10); }
+    })();
+    var syncSource = null, syncStatus = 'off', syncSnapshot = null, syncApplying = false;
+    var syncPending = new Map(); // marcas que llegaron antes que la donación (id -> leída)
+    var syncOutbox = { r: new Set(), u: new Set() }, syncTimer = null, syncRetry = null;
+
+    function syncCodeValid(c) { return /^sd-[a-z0-9]{20,40}$/.test(c || ''); }
+    function syncTopic() { return syncCodeValid(state.settings.syncCode) ? state.settings.syncCode : ''; }
+    function syncShareable(d) { return d && d.id && !d.isTest && /^(se|sl)_/.test(d.id); }
+
+    function syncTakeSnapshot() {
+        syncSnapshot = new Map();
+        state.donations.forEach(d => { if (syncShareable(d)) syncSnapshot.set(d.id, !!d.isRead); });
+    }
+
+    // Se llama cada vez que se guardan las donaciones: detecta qué cambió y lo avisa a la otra PC
+    function syncNoteChanges() {
+        if (!syncTopic() || syncApplying) return;
+        if (!syncSnapshot) { syncTakeSnapshot(); return; }
+        state.donations.forEach(d => {
+            if (!syncShareable(d)) return;
+            const before = syncSnapshot.get(d.id), now = !!d.isRead;
+            if (before === undefined) {
+                // Donación nueva: si ya llega leída por algo de acá (no por la otra PC), también se avisa
+                syncSnapshot.set(d.id, now);
+                return;
+            }
+            if (before !== now) {
+                syncSnapshot.set(d.id, now);
+                (now ? syncOutbox.r : syncOutbox.u).add(d.id);
+                (now ? syncOutbox.u : syncOutbox.r).delete(d.id);
+            }
+        });
+        if (syncOutbox.r.size || syncOutbox.u.size) {
+            clearTimeout(syncTimer);
+            syncTimer = setTimeout(syncFlush, 300);
+        }
+    }
+
+    function syncFlush() {
+        const topic = syncTopic();
+        if (!topic) return;
+        const r = [...syncOutbox.r], u = [...syncOutbox.u];
+        syncOutbox.r.clear(); syncOutbox.u.clear();
+        // De a 60 códigos por mensaje (cada mensaje tiene un tamaño máximo)
+        const send = (part) => fetch(SYNC_SERVER + '/' + topic, { method: 'POST', body: JSON.stringify(part) })
+            .catch(() => { (part.r || []).forEach(x => syncOutbox.r.add(x)); (part.u || []).forEach(x => syncOutbox.u.add(x)); clearTimeout(syncTimer); syncTimer = setTimeout(syncFlush, 5000); });
+        for (let i = 0; i < Math.max(r.length, u.length); i += 60) {
+            send({ v: 1, from: SYNC_DEVICE, r: r.slice(i, i + 60), u: u.slice(i, i + 60) });
+        }
+    }
+
+    // Marca que llegó de la otra PC para una donación que acá todavía no apareció
+    function syncPendingRead(id) {
+        if (!syncPending.has(id)) return false;
+        const v = syncPending.get(id);
+        syncPending.delete(id);
+        return v;
+    }
+
+    function syncApply(msg) {
+        if (!msg || msg.from === SYNC_DEVICE) return;
+        const valid = x => typeof x === 'string' && /^(se|sl)_[A-Za-z0-9_.-]{1,80}$/.test(x);
+        const reads = (Array.isArray(msg.r) ? msg.r : []).filter(valid).slice(0, 200);
+        const unreads = (Array.isArray(msg.u) ? msg.u : []).filter(valid).slice(0, 200);
+        if (!reads.length && !unreads.length) return;
+        let changed = 0;
+        syncApplying = true;
+        try {
+            const apply = (id, val) => {
+                const d = state.donations.find(x => x.id === id);
+                if (!d) { syncPending.set(id, val); if (syncPending.size > 500) syncPending.delete(syncPending.keys().next().value); return; }
+                if (!!d.isRead !== val) {
+                    d.isRead = val;
+                    if (val) dismissOverlayAlert(d.id); else if (typeof pushToOverlay === 'function' && isVisiblePlatform(d.platform)) pushToOverlay(d);
+                    changed++;
+                }
+                if (syncSnapshot) syncSnapshot.set(id, val);
+            };
+            reads.forEach(id => apply(id, true));
+            unreads.forEach(id => apply(id, false));
+            if (changed) { saveDonationsToStorage(); render(); }
+        } finally {
+            syncApplying = false;
+        }
+    }
+
+    function setSyncStatus(st) {
+        syncStatus = st;
+        const el = $('sync-status');
+        if (el) {
+            const txt = { off: 'Apagado', connecting: 'Conectando…', on: 'Sincronizado', error: 'Sin conexión (reintentando)' }[st];
+            el.className = 'sl-status ' + ({ on: 'connected', connecting: 'connecting', error: 'error' }[st] || '');
+            el.querySelector('span').textContent = txt;
+        }
+        const badge = $('sync-badge');
+        if (badge) badge.classList.toggle('hidden', st === 'off');
+        if (badge) badge.classList.toggle('error', st === 'error');
+    }
+
+    function syncConnect() {
+        syncDisconnect(true);
+        const topic = syncTopic();
+        if (!topic || typeof EventSource === 'undefined') { setSyncStatus('off'); return; }
+        setSyncStatus('connecting');
+        syncTakeSnapshot();
+        // "since": trae lo que la otra PC marcó mientras esta estaba cerrada (hasta 12 h)
+        const since = state.settings.syncLastSeen ? Math.max(Math.floor(state.settings.syncLastSeen / 1000) - 5, Math.floor(Date.now() / 1000) - 12 * 3600) : '10m';
+        const es = new EventSource(SYNC_SERVER + '/' + topic + '/sse?since=' + since);
+        syncSource = es;
+        es.onopen = () => { if (syncSource === es) setSyncStatus('on'); };
+        es.onmessage = (ev) => {
+            let data;
+            try { data = JSON.parse(ev.data); } catch (e) { return; }
+            if (!data || data.event !== 'message') return;
+            let msg;
+            try { msg = JSON.parse(data.message); } catch (e) { return; }
+            syncApply(msg);
+            state.settings.syncLastSeen = Date.now();
+            clearTimeout(syncRetry);
+            syncRetry = setTimeout(persistSettings, 2000);
+        };
+        es.onerror = () => { if (syncSource === es) setSyncStatus(es.readyState === 2 ? 'error' : 'connecting'); if (es.readyState === 2) setTimeout(() => { if (syncSource === es) syncConnect(); }, 10000); };
+    }
+
+    function syncDisconnect(silent) {
+        if (syncSource) { try { syncSource.close(); } catch (e) {} }
+        syncSource = null;
+        if (!silent) setSyncStatus('off');
+    }
+
+    function renderSyncForm() {
+        const code = syncTopic();
+        $('sync-code-show').value = code || '';
+        $('sync-active').classList.toggle('hidden', !code);
+        $('sync-inactive').classList.toggle('hidden', !!code);
+        setSyncStatus(code ? (syncSource ? syncStatus : 'connecting') : 'off');
+    }
+
+    function initSync() {
+        $('btn-sync-create').addEventListener('click', () => {
+            const rnd = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join('');
+            state.settings.syncCode = 'sd-' + rnd;
+            state.settings.syncLastSeen = Date.now();
+            persistSettings();
+            renderSyncForm();
+            syncConnect();
+            showToast('Código creado: pasáselo a la otra persona', 'success');
+        });
+        $('btn-sync-join').addEventListener('click', () => {
+            const c = $('sync-code-input').value.trim().toLowerCase();
+            if (!syncCodeValid(c)) { showToast('Ese código no es válido. Copialo completo (empieza con "sd-").', 'warning'); return; }
+            state.settings.syncCode = c;
+            state.settings.syncLastSeen = Date.now() - 12 * 3600 * 1000;
+            persistSettings();
+            $('sync-code-input').value = '';
+            renderSyncForm();
+            syncConnect();
+            showToast('Sincronización activada', 'success');
+        });
+        $('btn-sync-copy').addEventListener('click', () => {
+            const c = syncTopic();
+            (navigator.clipboard ? navigator.clipboard.writeText(c) : Promise.reject()).then(() => showToast('Código copiado', 'success'), () => prompt('Copiá el código:', c));
+        });
+        $('btn-sync-stop').addEventListener('click', () => {
+            if (!confirm('¿Dejar de sincronizar con la otra PC?')) return;
+            state.settings.syncCode = '';
+            persistSettings();
+            syncDisconnect();
+            renderSyncForm();
+        });
+        renderSyncForm();
+        if (syncTopic()) syncConnect();
+    }
+    initSync();
 
     // ==========================================================================
     // AVISO DE ACTUALIZACIÓN: al abrir, compara la versión con la publicada
@@ -1777,6 +1969,7 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach(m => {
             if (!m) return;
             const uid = m._id || m.id || (eventData.event_id ? eventData.event_id + '_' + (m.name || '') : null);
+            const sid = uid ? 'sl_' + String(uid).replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) : undefined;
             if (uid) {
                 if (state.streamlabs.processedIds.has(uid)) return; // evita duplicados
                 state.streamlabs.processedIds.add(uid);
@@ -1787,6 +1980,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const amount = parseNumber(m.amount);
                 if (isCrossServiceDuplicate('ceneka', m.from || m.name, amount)) return;
                 addDonation({
+                    id: sid,
                     platform: 'ceneka',
                     nick: m.from || m.name || 'Anónimo',
                     amount: amount,
@@ -1801,6 +1995,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const amount = parseNumber(m.amount);
                 if (isCrossServiceDuplicate('twitch', m.name || m.display_name, amount)) return;
                 addDonation({
+                    id: sid,
                     platform: 'twitch',
                     nick: m.name || m.display_name || 'Usuario de Twitch',
                     amount: amount,
@@ -1815,6 +2010,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const amount = raw >= 10000 ? raw / 1000000 : raw;
                 if (isCrossServiceDuplicate('youtube', m.name, amount)) return;
                 addDonation({
+                    id: sid,
                     platform: 'youtube',
                     nick: m.name || 'Usuario de YouTube',
                     amount: amount,
@@ -2005,7 +2201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (!item.amount) return;
         if (isCrossServiceDuplicate(item.platform, item.nick, item.amount)) return;
-        addDonation({ ...item, timestamp: Date.now() });
+        addDonation({ ...item, id: id ? 'se_' + String(id).replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) : undefined, timestamp: Date.now() });
     }
 
     function openSE(channel, index) {
@@ -3353,6 +3549,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-head').value = clampNum(st.obsHeadScale, 0.5, 1.4, 0.75);
         updateTextScaleLabels();
         fillLookForm();
+        renderSyncForm();
         $('cfg-sl-token').value = st.slToken || '';
         $('cfg-sl-token').type = 'password';
         $('cfg-sound-enabled').checked = state.soundEnabled;
