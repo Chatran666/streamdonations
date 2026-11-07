@@ -1,0 +1,76 @@
+# Cuando cambia la versión en package.json (rama main), GitHub arma el instalador,
+# lo publica en Releases y actualiza latest.json en la rama "actualizaciones"
+# (el archivo que la app consulta para saber si hay versión nueva).
+name: Publicar versión
+on:
+  push:
+    branches: [main]
+    paths: ['package.json', 'app/**', 'build/**', '.github/workflows/publicar.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  instalador:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versión desde package.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "VERSION=$V" >> $GITHUB_ENV
+          if gh release view "v$V" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "YA_EXISTE=1" >> $GITHUB_ENV
+            echo "La versión v$V ya está publicada: subí el número en package.json para publicar otra."
+          fi
+      - name: Instalar NSIS
+        if: env.YA_EXISTE != '1'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq nsis
+      - name: Armar el instalador
+        if: env.YA_EXISTE != '1'
+        run: bash build/armar.sh
+      - name: Armar latest.json
+        if: env.YA_EXISTE != '1'
+        run: |
+          REPO="${{ github.repository }}"
+          MIN=""
+          [ -f build/version-minima.txt ] && MIN=$(tr -d ' \r\n' < build/version-minima.txt)
+          node -e '
+            const fs = require("fs");
+            const v = process.env.VERSION, repo = process.argv[1], min = process.argv[2];
+            const notes = fs.existsSync("build/notas.txt") ? fs.readFileSync("build/notas.txt", "utf8").trim() : "";
+            const j = { version: v, url: `https://github.com/${repo}/releases/download/v${v}/StreamDonations-Setup-${v}.exe`, notes };
+            if (min) j.minVersion = min;
+            fs.writeFileSync("dist/latest.json", JSON.stringify(j, null, 2) + "\n");
+          ' "$REPO" "$MIN"
+          cat dist/latest.json
+      - name: Publicar en Releases
+        if: env.YA_EXISTE != '1'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: StreamDonations ${{ env.VERSION }}
+          body_path: build/notas.txt
+          files: |
+            dist/StreamDonations-Setup-${{ env.VERSION }}.exe
+            dist/latest.json
+      - name: Avisar a las apps instaladas (rama "actualizaciones")
+        if: env.YA_EXISTE != '1'
+        run: |
+          cp dist/latest.json /tmp/latest.json
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git fetch origin actualizaciones || true
+          if git show-ref --quiet refs/remotes/origin/actualizaciones; then
+            git checkout -B actualizaciones origin/actualizaciones
+          else
+            git checkout --orphan actualizaciones
+            git rm -rf --quiet .
+          fi
+          cp /tmp/latest.json latest.json
+          printf '# Rama automática\nLa app StreamDonations lee `latest.json` para saber si hay versión nueva. No la edites a mano.\n' > README.md
+          git add latest.json README.md
+          git commit -m "Versión ${VERSION}" || echo "sin cambios"
+          git push origin actualizaciones
