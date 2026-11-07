@@ -1261,7 +1261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (syncOutbox.r.size || syncOutbox.u.size) {
             clearTimeout(syncTimer);
-            syncTimer = setTimeout(syncFlush, 300);
+            syncTimer = setTimeout(syncFlush, 1000); // junta las marcas hechas en el mismo segundo
         }
     }
 
@@ -1271,8 +1271,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const r = [...syncOutbox.r], u = [...syncOutbox.u];
         syncOutbox.r.clear(); syncOutbox.u.clear();
         // De a 60 códigos por mensaje (cada mensaje tiene un tamaño máximo)
+        // Si falla (sin internet o el servidor pide esperar), vuelve a la cola y se reintenta en 15 s
         const send = (part) => fetch(SYNC_SERVER + '/' + topic, { method: 'POST', body: JSON.stringify(part) })
-            .catch(() => { (part.r || []).forEach(x => syncOutbox.r.add(x)); (part.u || []).forEach(x => syncOutbox.u.add(x)); clearTimeout(syncTimer); syncTimer = setTimeout(syncFlush, 5000); });
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); })
+            .catch(() => {
+                (part.r || []).forEach(x => { if (!syncOutbox.u.has(x)) syncOutbox.r.add(x); });
+                (part.u || []).forEach(x => { if (!syncOutbox.r.has(x)) syncOutbox.u.add(x); });
+                clearTimeout(syncTimer); syncTimer = setTimeout(syncFlush, 15000);
+            });
         for (let i = 0; i < Math.max(r.length, u.length); i += 60) {
             send({ v: 1, from: SYNC_DEVICE, r: r.slice(i, i + 60), u: u.slice(i, i + 60) });
         }

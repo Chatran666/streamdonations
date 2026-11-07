@@ -1,1 +1,1 @@
-- Recupera las donaciones que llegaron con la app cerrada (StreamElements, incluidas las de Ceneka): al abrir, aparecen como pendientes, sin sonido ni voz. Se puede apagar en Opciones → Conexión.
+- Sincronizar con otra PC: si un aviso no se puede enviar (sin internet o el servidor pide esperar), se reintenta solo. Las marcas hechas en el mismo segundo viajan juntas en un solo aviso.
