@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.6.0/StreamDonations-Setup-1.6.0.exe",
-  "notes": "- Se actualiza sola: las versiones nuevas se publican en GitHub y la app avisa con un botón para descargarlas.\n- Opciones → Conexión: StreamElements y Streamlabs quedan en recuadros separados por una línea."
+  "version": "1.7.0",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.7.0/StreamDonations-Setup-1.7.0.exe",
+  "notes": "- Stream entre dos personas: en Opciones → Conexión → \"Sincronizar con otra PC\". Con un código, lo que uno marca como leído o restaura también se marca en la PC del otro y en su ventana OBS.\n- Opciones → Conexión: cada servicio en su propio recuadro, separados por una línea."
 }
