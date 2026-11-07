@@ -1,5 +1,5 @@
 {
-  "version": "1.7.1",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.7.1/StreamDonations-Setup-1.7.1.exe",
-  "notes": "- Recupera las donaciones que llegaron con la app cerrada (StreamElements, incluidas las de Ceneka): al abrir, aparecen como pendientes, sin sonido ni voz. Se puede apagar en Opciones → Conexión."
+  "version": "1.7.2",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.7.2/StreamDonations-Setup-1.7.2.exe",
+  "notes": "- Sincronizar con otra PC: si un aviso no se puede enviar (sin internet o el servidor pide esperar), se reintenta solo. Las marcas hechas en el mismo segundo viajan juntas en un solo aviso."
 }
