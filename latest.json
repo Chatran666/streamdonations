@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.7.0/StreamDonations-Setup-1.7.0.exe",
-  "notes": "- Stream entre dos personas: en Opciones → Conexión → \"Sincronizar con otra PC\". Con un código, lo que uno marca como leído o restaura también se marca en la PC del otro y en su ventana OBS.\n- Opciones → Conexión: cada servicio en su propio recuadro, separados por una línea."
+  "version": "1.7.1",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.7.1/StreamDonations-Setup-1.7.1.exe",
+  "notes": "- Recupera las donaciones que llegaron con la app cerrada (StreamElements, incluidas las de Ceneka): al abrir, aparecen como pendientes, sin sonido ni voz. Se puede apagar en Opciones → Conexión."
 }
