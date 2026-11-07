@@ -1,2 +1,1 @@
-- Stream entre dos personas: en Opciones → Conexión → "Sincronizar con otra PC". Con un código, lo que uno marca como leído o restaura también se marca en la PC del otro y en su ventana OBS.
-- Opciones → Conexión: cada servicio en su propio recuadro, separados por una línea.
+- Recupera las donaciones que llegaron con la app cerrada (StreamElements, incluidas las de Ceneka): al abrir, aparecen como pendientes, sin sonido ni voz. Se puede apagar en Opciones → Conexión.

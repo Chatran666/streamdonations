@@ -948,6 +948,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // La otra PC ya la marcó como leída antes de que llegara acá: no suena ni va a OBS
         if (donation.isRead) { render(); return; }
 
+        // Recuperada (llegó con la app cerrada): queda pendiente y va a OBS, pero sin sonido, voz ni cartel
+        if (item.recovered) { pushToOverlay(donation); render(); return; }
+
         playDonationSound(donation.tier);
         speakDonation(donation);
         pushToOverlay(donation);
@@ -2157,26 +2160,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Pregunta a StreamElements de qué plataforma es el canal (YouTube, Twitch o Kick)
     function detectSEProvider(c) {
-        if (!c || c.providerAsked) return;
+        if (!c || c.providerAsked) return Promise.resolve(c && c.channelId);
         c.providerAsked = true;
-        fetch('https://api.streamelements.com/kappa/v2/channels/me', { headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/json' } })
+        return fetch('https://api.streamelements.com/kappa/v2/channels/me', { headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/json' } })
             .then(r => r.ok ? r.json() : null)
-            .then(j => { if (j && j.provider) setDetectedPlatform(c, j.provider); })
-            .catch(() => {});
+            .then(j => {
+                if (j && j.provider) setDetectedPlatform(c, j.provider);
+                if (j && j._id) c.channelId = String(j._id).replace(/[^A-Za-z0-9]/g, '');
+                return c.channelId;
+            })
+            .catch(() => null);
     }
 
-    function handleSEActivity(a, msgId, conn) {
+    // --- Donaciones que llegaron con la app cerrada ---
+    // Se guarda cuándo se vio cada canal por última vez; al reconectar se le pide a StreamElements
+    // la actividad de ese período (hasta 7 días). La primera vez que se conecta un canal no se trae nada viejo.
+    function seSeenKey(c) { return String(c.token).slice(-16); }
+    function markSESeen(c) {
+        if (!c || !c.token) return;
+        const map = state.settings.seLastSeen || (state.settings.seLastSeen = {});
+        map[seSeenKey(c)] = Date.now();
+    }
+    setInterval(() => {
+        let any = false;
+        seConns.forEach(c => { if (c.status === 'connected') { markSESeen(c); any = true; } });
+        if (any) persistSettings();
+    }, 60000);
+
+    function recoverSEActivities(c) {
+        if (!c || c.recoverDone || state.settings.recoverMissed === false) return;
+        c.recoverDone = true;
+        const map = state.settings.seLastSeen || (state.settings.seLastSeen = {});
+        const last = map[seSeenKey(c)];
+        markSESeen(c);
+        persistSettings();
+        if (!last) return; // canal nuevo: arranca desde ahora
+        const after = Math.max(last - 2 * 60000, Date.now() - 7 * 24 * 3600000);
+        if (Date.now() - after < 60000) return;
+        detectSEProvider(c).then(channelId => {
+            channelId = channelId || c.channelId;
+            if (!channelId) return null;
+            const q = new URLSearchParams({ after: new Date(after).toISOString(), before: new Date().toISOString(), limit: '100', origin: 'feed' });
+            ['tip', 'superchat', 'cheer', 'kicks'].forEach(t => q.append('types', t));
+            return fetch(`https://api.streamelements.com/kappa/v2/activities/${channelId}?${q}`, { headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/json' } })
+                .then(r => r.ok ? r.json() : null);
+        }).then(list => {
+            if (!Array.isArray(list)) return;
+            let n = 0;
+            list.slice().sort((x, y) => new Date(x.createdAt) - new Date(y.createdAt)).forEach(a => {
+                const ts = Date.parse(a.createdAt || a.updatedAt || '');
+                if (!ts || ts < after) return;
+                if (handleSEActivity(a, null, c, { recovered: true, timestamp: ts })) n++;
+            });
+            if (n) showToast(`📥 Se recuperaron ${n} donaci${n === 1 ? 'ón' : 'ones'} que llegaron con la app cerrada (${escapeHTML(c.label)})`, 'info');
+        }).catch(() => {});
+    }
+
+    function handleSEActivity(a, msgId, conn, opts) {
         if (!a || !a.type) return;
+        opts = opts || {};
+        if (conn && !opts.recovered) markSESeen(conn);
         if (conn) {
             const byType = { superchat: 'youtube', cheer: 'twitch', kicks: 'kick' }[a.type];
             if (byType) setDetectedPlatform(conn, byType);
             if (a.provider) setDetectedPlatform(conn, a.provider);
         }
         const id = a._id || a.activityId || msgId;
+        const donationId = id ? 'se_' + String(id).replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) : undefined;
         if (id) {
             if (seProcessedIds.has(id)) return;
             seProcessedIds.add(id);
         }
+        // Ya está en el historial (por ejemplo, recuperada antes)
+        if (donationId && state.donations.some(x => x.id === donationId)) return;
         const d = a.data || {};
         const nick = d.displayName || d.username || d.name || 'Anónimo';
         const message = d.message || '';
@@ -2200,8 +2256,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return; // seguidores, subs, etc.: no se muestran
         }
         if (!item.amount) return;
-        if (isCrossServiceDuplicate(item.platform, item.nick, item.amount)) return;
-        addDonation({ ...item, id: id ? 'se_' + String(id).replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) : undefined, timestamp: Date.now() });
+        if (!opts.recovered && isCrossServiceDuplicate(item.platform, item.nick, item.amount)) return;
+        addDonation({ ...item, id: donationId, timestamp: opts.timestamp || Date.now(), recovered: !!opts.recovered });
+        return true;
     }
 
     function openSE(channel, index) {
@@ -2244,7 +2301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const first = c.retry === 0 && c.status !== 'connected';
                         c.retry = 0;
                         setSEStatus(c, 'connected', 'Conectado');
-                        detectSEProvider(c);
+                        detectSEProvider(c).then(() => recoverSEActivities(c));
                         if (first) showToast(`✅ StreamElements conectado (${escapeHTML(c.label)})`, 'success');
                     }
                 } else if (msg.type === 'message' && msg.topic === 'channel.activities') {
@@ -3573,6 +3630,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-links-full').checked = !!st.panelLinkFull;
         $('cfg-obs-links').value = st.obsLinkMode || 'hide';
         $('cfg-strip-tracking').checked = st.stripTracking !== false;
+        $('cfg-recover-missed').checked = st.recoverMissed !== false;
         $('cfg-tts-links').value = st.ttsLinkMode || 'domain';
         $('cfg-voice-rate').value = clampNum(st.voiceRate, 0.5, 2, 1);
         $('cfg-voice-pitch').value = clampNum(st.voicePitch, 0.5, 1.5, 1);
@@ -3686,6 +3744,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.panelLinkFull = $('cfg-links-full').checked;
         st.obsLinkMode = $('cfg-obs-links').value;
         st.stripTracking = $('cfg-strip-tracking').checked;
+        st.recoverMissed = $('cfg-recover-missed').checked;
         st.ttsLinkMode = $('cfg-tts-links').value;
         st.voiceRate = clampNum($('cfg-voice-rate').value, 0.5, 2, 1);
         st.voicePitch = clampNum($('cfg-voice-pitch').value, 0.5, 1.5, 1);
