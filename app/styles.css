@@ -2521,3 +2521,9 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .tour-nav .hidden { display: none; }
 #btn-replay-tour { margin: 12px auto 4px; }
 .hotkeys-off .hotkey-hint { display: none; }
+
+/* Sonido especial */
+#big-sound-picker.hidden, #cfg-sound-maxsecs-row.hidden, #cfg-big-sound-maxsecs-row.hidden { display: none; }
+.big-sound-min { width: 130px; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 7px 10px; font-family: 'JetBrains Mono', monospace; }
+.big-sound-unit { margin: 0; }
+#cfg-sound-maxsecs, #cfg-big-sound-maxsecs { background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 6px 8px; }

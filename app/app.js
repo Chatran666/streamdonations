@@ -86,6 +86,14 @@ document.addEventListener('DOMContentLoaded', () => {
             soundEnabled: false,
             ttsEnabled: false,
             hotkeys: false, // Atajos de teclado (apagados de fábrica)
+            soundMaxSecs: 3, // El sonido de la PC se corta a los X segundos (0 = completo)
+            bigSoundEnabled: false, // Sonido especial para donaciones grandes
+            bigSoundMin: 10000, // Desde cuántos pesos suena el especial
+            bigSoundChoice: 'fanfarria',
+            bigSoundVolume: 0.9,
+            bigSoundMaxSecs: 6,
+            bigSoundFileVer: 0,
+            bigSoundFileName: '',
             showAmounts: false,
             voiceName: '', // Voz elegida para la lectura (vacío = primera voz en español)
             usdRate: 0, // Cotización: pesos por US$1 (0 = no convertir)
@@ -219,17 +227,20 @@ document.addEventListener('DOMContentLoaded', () => {
         initAudioContext();
     }, { once: false });
 
-    // --- Sonido de alerta: 3 sonidos propios o un archivo de la PC ---
-    var customSoundUrl = null, customSoundVer = -1;
-    function loadCustomSound(ver) {
-        if (!window.SDStore || ver === customSoundVer) return Promise.resolve(customSoundUrl);
-        customSoundVer = ver;
-        return SDStore.get('alertSound').then(blob => {
-            if (customSoundUrl) URL.revokeObjectURL(customSoundUrl);
-            customSoundUrl = blob ? URL.createObjectURL(blob) : null;
-            return customSoundUrl;
+    // --- Sonido de alerta: sonidos propios o un archivo de la PC (uno normal y uno "especial") ---
+    const customSounds = {}; // clave del archivo -> { ver, url }
+    function loadCustomSound(ver, key) {
+        key = key || 'alertSound';
+        const c = customSounds[key] || (customSounds[key] = { ver: -1, url: null });
+        if (!window.SDStore || ver === c.ver) return Promise.resolve(c.url);
+        c.ver = ver;
+        return SDStore.get(key).then(blob => {
+            if (c.url) URL.revokeObjectURL(c.url);
+            c.url = blob ? URL.createObjectURL(blob) : null;
+            return c.url;
         });
     }
+    let playingCustom = null;
 
     function tone(type, freqs, step, dur, vol, start) {
         const now = audioCtx.currentTime + (start || 0);
@@ -245,21 +256,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function playSoundChoice(choice, tier, volume, ver) {
+    // maxSecs: el sonido de la PC se corta a los X segundos (0 = completo)
+    function playSoundChoice(choice, tier, volume, ver, key, maxSecs) {
         const vol = clampNum(volume, 0, 1, 0.8);
         if (vol <= 0) return;
         const big = tier && /red|ruby|magenta|pink/.test(tier);
         if (choice === 'pc') {
-            loadCustomSound(ver || 0).then(url => {
-                if (!url) { playSoundChoice('campana', tier, vol); return; }
+            loadCustomSound(ver || 0, key).then(url => {
+                if (!url) { playSoundChoice(key === 'alertSoundBig' ? 'fanfarria' : 'campana', tier, vol); return; }
+                if (playingCustom) { try { playingCustom.pause(); } catch (e) {} }
                 const a = new Audio(url);
                 a.volume = vol;
+                playingCustom = a;
+                const secs = parseFloat(maxSecs) || 0;
+                if (secs > 0) {
+                    // Baja el volumen en el último cuarto de segundo para que no corte de golpe
+                    setTimeout(() => { if (playingCustom === a) a.volume = vol * 0.4; }, Math.max(0, secs * 1000 - 250));
+                    setTimeout(() => { try { a.pause(); } catch (e) {} if (playingCustom === a) playingCustom = null; }, secs * 1000);
+                }
                 a.play().catch(() => {});
             });
             return;
         }
         initAudioContext();
-        if (choice === 'moneda') {
+        if (choice === 'pop') {
+            // Un "pop" muy corto
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(big ? 900 : 700, now);
+            osc.frequency.exponentialRampToValueAtTime(big ? 1800 : 1400, now + 0.06);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.35 * vol, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.14);
+        } else if (choice === 'ding') {
+            // Una sola nota corta
+            tone('sine', [big ? 1567.98 : 1318.5], 0, 0.28, 0.3 * vol);
+        } else if (choice === 'gota') {
+            // Gota de agua
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200, now);
+            osc.frequency.exponentialRampToValueAtTime(big ? 500 : 400, now + 0.15);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.4 * vol, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.2);
+        } else if (choice === 'fanfarria') {
+            // Fanfarria corta de festejo (pensada para el sonido especial)
+            tone('triangle', [523.3, 659.3, 784], 0.11, 0.2, 0.32 * vol);
+            tone('triangle', [1046.5], 0, 0.6, 0.34 * vol, 0.36);
+            tone('sine', [1318.5], 0, 0.55, 0.18 * vol, 0.38);
+        } else if (choice === 'moneda') {
             // Dos notas cortas y brillantes, como una moneda
             tone('square', big ? [1318.5, 1975.5] : [987.8, 1318.5], 0.08, big ? 0.45 : 0.35, 0.12 * vol);
         } else if (choice === 'arcade') {
@@ -282,11 +334,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function playDonationSound(tier) {
+    // ¿Esta donación llega al monto del sonido especial? (en pesos; dólares, Bits y KICKs necesitan la cotización)
+    function isBigDonation(d) {
+        const st = state.settings;
+        if (!d || !st.bigSoundEnabled) return false;
+        const min = parseFloat(st.bigSoundMin) || 0;
+        if (min <= 0) return false;
+        const ars = toARS(d);
+        return ars !== null && ars >= min;
+    }
+    function playDonationSound(tier, donation) {
         if (!state.soundEnabled) return;
         try {
             const st = state.settings;
-            playSoundChoice(st.soundChoice || 'campana', tier, st.soundVolume ?? 0.8, st.soundFileVer || 0);
+            if (isBigDonation(donation)) {
+                playSoundChoice(st.bigSoundChoice || 'fanfarria', tier, st.bigSoundVolume ?? st.soundVolume ?? 0.8, st.bigSoundFileVer || 0, 'alertSoundBig', st.bigSoundMaxSecs ?? 0);
+                return;
+            }
+            playSoundChoice(st.soundChoice || 'campana', tier, st.soundVolume ?? 0.8, st.soundFileVer || 0, 'alertSound', st.soundMaxSecs ?? 3);
         } catch (e) {
             console.warn('Audio playback blocked or error:', e);
         }
@@ -1071,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Recuperada (llegó con la app cerrada): queda pendiente y va a OBS, pero sin sonido, voz ni cartel
         if (item.recovered) { pushToOverlay(donation); render(); return; }
 
-        playDonationSound(donation.tier);
+        playDonationSound(donation.tier, donation);
         speakDonation(donation);
         pushToOverlay(donation);
         
@@ -3889,6 +3954,15 @@ document.addEventListener('DOMContentLoaded', () => {
         $('sound-file-name').textContent = st.soundFileName || 'Sin archivo';
         $('sound-file-name').dataset.file = st.soundFileName || '';
         $('sound-file-name').dataset.ver = st.soundFileVer || 0;
+        $('cfg-sound-maxsecs').value = String(st.soundMaxSecs ?? 3);
+        $('cfg-big-sound-enabled').checked = !!st.bigSoundEnabled;
+        $('cfg-big-sound-min').value = st.bigSoundMin || '';
+        $('cfg-big-sound-choice').value = st.bigSoundChoice || 'fanfarria';
+        $('cfg-big-sound-volume').value = clampNum(st.bigSoundVolume, 0, 1, 0.9);
+        $('cfg-big-sound-maxsecs').value = String(st.bigSoundMaxSecs ?? 6);
+        $('big-sound-file-name').textContent = st.bigSoundFileName || 'Sin archivo';
+        $('big-sound-file-name').dataset.file = st.bigSoundFileName || '';
+        $('big-sound-file-name').dataset.ver = st.bigSoundFileVer || 0;
         updateSoundForm();
         $('cfg-tts-enabled').checked = state.ttsEnabled;
         $('cfg-donation-toasts').checked = st.donationToasts !== false;
@@ -4020,6 +4094,14 @@ document.addEventListener('DOMContentLoaded', () => {
         st.soundVolume = clampNum($('cfg-sound-volume').value, 0, 1, 0.8);
         st.soundFileVer = parseInt($('sound-file-name').dataset.ver) || 0;
         st.soundFileName = $('sound-file-name').dataset.file || '';
+        st.soundMaxSecs = clampNum($('cfg-sound-maxsecs').value, 0, 10, 3);
+        st.bigSoundEnabled = $('cfg-big-sound-enabled').checked;
+        st.bigSoundMin = Math.max(0, parseFloat($('cfg-big-sound-min').value) || 0);
+        st.bigSoundChoice = $('cfg-big-sound-choice').value || 'fanfarria';
+        st.bigSoundVolume = clampNum($('cfg-big-sound-volume').value, 0, 1, 0.9);
+        st.bigSoundMaxSecs = clampNum($('cfg-big-sound-maxsecs').value, 0, 10, 6);
+        st.bigSoundFileVer = parseInt($('big-sound-file-name').dataset.ver) || 0;
+        st.bigSoundFileName = $('big-sound-file-name').dataset.file || '';
         state.ttsEnabled = st.ttsEnabled = $('cfg-tts-enabled').checked;
         st.donationToasts = $('cfg-donation-toasts').checked;
         st.voiceName = $('cfg-voice').value || '';
@@ -4736,33 +4818,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const pc = $('cfg-sound-choice').value === 'pc';
         $('sound-file-row').classList.toggle('hidden', !pc);
         $('sound-file-hint').classList.toggle('hidden', !pc);
+        $('cfg-sound-maxsecs-row').classList.toggle('hidden', !pc);
         $('lbl-sound-volume').textContent = Math.round($('cfg-sound-volume').value * 100) + '%';
+        const bigOn = $('cfg-big-sound-enabled').checked;
+        $('big-sound-picker').classList.toggle('hidden', !bigOn);
+        const bpc = $('cfg-big-sound-choice').value === 'pc';
+        $('big-sound-file-row').classList.toggle('hidden', !bpc);
+        $('cfg-big-sound-maxsecs-row').classList.toggle('hidden', !bpc);
+        $('lbl-big-sound-volume').textContent = Math.round($('cfg-big-sound-volume').value * 100) + '%';
     }
-    function initSoundPicker() {
-        $('cfg-sound-choice').addEventListener('change', () => {
+    // Un selector de sonido (el normal o el especial): opciones, probar y archivo de la PC
+    function wireSoundPicker(o) {
+        const test = () => playSoundChoice($(o.choice).value, o.tier, $(o.volume).value, parseInt($(o.name).dataset.ver) || 0, o.key, $(o.maxsecs).value);
+        $(o.choice).addEventListener('change', () => {
             updateSoundForm();
-            if ($('cfg-sound-choice').value !== 'pc' || $('sound-file-name').textContent !== 'Sin archivo') $('btn-test-sound').click();
+            if ($(o.choice).value !== 'pc' || $(o.name).dataset.file) test();
         });
-        $('cfg-sound-volume').addEventListener('input', updateSoundForm);
-        $('btn-test-sound').addEventListener('click', () => {
-            playSoundChoice($('cfg-sound-choice').value, 'tier-green', $('cfg-sound-volume').value, parseInt($('sound-file-name').dataset.ver) || 0);
-        });
-        $('btn-pick-sound').addEventListener('click', () => $('sound-file').click());
-        $('sound-file').addEventListener('change', () => {
-            const f = $('sound-file').files && $('sound-file').files[0];
-            $('sound-file').value = '';
+        $(o.volume).addEventListener('input', updateSoundForm);
+        $(o.maxsecs).addEventListener('change', () => { if ($(o.name).dataset.file) test(); });
+        $(o.testBtn).addEventListener('click', test);
+        $(o.pickBtn).addEventListener('click', () => $(o.file).click());
+        $(o.file).addEventListener('change', () => {
+            const f = $(o.file).files && $(o.file).files[0];
+            $(o.file).value = '';
             if (!f) return;
             if (!/^audio\//.test(f.type) && !/\.(wav|mp3|ogg)$/i.test(f.name)) { showToast('Elegí un archivo de sonido (WAV, MP3 u OGG)', 'warning'); return; }
             if (f.size > 3 * 1024 * 1024) { showToast('El sonido pesa más de 3 MB', 'warning'); return; }
-            SDStore.put('alertSound', f).then(() => {
-                $('sound-file-name').textContent = f.name; $('sound-file-name').dataset.file = f.name;
-                $('sound-file-name').dataset.ver = Date.now();
-                $('cfg-sound-choice').value = 'pc';
+            SDStore.put(o.key, f).then(() => {
+                $(o.name).textContent = f.name; $(o.name).dataset.file = f.name;
+                $(o.name).dataset.ver = Date.now();
+                $(o.choice).value = 'pc';
                 updateSoundForm();
                 setSettingsDirty(true);
-                $('btn-test-sound').click();
+                test();
             }).catch(() => showToast('No se pudo guardar el sonido', 'warning'));
         });
+    }
+    function initSoundPicker() {
+        wireSoundPicker({ key: 'alertSound', tier: 'tier-green', choice: 'cfg-sound-choice', volume: 'cfg-sound-volume', maxsecs: 'cfg-sound-maxsecs',
+            name: 'sound-file-name', testBtn: 'btn-test-sound', pickBtn: 'btn-pick-sound', file: 'sound-file' });
+        wireSoundPicker({ key: 'alertSoundBig', tier: 'tier-red', choice: 'cfg-big-sound-choice', volume: 'cfg-big-sound-volume', maxsecs: 'cfg-big-sound-maxsecs',
+            name: 'big-sound-file-name', testBtn: 'btn-test-big-sound', pickBtn: 'btn-pick-big-sound', file: 'big-sound-file' });
+        $('cfg-big-sound-enabled').addEventListener('change', updateSoundForm);
     }
 
     function initLook() {
@@ -4927,6 +5024,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Esperar un momento para que se descargue la copia y OBS reciba la limpieza
         setTimeout(() => {
             try { APP_STORAGE_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) {}
+            // Imágenes y sonidos elegidos (guardados aparte)
+            if (window.SDStore) ['panelBg', 'obsBg', 'alertSound', 'alertSoundBig'].forEach(k => { try { SDStore.del(k).catch(() => {}); } catch (e) {} });
             // La ventana de OBS necesita saber que tiene que limpiar todo
             try { localStorage.setItem('obs_dismiss_queue', JSON.stringify([{ id: 'all', _t: Date.now() }])); } catch (e) {}
             location.reload();

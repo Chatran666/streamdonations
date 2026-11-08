@@ -703,6 +703,21 @@ window.SD_I18N_EN = {
     'pegás el': 'paste the',
     'de cada canal (YouTube, Kick, Twitch). Las donaciones de Ceneka entran por el canal que vinculaste en ceneka.net. Si no sabés dónde está el token, mirá la': "of each channel (YouTube, Kick, Twitch). Ceneka donations come in through the channel you linked on ceneka.net. If you don't know where the token is, see the",
 
+    // ---- Sounds 1.8.3 ----
+    'Pop (muy corto)': 'Pop (very short)',
+    'Ding (corto)': 'Ding (short)',
+    'Gota (corto)': 'Drop (short)',
+    'Fanfarria (festejo)': 'Fanfare (celebration)',
+    'Cortar el sonido a los': 'Cut the sound after',
+    '1 segundo': '1 second', '2 segundos': '2 seconds', '3 segundos': '3 seconds', '5 segundos': '5 seconds', '6 segundos': '6 seconds', '10 segundos': '10 seconds',
+    'Sin cortar (completo)': "Don't cut (full)",
+    '(por ejemplo "Windows Notify.wav"). Máximo 3 MB. Si el archivo es largo, se corta solo.': '(for example "Windows Notify.wav"). Maximum 3 MB. If the file is long, it gets cut automatically.',
+    'Sonido especial para donaciones grandes': 'Special sound for big donations',
+    'Suena otro sonido (en lugar del normal) cuando la donación llega a un monto.': 'A different sound plays (instead of the normal one) when a donation reaches an amount.',
+    'Sonido especial': 'Special sound',
+    'pesos': 'pesos',
+    'Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Pantalla.': 'Dollar Super Chats, Bits and KICKs count if you set the dollar exchange rate in Settings → Display.',
+
     // ---- OBS window ----
     'StreamDonations - Modo OBS': 'StreamDonations - OBS mode',
     'MODO OBS CONECTADO Y LISTO': 'OBS MODE CONNECTED AND READY',

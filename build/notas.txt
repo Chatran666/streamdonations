@@ -1,11 +1,8 @@
-Novedades de la 1.8.2 (seguridad):
-- Se revisó la app entera intentando romperla con donaciones, archivos y mensajes armados a propósito.
-- Protección extra: aunque alguien encontrara la forma de meter código en un mensaje, Chrome no lo ejecuta, y la app solo puede conectarse a StreamElements, Streamlabs, ntfy y GitHub.
-- Una copia de configuración rota o armada a propósito ya no puede trabar la app.
-- La ventana de OBS y el panel solo aceptan avisos entre ellos.
-- Las actualizaciones solo se descargan desde las publicaciones oficiales en GitHub.
-- Arreglo: el nombre del sonido elegido se guardaba mal con la app en inglés.
+Novedades de la 1.8.3:
+- Sonidos cortos nuevos: Pop, Ding y Gota.
+- Si usás un sonido de tu PC, se corta solo a los segundos que elijas (de fábrica, 3).
+- Sonido especial para donaciones grandes: elegí desde qué monto suena y cuál (incluye una fanfarria o un sonido de tu PC).
+- Conexión con Streamlabs actualizada a la última versión compatible, con las correcciones de seguridad.
 
-Novedades de la 1.8.1:
-- Tutorial corto la primera vez que abrís la app.
-- En instalaciones nuevas, el sonido, la voz y los atajos de teclado vienen apagados.
+Novedades de la 1.8.2 (seguridad):
+- Revisión completa de seguridad y protecciones extra.

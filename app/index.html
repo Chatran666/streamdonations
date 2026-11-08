@@ -539,6 +539,9 @@
                                     <option value="campana">Campanita (clásico)</option>
                                     <option value="moneda">Moneda</option>
                                     <option value="arcade">Arcade</option>
+                                    <option value="pop">Pop (muy corto)</option>
+                                    <option value="ding">Ding (corto)</option>
+                                    <option value="gota">Gota (corto)</option>
                                     <option value="pc">Un sonido de mi PC…</option>
                                 </select>
                                 <button type="button" class="btn btn-outline btn-sm" id="btn-test-sound"><i class="fa-solid fa-play"></i> Probar</button>
@@ -548,12 +551,73 @@
                                 <span class="bg-file-name" id="sound-file-name">Sin archivo</span>
                                 <input type="file" id="sound-file" accept="audio/*,.wav,.mp3,.ogg" class="hidden">
                             </div>
-                            <small class="pane-note" id="sound-file-hint">Podés usar los sonidos de Windows: están en <strong>C:\Windows\Media</strong> (por ejemplo "Windows Notify.wav"). Máximo 3 MB.</small>
+                            <small class="pane-note" id="sound-file-hint">Podés usar los sonidos de Windows: están en <strong>C:\Windows\Media</strong> (por ejemplo "Windows Notify.wav"). Máximo 3 MB. Si el archivo es largo, se corta solo.</small>
+                            <div class="sound-row" id="cfg-sound-maxsecs-row">
+                                <label for="cfg-sound-maxsecs">Cortar el sonido a los</label>
+                                <select id="cfg-sound-maxsecs">
+                                    <option value="1">1 segundo</option>
+                                    <option value="2">2 segundos</option>
+                                    <option value="3" selected>3 segundos</option>
+                                    <option value="5">5 segundos</option>
+                                    <option value="6">6 segundos</option>
+                                    <option value="10">10 segundos</option>
+                                    <option value="0">Sin cortar (completo)</option>
+                                </select>
+                            </div>
                             <div class="sound-row">
                                 <label for="cfg-sound-volume">Volumen</label>
                                 <input type="range" id="cfg-sound-volume" min="0" max="1" step="0.05">
                                 <span class="range-value" id="lbl-sound-volume">80%</span>
                             </div>
+                        </div>
+
+                        <label class="setting-row toggle-row">
+                            <div><strong>Sonido especial para donaciones grandes</strong><small>Suena otro sonido (en lugar del normal) cuando la donación llega a un monto.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-big-sound-enabled"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="sound-picker" id="big-sound-picker">
+                            <div class="sound-row">
+                                <label for="cfg-big-sound-min"><strong>Desde</strong></label>
+                                <input type="number" id="cfg-big-sound-min" class="big-sound-min" min="0" step="500" placeholder="10000">
+                                <span class="pane-note big-sound-unit">pesos</span>
+                            </div>
+                            <div class="sound-row">
+                                <label for="cfg-big-sound-choice"><strong>Sonido especial</strong></label>
+                                <select id="cfg-big-sound-choice">
+                                    <option value="fanfarria">Fanfarria (festejo)</option>
+                                    <option value="campana">Campanita (clásico)</option>
+                                    <option value="moneda">Moneda</option>
+                                    <option value="arcade">Arcade</option>
+                                    <option value="pop">Pop (muy corto)</option>
+                                    <option value="ding">Ding (corto)</option>
+                                    <option value="gota">Gota (corto)</option>
+                                    <option value="pc">Un sonido de mi PC…</option>
+                                </select>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-test-big-sound"><i class="fa-solid fa-play"></i> Probar</button>
+                            </div>
+                            <div class="sound-row" id="big-sound-file-row">
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-pick-big-sound"><i class="fa-solid fa-folder-open"></i> Elegir archivo de sonido</button>
+                                <span class="bg-file-name" id="big-sound-file-name">Sin archivo</span>
+                                <input type="file" id="big-sound-file" accept="audio/*,.wav,.mp3,.ogg" class="hidden">
+                            </div>
+                            <div class="sound-row" id="cfg-big-sound-maxsecs-row">
+                                <label for="cfg-big-sound-maxsecs">Cortar el sonido a los</label>
+                                <select id="cfg-big-sound-maxsecs">
+                                    <option value="1">1 segundo</option>
+                                    <option value="2">2 segundos</option>
+                                    <option value="3">3 segundos</option>
+                                    <option value="5">5 segundos</option>
+                                    <option value="6" selected>6 segundos</option>
+                                    <option value="10">10 segundos</option>
+                                    <option value="0">Sin cortar (completo)</option>
+                                </select>
+                            </div>
+                            <div class="sound-row">
+                                <label for="cfg-big-sound-volume">Volumen</label>
+                                <input type="range" id="cfg-big-sound-volume" min="0" max="1" step="0.05">
+                                <span class="range-value" id="lbl-big-sound-volume">90%</span>
+                            </div>
+                            <small class="pane-note">Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Pantalla.</small>
                         </div>
 
                         <label class="setting-row toggle-row">
