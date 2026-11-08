@@ -1,5 +1,5 @@
 {
-  "version": "1.8.1",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.8.1/StreamDonations-Setup-1.8.1.exe",
-  "notes": "Novedades de la 1.8.1:\n- Tutorial corto la primera vez que abrís la app: dónde prender sonido y voz, los filtros y cómo conectar tu cuenta.\n- En instalaciones nuevas, el sonido, la voz y los atajos de teclado vienen apagados (si ya los usabas, quedan como los tenías).\n- Los atajos de teclado ahora se prenden y apagan en Opciones → Pantalla.\n\nNovedades de la 1.8.0:\n- Filtros: palabras prohibidas y usuarios bloqueados.\n- OBS: fondo transparente (recorte por color).\n- Exportar a Excel (.csv) e idioma inglés."
+  "version": "1.8.2",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.8.2/StreamDonations-Setup-1.8.2.exe",
+  "notes": "Novedades de la 1.8.2 (seguridad):\n- Se revisó la app entera intentando romperla con donaciones, archivos y mensajes armados a propósito.\n- Protección extra: aunque alguien encontrara la forma de meter código en un mensaje, Chrome no lo ejecuta, y la app solo puede conectarse a StreamElements, Streamlabs, ntfy y GitHub.\n- Una copia de configuración rota o armada a propósito ya no puede trabar la app.\n- La ventana de OBS y el panel solo aceptan avisos entre ellos.\n- Las actualizaciones solo se descargan desde las publicaciones oficiales en GitHub.\n- Arreglo: el nombre del sonido elegido se guardaba mal con la app en inglés.\n\nNovedades de la 1.8.1:\n- Tutorial corto la primera vez que abrís la app.\n- En instalaciones nuevas, el sonido, la voz y los atajos de teclado vienen apagados."
 }
