@@ -488,6 +488,44 @@
         :root.has-obs-bg, :root.has-obs-bg body { background: transparent !important; }
         :root.has-obs-bg #obs-bg { display: block; }
 
+        /* ---- Efecto para donaciones grandes (anillo encima de la tarjeta) ---- */
+        @property --fx-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        .has-fx { --fx-color: #FFD700; }
+        .fx-ring { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; }
+        .fx-pulse .fx-ring { border: 3px solid var(--fx-color); animation: fxPulse 1.1s ease-in-out infinite; }
+        @keyframes fxPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+        .fx-glow .fx-ring { border: 2px solid var(--fx-color); animation: fxGlow 1.6s ease-in-out infinite; }
+        @keyframes fxGlow {
+            0%, 100% { box-shadow: 0 0 6px 1px var(--fx-color), inset 0 0 6px var(--fx-color); }
+            50% { box-shadow: 0 0 22px 6px var(--fx-color), inset 0 0 12px var(--fx-color); }
+        }
+        .fx-rainbow .fx-ring {
+            padding: 3px;
+            background: conic-gradient(from var(--fx-ang), #ff004c, #ff9a00, #ffe600, #2bff00, #00e5ff, #6a5cff, #ff00e1, #ff004c);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            animation: fxSpin 2.5s linear infinite;
+        }
+        @keyframes fxSpin { to { --fx-ang: 360deg; } }
+        .fx-shine .fx-ring { border: 2px solid var(--fx-color); overflow: hidden; }
+        .fx-shine .fx-ring::after {
+            content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+            background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--fx-color) 45%, transparent), transparent);
+            animation: fxShine 2.2s ease-in-out infinite;
+        }
+        @keyframes fxShine { 0% { left: -60%; } 60%, 100% { left: 120%; } }
+        @media (prefers-reduced-motion: reduce) { .fx-ring, .fx-ring::after { animation-duration: 4s !important; } }
+        
+        /* ---- Rangos de donadores ---- */
+        .rank-badge { display: inline-flex; align-items: center; gap: 2px; color: var(--rank-color, #60A5FA); font-size: 0.78em; flex-shrink: 0; white-space: nowrap; }
+        .rank-badge i { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--rank-color) 55%, transparent)); }
+        .rank-badge .rank-name { margin-left: 4px; font-size: 0.82em; font-weight: 800; letter-spacing: 0.02em; padding: 1px 6px; border-radius: 999px;
+            background: color-mix(in srgb, var(--rank-color) 18%, transparent); border: 1px solid color-mix(in srgb, var(--rank-color) 45%, transparent); }
+        
+        .obs-nick .rank-badge { font-size: 0.8em; }
+        /* En modo transparente no hay brillos: el anillo queda como borde */
+        :root.obs-chroma .fx-glow .fx-ring { border-width: 3px; }
+
         /* Modo transparente: fondo de un color puro para recortarlo en OBS (Clave cromática).
            Sin sombras, brillos ni transparencias, así el recorte queda limpio. */
         :root.obs-chroma, :root.obs-chroma body { background: var(--obs-chroma) !important; }

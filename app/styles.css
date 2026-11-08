@@ -2527,3 +2527,66 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .big-sound-min { width: 130px; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 7px 10px; font-family: 'JetBrains Mono', monospace; }
 .big-sound-unit { margin: 0; }
 #cfg-sound-maxsecs, #cfg-big-sound-maxsecs { background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 6px 8px; }
+
+/* ---- Efecto para donaciones grandes (anillo encima de la tarjeta) ---- */
+@property --fx-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.has-fx { --fx-color: #FFD700; }
+.fx-ring { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3; }
+.fx-pulse .fx-ring { border: 3px solid var(--fx-color); animation: fxPulse 1.1s ease-in-out infinite; }
+@keyframes fxPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+.fx-glow .fx-ring { border: 2px solid var(--fx-color); animation: fxGlow 1.6s ease-in-out infinite; }
+@keyframes fxGlow {
+    0%, 100% { box-shadow: 0 0 6px 1px var(--fx-color), inset 0 0 6px var(--fx-color); }
+    50% { box-shadow: 0 0 22px 6px var(--fx-color), inset 0 0 12px var(--fx-color); }
+}
+.fx-rainbow .fx-ring {
+    padding: 3px;
+    background: conic-gradient(from var(--fx-ang), #ff004c, #ff9a00, #ffe600, #2bff00, #00e5ff, #6a5cff, #ff00e1, #ff004c);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: fxSpin 2.5s linear infinite;
+}
+@keyframes fxSpin { to { --fx-ang: 360deg; } }
+.fx-shine .fx-ring { border: 2px solid var(--fx-color); overflow: hidden; }
+.fx-shine .fx-ring::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+    background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--fx-color) 45%, transparent), transparent);
+    animation: fxShine 2.2s ease-in-out infinite;
+}
+@keyframes fxShine { 0% { left: -60%; } 60%, 100% { left: 120%; } }
+@media (prefers-reduced-motion: reduce) { .fx-ring, .fx-ring::after { animation-duration: 4s !important; } }
+
+/* ---- Rangos de donadores ---- */
+.rank-badge { display: inline-flex; align-items: center; gap: 2px; color: var(--rank-color, #60A5FA); font-size: 0.78em; flex-shrink: 0; white-space: nowrap; }
+.rank-badge i { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--rank-color) 55%, transparent)); }
+.rank-badge .rank-name { margin-left: 4px; font-size: 0.82em; font-weight: 800; letter-spacing: 0.02em; padding: 1px 6px; border-radius: 999px;
+    background: color-mix(in srgb, var(--rank-color) 18%, transparent); border: 1px solid color-mix(in srgb, var(--rank-color) 45%, transparent); }
+
+/* ---- Opciones → Destacar ---- */
+#fx-picker.hidden, #ranks-box.hidden { display: none; }
+#ranks-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+.ranks-days-row label { min-width: 0; }
+.setting-row.compact { padding-top: 8px; padding-bottom: 8px; }
+.fx-preview-wrap { padding: 6px 2px 4px; }
+.fx-preview { cursor: default; animation: none; padding: 12px 14px; gap: 2px; }
+.fx-preview small { color: var(--text-secondary); font-size: 0.75rem; }
+.ranks-list { display: flex; flex-direction: column; gap: 8px; }
+.rank-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border: 1px solid var(--border-color);
+    border-left: 3px solid var(--rank-color); border-radius: var(--radius-sm); background: rgba(var(--shade-rgb), calc(0.25 * var(--shade-k))); }
+.rank-icon-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--rank-color) 50%, transparent);
+    background: color-mix(in srgb, var(--rank-color) 14%, transparent); color: var(--rank-color); font-size: 1rem; cursor: pointer; flex-shrink: 0; }
+.rank-icon-btn:hover { background: color-mix(in srgb, var(--rank-color) 26%, transparent); }
+.rank-row input[type="text"], .rank-row input[type="number"], .rank-row select {
+    background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    color: var(--text-primary); padding: 6px 8px; font-size: 0.82rem; font-family: inherit; }
+.rank-name-input { flex: 1; min-width: 120px; }
+.rank-field { display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--text-secondary); }
+.rank-field input[type="number"] { width: 96px; font-family: 'JetBrains Mono', monospace; }
+.rank-preview { min-width: 60px; font-size: 1.05rem; }
+.settings-pane[data-pane="destacar"] { position: relative; }
+.icon-pop { position: absolute; z-index: 20; width: min(340px, calc(100% - 16px)); display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 4px;
+    padding: 8px; background: var(--modal-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); }
+.icon-pop.hidden { display: none; }
+.icon-choice { height: 36px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--text-primary); cursor: pointer; font-size: 0.95rem; }
+.icon-choice:hover { background: rgba(var(--ink-rgb), 0.08); }
+.icon-choice.active { border-color: var(--accent); color: var(--accent); }

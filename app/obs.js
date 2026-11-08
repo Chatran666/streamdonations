@@ -103,6 +103,14 @@
 
             const alertEl = document.createElement('div');
             alertEl.className = 'obs-alert ' + (d.platform || 'ceneka');
+            // Efecto para donaciones grandes y rango del donador (se aceptan solo valores conocidos)
+            const HEX = /^#[0-9a-fA-F]{6}$/;
+            const fx = d.fx && ['pulse', 'glow', 'rainbow', 'shine'].includes(d.fx.type) && HEX.test(d.fx.color || '') ? d.fx : null;
+            if (fx) { alertEl.classList.add('has-fx', 'fx-' + fx.type); alertEl.style.setProperty('--fx-color', fx.color); }
+            const rk = d.rank && /^[a-z-]{2,30}$/.test(d.rank.icon || '') && HEX.test(d.rank.color || '') ? d.rank : null;
+            const rankHTML = rk ? '<span class="rank-badge" style="--rank-color:' + rk.color + '">' +
+                Array.from({ length: Math.min(5, Math.max(1, parseInt(rk.count) || 1)) }, () => '<i class="fa-solid fa-' + rk.icon + '"></i>').join('') +
+                (rk.showName ? '<span class="rank-name">' + escapeHTML(String(rk.name || '').slice(0, 24)) + '</span>' : '') + '</span>' : '';
             alertEl.dataset.alertId = alertId;
             alertEl.dataset.platform = d.platform || 'ceneka';
             
@@ -113,12 +121,12 @@
             const platformLabel = ({ youtube: 'YouTube', twitch: 'Twitch', kick: 'Kick' })[d.platform] || 'Ceneka';
             const formattedAmt = escapeHTML(d.formattedAmount || ('$' + (parseFloat(d.amount) || 0)));
 
-            alertEl.innerHTML = `
+            alertEl.innerHTML = (fx ? '<span class="fx-ring" aria-hidden="true"></span>' : '') + `
                 <div class="obs-header">
                     <div class="obs-donor">
                         <div class="obs-avatar">${avatarHTML}</div>
                         <div class="obs-nick">
-                            <span>${escapeHTML(d.nick || 'Anónimo')}</span>
+                            <span>${escapeHTML(d.nick || 'Anónimo')}</span>${rankHTML}
                             <span class="obs-tag ${d.platform || 'ceneka'}">${platformLabel}</span>
                         </div>
                     </div>

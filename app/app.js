@@ -94,6 +94,15 @@ document.addEventListener('DOMContentLoaded', () => {
             bigSoundMaxSecs: 6,
             bigSoundFileVer: 0,
             bigSoundFileName: '',
+            // Efecto visual para donaciones grandes
+            fxEnabled: false, fxMin: 10000, fxType: 'pulse', fxColor: '#FFD700', fxPanel: true, fxObs: true,
+            // Rangos de donadores (por lo donado en los últimos N días)
+            ranksEnabled: false, ranksDays: 30, ranksPanel: true, ranksObs: true, ranksShowName: true,
+            ranks: [
+                { name: 'Colaborador', min: 5000, icon: 'star', color: '#60A5FA', count: 1 },
+                { name: 'Mecenas', min: 20000, icon: 'gem', color: '#A78BFA', count: 2 },
+                { name: 'Leyenda', min: 50000, icon: 'crown', color: '#FBBF24', count: 3 }
+            ],
             showAmounts: false,
             voiceName: '', // Voz elegida para la lectura (vacío = primera voz en español)
             usdRate: 0, // Cotización: pesos por US$1 (0 = no convertir)
@@ -126,6 +135,26 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         lastReadId: null
     };
+
+    // ---- Efectos y rangos: valores permitidos (todo lo que se muestra pasa por acá) ----
+    const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+    const FX_TYPES = ['pulse', 'glow', 'rainbow', 'shine'];
+    const RANK_ICONS = ['star', 'gem', 'crown', 'heart', 'fire', 'bolt', 'medal', 'trophy', 'award', 'shield-halved', 'rocket', 'dragon',
+        'skull', 'ghost', 'hat-wizard', 'chess-king', 'chess-queen', 'chess-knight', 'money-bill-wave', 'coins', 'sack-dollar', 'sun',
+        'moon', 'meteor', 'paw', 'cat', 'dog', 'fish', 'horse', 'dove', 'feather', 'leaf', 'seedling', 'snowflake', 'gamepad', 'dice',
+        'music', 'guitar', 'microphone', 'headphones', 'mug-hot', 'beer-mug-empty', 'pizza-slice', 'cake-candles', 'gift', 'ribbon',
+        'flag-checkered', 'hand-fist', 'thumbs-up', 'face-grin-stars', 'bomb', 'bullhorn', 'user-astronaut', 'robot', 'wand-magic-sparkles',
+        'infinity', 'yin-yang', 'hat-cowboy'];
+    function cleanRanks(list) {
+        if (!Array.isArray(list)) return [];
+        return list.filter(r => r && typeof r === 'object').slice(0, 10).map(r => ({
+            name: String(r.name || '').replace(/[<>]/g, '').trim().slice(0, 24) || 'Rango',
+            min: Math.max(0, Math.round(parseFloat(r.min) || 0)),
+            icon: RANK_ICONS.includes(r.icon) ? r.icon : 'star',
+            color: HEX_RE.test(r.color || '') ? r.color : '#60A5FA',
+            count: Math.min(5, Math.max(1, parseInt(r.count) || 1))
+        }));
+    }
 
     // Cargar configuraciones guardadas de localStorage
     const SETTINGS_DEFAULTS = JSON.parse(JSON.stringify(state.settings));
@@ -161,6 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof state.settings.slToken !== 'string') state.settings.slToken = '';
         if (Array.isArray(state.settings.splitColumns)) state.settings.splitColumns = state.settings.splitColumns.filter(k => ['ceneka', ...PL].includes(k));
         if (state.settings.language !== 'en') state.settings.language = 'es';
+        state.settings.fxType = FX_TYPES.includes(state.settings.fxType) ? state.settings.fxType : 'pulse';
+        state.settings.fxColor = HEX_RE.test(state.settings.fxColor || '') ? state.settings.fxColor : '#FFD700';
+        state.settings.ranks = cleanRanks(state.settings.ranks);
     }
     if (state.settings.hideLinksInObs === false && !state.settings._migratedObsLinks) {
         state.settings.obsLinkMode = 'full';
@@ -332,6 +364,57 @@ document.addEventListener('DOMContentLoaded', () => {
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
             osc.start(now); osc.stop(now + 0.5);
         }
+    }
+
+    // ---- Efecto para donaciones grandes ----
+    function fxFor(d, where) {
+        const st = state.settings;
+        if (!d || !st.fxEnabled || (where === 'obs' ? st.fxObs === false : st.fxPanel === false)) return null;
+        const min = parseFloat(st.fxMin) || 0;
+        const ars = toARS(d);
+        if (ars === null || ars < min || (min <= 0 && ars <= 0)) return null;
+        return { type: FX_TYPES.includes(st.fxType) ? st.fxType : 'pulse', color: HEX_RE.test(st.fxColor || '') ? st.fxColor : '#FFD700' };
+    }
+    function fxAttrs(fx) {
+        return fx ? { cls: ` has-fx fx-${fx.type}`, style: ` style="--fx-color:${fx.color}"`, ring: '<span class="fx-ring" aria-hidden="true"></span>' } : { cls: '', style: '', ring: '' };
+    }
+
+    // ---- Rangos de donadores: lo donado por cada nombre en los últimos N días (en pesos) ----
+    let rankCache = { key: '', totals: new Map() };
+    function donorTotals() {
+        const st = state.settings;
+        const days = Math.min(3650, Math.max(1, parseInt(st.ranksDays) || 30));
+        const dayKey = Math.floor(Date.now() / 3600000); // se recalcula al menos cada hora
+        const last = state.donations[0];
+        const key = [state.donations.length, last && last.id, days, dayKey, st.usdRate, st.kickUsd].join('|');
+        if (rankCache.key === key) return rankCache.totals;
+        const since = Date.now() - days * 86400000;
+        const totals = new Map();
+        state.donations.forEach(d => {
+            if (d.isTest || (d.timestamp || 0) < since) return;
+            const v = toARS(d);
+            if (!v || v <= 0) return;
+            const k = nickKey(d.nick);
+            if (k) totals.set(k, (totals.get(k) || 0) + v);
+        });
+        rankCache = { key, totals };
+        return totals;
+    }
+    function rankFor(nick, where) {
+        const st = state.settings;
+        if (!st.ranksEnabled || (where === 'obs' ? st.ranksObs === false : st.ranksPanel === false)) return null;
+        const total = donorTotals().get(nickKey(nick)) || 0;
+        if (total <= 0) return null;
+        let best = null;
+        (st.ranks || []).forEach(r => { if (total >= r.min && r.min > 0 && (!best || r.min > best.min)) best = r; });
+        return best ? { name: best.name, icon: best.icon, color: best.color, count: best.count, total, showName: st.ranksShowName !== false } : null;
+    }
+    function rankBadgeHTML(r) {
+        if (!r) return '';
+        const icons = Array.from({ length: r.count }, () => `<i class="fa-solid fa-${r.icon}"></i>`).join('');
+        const days = parseInt(state.settings.ranksDays) || 30;
+        const tip = `${r.name} · ${formatMoney(Math.round(r.total), 'ARS')} en ${days} días`;
+        return `<span class="rank-badge" style="--rank-color:${r.color}" title="${escapeHTML(tip)}">${icons}${r.showName ? `<span class="rank-name">${escapeHTML(r.name)}</span>` : ''}</span>`;
     }
 
     // ¿Esta donación llega al monto del sonido especial? (en pesos; dólares, Bits y KICKs necesitan la cotización)
@@ -1090,6 +1173,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ...d,
             nick: censorText(d.nick, 'obs'),
             message: obsMessage(censorText(d.message, 'obs')),
+            fx: fxFor(d, 'obs'),
+            rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName } : null)(rankFor(d.nick, 'obs')),
             obsHideMessage: !!state.settings.obsHideMessage,
             obsDuration: state.settings.obsDuration || 0
         };
@@ -1307,8 +1392,9 @@ document.addEventListener('DOMContentLoaded', () => {
                    <i class="fa-solid fa-check"></i> Marcar Leído
                </button>`;
 
+        const fx = fxAttrs(item.isRead ? null : fxFor(item, 'panel'));
         return `
-            <div class="donation-card pf-${platformBadgeClass} ${item.tier} ${readClass}" data-id="${item.id}" data-act="focus">
+            <div class="donation-card pf-${platformBadgeClass} ${item.tier} ${readClass}${fx.cls}" data-id="${item.id}" data-act="focus"${fx.style}>${fx.ring}
                 <div class="card-header">
                     <div class="donor-info">
                         <div class="donor-avatar">
@@ -1317,6 +1403,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="donor-meta">
                             <div class="donor-nick">
                                 <span class="donor-nick-text">${escapeHTML(panelNick(item.nick))}</span>
+                                ${item.blocked ? '' : rankBadgeHTML(rankFor(item.nick, 'panel'))}
                                 ${item.isTest ? '<span class="test-tag">PRUEBA</span>' : ''}
                                 ${item.blocked ? '<span class="test-tag blocked-tag"><i class="fa-solid fa-user-slash"></i> BLOQUEADO</span>' : ''}
                                 <span class="platform-tag ${platformBadgeClass}">
@@ -1835,6 +1922,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.activeFocusId = id;
 
         els.focusNick.textContent = panelNick(item.nick);
+        { const old = document.getElementById('focus-rank'); if (old) old.remove();
+          const rb = rankBadgeHTML(rankFor(item.nick, 'panel'));
+          if (rb) { els.focusNick.insertAdjacentHTML('afterend', rb); els.focusNick.nextElementSibling.id = 'focus-rank'; } }
         const bb = $('btn-focus-block');
         if (bb) {
             const blk = isBlocked(item.nick);
@@ -3955,6 +4045,20 @@ document.addEventListener('DOMContentLoaded', () => {
         $('sound-file-name').dataset.file = st.soundFileName || '';
         $('sound-file-name').dataset.ver = st.soundFileVer || 0;
         $('cfg-sound-maxsecs').value = String(st.soundMaxSecs ?? 3);
+        $('cfg-fx-enabled').checked = !!st.fxEnabled;
+        $('cfg-fx-min').value = st.fxMin || '';
+        $('cfg-fx-type').value = st.fxType || 'pulse';
+        $('cfg-fx-color').value = st.fxColor || '#FFD700';
+        $('cfg-fx-panel').checked = st.fxPanel !== false;
+        $('cfg-fx-obs').checked = st.fxObs !== false;
+        $('cfg-ranks-enabled').checked = !!st.ranksEnabled;
+        $('cfg-ranks-days').value = st.ranksDays || 30;
+        $('cfg-ranks-name').checked = st.ranksShowName !== false;
+        $('cfg-ranks-panel').checked = st.ranksPanel !== false;
+        $('cfg-ranks-obs').checked = st.ranksObs !== false;
+        ranksDraft = cleanRanks(st.ranks).map(r => ({ ...r }));
+        renderRanksForm();
+        updateHighlightForm();
         $('cfg-big-sound-enabled').checked = !!st.bigSoundEnabled;
         $('cfg-big-sound-min').value = st.bigSoundMin || '';
         $('cfg-big-sound-choice').value = st.bigSoundChoice || 'fanfarria';
@@ -4095,6 +4199,20 @@ document.addEventListener('DOMContentLoaded', () => {
         st.soundFileVer = parseInt($('sound-file-name').dataset.ver) || 0;
         st.soundFileName = $('sound-file-name').dataset.file || '';
         st.soundMaxSecs = clampNum($('cfg-sound-maxsecs').value, 0, 10, 3);
+        st.fxEnabled = $('cfg-fx-enabled').checked;
+        st.fxMin = Math.max(0, parseFloat($('cfg-fx-min').value) || 0);
+        st.fxType = FX_TYPES.includes($('cfg-fx-type').value) ? $('cfg-fx-type').value : 'pulse';
+        st.fxColor = HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700';
+        st.fxPanel = $('cfg-fx-panel').checked;
+        st.fxObs = $('cfg-fx-obs').checked;
+        st.ranksEnabled = $('cfg-ranks-enabled').checked;
+        st.ranksDays = Math.min(3650, Math.max(1, parseInt($('cfg-ranks-days').value) || 30));
+        st.ranksShowName = $('cfg-ranks-name').checked;
+        st.ranksPanel = $('cfg-ranks-panel').checked;
+        st.ranksObs = $('cfg-ranks-obs').checked;
+        syncRanksDraft();
+        st.ranks = cleanRanks(ranksDraft);
+        rankCache.key = '';
         st.bigSoundEnabled = $('cfg-big-sound-enabled').checked;
         st.bigSoundMin = Math.max(0, parseFloat($('cfg-big-sound-min').value) || 0);
         st.bigSoundChoice = $('cfg-big-sound-choice').value || 'fanfarria';
@@ -5056,6 +5174,95 @@ document.addEventListener('DOMContentLoaded', () => {
             tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
         );
     }
+
+    // ==========================================================================
+    // DESTACAR: formulario del efecto y de los rangos
+    // ==========================================================================
+    let ranksDraft = [];
+    function updateHighlightForm() {
+        $('fx-picker').classList.toggle('hidden', !$('cfg-fx-enabled').checked);
+        $('ranks-box').classList.toggle('hidden', !$('cfg-ranks-enabled').checked);
+        const pv = $('fx-preview');
+        pv.className = 'donation-card pf-ceneka has-fx fx-preview fx-' + (FX_TYPES.includes($('cfg-fx-type').value) ? $('cfg-fx-type').value : 'pulse');
+        pv.style.setProperty('--fx-color', HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700');
+    }
+    function syncRanksDraft() {
+        ranksDraft = ranksDraft.map((r, i) => ({
+            ...r,
+            name: $('rank-name-' + i) ? $('rank-name-' + i).value : r.name,
+            min: $('rank-min-' + i) ? $('rank-min-' + i).value : r.min,
+            color: $('rank-color-' + i) ? $('rank-color-' + i).value : r.color,
+            count: $('rank-count-' + i) ? $('rank-count-' + i).value : r.count
+        }));
+    }
+    function renderRanksForm() {
+        const wrap = $('ranks-list');
+        if (!ranksDraft.length) { wrap.innerHTML = '<p class="pane-note">No hay rangos. Agregá uno.</p>'; return; }
+        const order = ranksDraft.map((r, i) => i).sort((a, b) => (parseFloat(ranksDraft[a].min) || 0) - (parseFloat(ranksDraft[b].min) || 0));
+        wrap.innerHTML = order.map(i => {
+            const r = ranksDraft[i];
+            const icon = RANK_ICONS.includes(r.icon) ? r.icon : 'star';
+            const color = HEX_RE.test(r.color || '') ? r.color : '#60A5FA';
+            const cnt = Math.min(5, Math.max(1, parseInt(r.count) || 1));
+            return `
+            <div class="rank-row" style="--rank-color:${color}">
+                <button type="button" class="rank-icon-btn" data-rank-icon="${i}" title="Elegir ícono"><i class="fa-solid fa-${icon}"></i></button>
+                <input type="text" id="rank-name-${i}" class="rank-name-input" maxlength="24" value="${escapeHTML(r.name)}" placeholder="Nombre del rango" aria-label="Nombre del rango">
+                <label class="rank-field"><span>desde $</span><input type="number" id="rank-min-${i}" min="0" step="500" value="${Math.max(0, parseInt(r.min) || 0)}" aria-label="Monto mínimo en pesos"></label>
+                <label class="rank-field"><span>íconos</span><select id="rank-count-${i}" aria-label="Cantidad de íconos">${[1, 2, 3, 4, 5].map(n => `<option value="${n}"${n === cnt ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+                <input type="color" id="rank-color-${i}" class="bg-color-input" value="${color}" title="Color del rango">
+                <span class="rank-preview" id="rank-preview-${i}">${rankBadgeHTML({ name: r.name || 'Rango', icon, color, count: cnt, total: 0, showName: false })}</span>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-rank-remove="${i}" title="Quitar este rango"><i class="fa-solid fa-xmark"></i></button>
+            </div>`;
+        }).join('');
+    }
+    function openIconPop(i, btn) {
+        const pop = $('icon-pop');
+        pop.innerHTML = RANK_ICONS.map(ic => `<button type="button" class="icon-choice${ranksDraft[i].icon === ic ? ' active' : ''}" data-pick-icon="${ic}" title="${ic}"><i class="fa-solid fa-${ic}"></i></button>`).join('');
+        pop.dataset.rank = i;
+        pop.classList.remove('hidden');
+        const pane = pop.parentElement.getBoundingClientRect(), r = btn.getBoundingClientRect();
+        pop.style.left = Math.max(8, r.left - pane.left) + 'px';
+        pop.style.top = (r.bottom - pane.top + 6) + 'px';
+    }
+    function initHighlightForm() {
+        ['cfg-fx-enabled', 'cfg-fx-type', 'cfg-fx-color', 'cfg-ranks-enabled'].forEach(id => { $(id).addEventListener('input', updateHighlightForm); $(id).addEventListener('change', updateHighlightForm); });
+        $('btn-add-rank').addEventListener('click', () => {
+            syncRanksDraft();
+            if (ranksDraft.length >= 10) { showToast('Máximo 10 rangos', 'info'); return; }
+            const top = ranksDraft.reduce((m, r) => Math.max(m, parseFloat(r.min) || 0), 0);
+            ranksDraft.push({ name: 'Nuevo rango', min: top ? top * 2 : 5000, icon: 'medal', color: '#34D399', count: 1 });
+            renderRanksForm();
+            setSettingsDirty(true);
+        });
+        $('ranks-list').addEventListener('click', (e) => {
+            const rm = e.target.closest('[data-rank-remove]');
+            if (rm) { syncRanksDraft(); ranksDraft.splice(parseInt(rm.dataset.rankRemove), 1); renderRanksForm(); setSettingsDirty(true); return; }
+            const ib = e.target.closest('[data-rank-icon]');
+            if (ib) { e.stopPropagation(); syncRanksDraft(); openIconPop(parseInt(ib.dataset.rankIcon), ib); }
+        });
+        $('ranks-list').addEventListener('input', (e) => {
+            const m = /^rank-(name|color|count)-(\d+)$/.exec(e.target.id || '');
+            if (!m) return;
+            syncRanksDraft();
+            const i = +m[2], r = ranksDraft[i];
+            const row = e.target.closest('.rank-row');
+            if (row && HEX_RE.test(r.color)) row.style.setProperty('--rank-color', r.color);
+            const pv = $('rank-preview-' + i);
+            if (pv) pv.innerHTML = rankBadgeHTML({ name: r.name, icon: r.icon, color: HEX_RE.test(r.color) ? r.color : '#60A5FA', count: Math.min(5, Math.max(1, parseInt(r.count) || 1)), total: 0, showName: false });
+        });
+        $('icon-pop').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-pick-icon]');
+            if (!b) return;
+            const i = parseInt($('icon-pop').dataset.rank);
+            if (ranksDraft[i] && RANK_ICONS.includes(b.dataset.pickIcon)) ranksDraft[i].icon = b.dataset.pickIcon;
+            $('icon-pop').classList.add('hidden');
+            renderRanksForm();
+            setSettingsDirty(true);
+        });
+        document.addEventListener('click', (e) => { if (!e.target.closest('#icon-pop')) $('icon-pop').classList.add('hidden'); });
+    }
+    initHighlightForm();
 
     // Clics en tarjetas y en la base de datos (sin código dentro del HTML, así la página puede prohibir scripts sueltos)
     document.addEventListener('click', (e) => {

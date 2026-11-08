@@ -366,6 +366,7 @@
                     <button class="settings-tab active" data-pane="conexion"><i class="fa-solid fa-plug"></i> <span>Conexión</span></button>
                     <button class="settings-tab" data-pane="montos"><i class="fa-solid fa-coins"></i> <span>Montos mínimos</span></button>
                     <button class="settings-tab" data-pane="filtros"><i class="fa-solid fa-shield-halved"></i> <span>Filtros</span></button>
+                    <button class="settings-tab" data-pane="destacar"><i class="fa-solid fa-crown"></i> <span>Destacar</span></button>
                     <button class="settings-tab" data-pane="alertas"><i class="fa-solid fa-bell"></i> <span>Sonido y voz</span></button>
                     <button class="settings-tab" data-pane="pantalla"><i class="fa-solid fa-display"></i> <span>Pantalla</span></button>
                     <button class="settings-tab" data-pane="obs"><i class="fa-solid fa-video"></i> <span>OBS</span></button>
@@ -520,6 +521,77 @@
                             <textarea id="cfg-blocked-users" rows="4" spellcheck="false" placeholder="NombreDelUsuario"></textarea>
                             <small>Sus donaciones no suenan, no se leen, no van a OBS ni quedan pendientes: van directo a "Leídos" con la marca BLOQUEADO (la plata igual suma en los totales). También podés bloquear a alguien desde su donación en grande.</small>
                         </div>
+                    </section>
+
+                    <!-- DESTACAR: efecto para donaciones grandes y rangos de donadores -->
+                    <section class="settings-pane" data-pane="destacar">
+                        <h3 class="pane-title">Destacar</h3>
+                        <p class="pane-desc">Que las donaciones grandes y los que más te apoyan se noten.</p>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-wand-magic-sparkles"></i> Efecto para donaciones grandes</div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Activar efecto</strong><small>La tarjeta de la donación se destaca con un efecto animado mientras está pendiente.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-fx-enabled"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="sound-picker" id="fx-picker">
+                            <div class="sound-row">
+                                <label for="cfg-fx-min"><strong>Desde</strong></label>
+                                <input type="number" id="cfg-fx-min" class="big-sound-min" min="0" step="500" placeholder="10000">
+                                <span class="pane-note big-sound-unit">pesos</span>
+                            </div>
+                            <div class="sound-row">
+                                <label for="cfg-fx-type"><strong>Efecto</strong></label>
+                                <select id="cfg-fx-type">
+                                    <option value="pulse">Borde latiendo</option>
+                                    <option value="glow">Brillo (resplandor)</option>
+                                    <option value="rainbow">Arcoíris girando</option>
+                                    <option value="shine">Destello que pasa</option>
+                                </select>
+                                <input type="color" id="cfg-fx-color" value="#FFD700" class="bg-color-input" title="Color del efecto">
+                            </div>
+                            <div class="fx-preview-wrap">
+                                <div class="donation-card pf-ceneka has-fx fx-pulse fx-preview" id="fx-preview"><span class="fx-ring" aria-hidden="true"></span>
+                                    <strong>Así se ve</strong><small>Una donación grande con este efecto.</small>
+                                </div>
+                            </div>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En el panel</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-fx-panel"><span class="toggle-slider"></span></span>
+                            </label>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En OBS</strong><small>En el fondo transparente el "Brillo" se ve como borde.</small></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-fx-obs"><span class="toggle-slider"></span></span>
+                            </label>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-ranking-star"></i> Rangos de donadores</div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Activar rangos</strong><small>Al lado del nombre aparece el rango según cuánto donó esa persona en los últimos días (sumando todas sus donaciones del historial).</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-enabled"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div id="ranks-box">
+                            <div class="sound-row ranks-days-row">
+                                <label for="cfg-ranks-days">Contar lo donado en los últimos</label>
+                                <input type="number" id="cfg-ranks-days" class="big-sound-min" min="1" max="3650" step="1">
+                                <span class="pane-note big-sound-unit">días</span>
+                            </div>
+                            <div class="ranks-list" id="ranks-list"></div>
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-add-rank"><i class="fa-solid fa-plus"></i> Agregar rango</button>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>Mostrar el nombre del rango</strong><small>Apagado, solo se ven los íconos (el nombre aparece al pasar el mouse).</small></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-name"><span class="toggle-slider"></span></span>
+                            </label>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En el panel</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-panel"><span class="toggle-slider"></span></span>
+                            </label>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En OBS</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-obs"><span class="toggle-slider"></span></span>
+                            </label>
+                            <small class="pane-note">Se cuenta por nombre de usuario (sin importar mayúsculas), en pesos. Los dólares, Bits y KICKs suman si cargaste la cotización. Las donaciones de prueba no cuentan.</small>
+                        </div>
+                        <div class="icon-pop hidden" id="icon-pop" role="dialog" aria-label="Elegir ícono"></div>
                     </section>
 
                     <!-- SONIDO Y VOZ -->
