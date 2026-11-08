@@ -1,7 +1,7 @@
-Novedades de la 1.9.0:
-- Efecto para donaciones grandes: borde latiendo, brillo, arcoíris girando o destello, con el color y el monto que elijas (en el panel y en OBS).
-- Rangos de donadores: según cuánto donó cada uno en los últimos días aparece un rango con íconos al lado del nombre (por ejemplo Colaborador, Mecenas, Leyenda). Se editan nombre, monto, color, ícono (más de 50 para elegir) y cantidad de íconos.
-- Todo está en Opciones → Destacar.
+Novedades de la 1.9.1:
+- Color del monto según cuánto donó: elegís los montos y los colores (en el panel y en OBS). Opciones → Destacar.
+- En OBS la red (YouTube, Kick, etc.) ahora va a la derecha, al lado del monto, para que no quede todo junto al nombre.
+- Con el efecto "Arcoíris" se oculta el selector de color (usa todos los colores).
 
-Novedades de la 1.8.3:
-- Sonidos cortos nuevos, recorte del sonido propio y sonido especial para donaciones grandes.
+Novedades de la 1.9.0:
+- Efecto para donaciones grandes y rangos de donadores con íconos.

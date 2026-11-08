@@ -480,6 +480,9 @@
         .obs-alert.kick { border-color: var(--pc-kick); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(var(--pc-kick-rgb), 0.35); }
         .obs-alert.kick .obs-msg { border-left-color: var(--pc-kick); }
         .obs-tag.kick { background: rgba(var(--pc-kick-rgb), 0.3); color: color-mix(in srgb, var(--pc-kick) 55%, #fff); border: 1px solid rgba(var(--pc-kick-rgb), 0.5); }
+        /* Color del monto según cuánto donó (lo elige el streamer) */
+        .obs-amount.has-amt-color, :root[data-mode="light"] .obs-amount.has-amt-color { color: var(--amt-color) !important; border-color: color-mix(in srgb, var(--amt-color) 45%, transparent) !important; }
+        .obs-header-right .obs-tag { margin-right: 2px; }
         :root[data-mode="light"] .obs-tag.kick { color: color-mix(in srgb, var(--pc-kick) 70%, #000); }
 
         /* Fondo propio de la ventana OBS (color o imagen/GIF) */

@@ -756,6 +756,15 @@ window.SD_I18N_EN = {
     'Cantidad de íconos': 'Number of icons',
     'Máximo 10 rangos': 'Maximum 10 ranks',
     '{} · {} en {} días': '{} · {} in {} days',
+    'Color del monto': 'Amount color',
+    'Color según cuánto donó': 'Color by amount donated',
+    'El monto de cada donación se pinta del color que le corresponde. Por ejemplo: verde las chicas, dorado desde $10.000.': 'Each donation amount is painted with its color. For example: green for small ones, gold from $10,000.',
+    'Agregar color': 'Add color',
+    'En pesos. Los dólares, Bits y KICKs se pintan si cargaste la cotización.': 'In pesos. Dollars, Bits and KICKs are colored if you set the exchange rate.',
+    'No hay colores. Agregá uno.': 'No colors. Add one.',
+    'Quitar este color': 'Remove this color',
+    'Monto desde, en pesos': 'Amount from, in pesos',
+    'Máximo 10 colores': 'Maximum 10 colors',
 
     // ---- OBS window ----
     'StreamDonations - Modo OBS': 'StreamDonations - OBS mode',

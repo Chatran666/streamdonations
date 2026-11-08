@@ -119,6 +119,7 @@
                 : escapeHTML(d.nick ? String(d.nick).charAt(0).toUpperCase() : 'A');
 
             const platformLabel = ({ youtube: 'YouTube', twitch: 'Twitch', kick: 'Kick' })[d.platform] || 'Ceneka';
+            const amtColor = /^#[0-9a-fA-F]{6}$/.test(d.amtColor || '') ? d.amtColor : '';
             const formattedAmt = escapeHTML(d.formattedAmount || ('$' + (parseFloat(d.amount) || 0)));
 
             alertEl.innerHTML = (fx ? '<span class="fx-ring" aria-hidden="true"></span>' : '') + `
@@ -127,11 +128,11 @@
                         <div class="obs-avatar">${avatarHTML}</div>
                         <div class="obs-nick">
                             <span>${escapeHTML(d.nick || 'Anónimo')}</span>${rankHTML}
-                            <span class="obs-tag ${d.platform || 'ceneka'}">${platformLabel}</span>
                         </div>
                     </div>
                     <div class="obs-header-right">
-                        <div class="obs-amount">${formattedAmt}</div>
+                        <span class="obs-tag ${d.platform || 'ceneka'}">${platformLabel}</span>
+                        <div class="obs-amount${amtColor ? ' has-amt-color' : ''}"${amtColor ? ' style="--amt-color:' + amtColor + '"' : ''}>${formattedAmt}</div>
                         <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar como leído y ocultar">
                             <i class="fa-solid fa-check"></i>
                         </button>

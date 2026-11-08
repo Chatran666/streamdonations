@@ -97,6 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Efecto visual para donaciones grandes
             fxEnabled: false, fxMin: 10000, fxType: 'pulse', fxColor: '#FFD700', fxPanel: true, fxObs: true,
             // Rangos de donadores (por lo donado en los últimos N días)
+            // Color del monto según cuánto donó
+            amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
+            amtColors: [
+                { min: 0, color: '#34D399' },
+                { min: 2000, color: '#60A5FA' },
+                { min: 10000, color: '#FBBF24' },
+                { min: 50000, color: '#F87171' }
+            ],
             ranksEnabled: false, ranksDays: 30, ranksPanel: true, ranksObs: true, ranksShowName: true,
             ranks: [
                 { name: 'Colaborador', min: 5000, icon: 'star', color: '#60A5FA', count: 1 },
@@ -145,6 +153,13 @@ document.addEventListener('DOMContentLoaded', () => {
         'music', 'guitar', 'microphone', 'headphones', 'mug-hot', 'beer-mug-empty', 'pizza-slice', 'cake-candles', 'gift', 'ribbon',
         'flag-checkered', 'hand-fist', 'thumbs-up', 'face-grin-stars', 'bomb', 'bullhorn', 'user-astronaut', 'robot', 'wand-magic-sparkles',
         'infinity', 'yin-yang', 'hat-cowboy'];
+    function cleanAmtColors(list) {
+        if (!Array.isArray(list)) return [];
+        return list.filter(r => r && typeof r === 'object').slice(0, 10).map(r => ({
+            min: Math.max(0, Math.round(parseFloat(r.min) || 0)),
+            color: HEX_RE.test(r.color || '') ? r.color : '#34D399'
+        }));
+    }
     function cleanRanks(list) {
         if (!Array.isArray(list)) return [];
         return list.filter(r => r && typeof r === 'object').slice(0, 10).map(r => ({
@@ -193,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.settings.fxType = FX_TYPES.includes(state.settings.fxType) ? state.settings.fxType : 'pulse';
         state.settings.fxColor = HEX_RE.test(state.settings.fxColor || '') ? state.settings.fxColor : '#FFD700';
         state.settings.ranks = cleanRanks(state.settings.ranks);
+        state.settings.amtColors = cleanAmtColors(state.settings.amtColors);
     }
     if (state.settings.hideLinksInObs === false && !state.settings._migratedObsLinks) {
         state.settings.obsLinkMode = 'full';
@@ -377,6 +393,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function fxAttrs(fx) {
         return fx ? { cls: ` has-fx fx-${fx.type}`, style: ` style="--fx-color:${fx.color}"`, ring: '<span class="fx-ring" aria-hidden="true"></span>' } : { cls: '', style: '', ring: '' };
+    }
+
+    // ---- Color del monto según cuánto donó ----
+    function amountColor(d, where) {
+        const st = state.settings;
+        if (!d || !st.amtColorsEnabled || (where === 'obs' ? st.amtColorsObs === false : st.amtColorsPanel === false)) return '';
+        const ars = toARS(d);
+        if (ars === null || ars <= 0) return '';
+        let best = null;
+        (st.amtColors || []).forEach(r => { if (ars >= r.min && (!best || r.min >= best.min)) best = r; });
+        return best && HEX_RE.test(best.color) ? best.color : '';
     }
 
     // ---- Rangos de donadores: lo donado por cada nombre en los últimos N días (en pesos) ----
@@ -1174,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             nick: censorText(d.nick, 'obs'),
             message: obsMessage(censorText(d.message, 'obs')),
             fx: fxFor(d, 'obs'),
+            amtColor: amountColor(d, 'obs'),
             rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName } : null)(rankFor(d.nick, 'obs')),
             obsHideMessage: !!state.settings.obsHideMessage,
             obsDuration: state.settings.obsDuration || 0
@@ -1409,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="platform-tag ${platformBadgeClass}">
                                     <i class="${platformIcon}"></i> ${platformInfo(item.platform).label}
                                 </span>
-                                <span class="amount-badge">${escapeHTML(item.formattedAmount)}</span>
+                                <span class="amount-badge"${(c => c ? ` style="--accent-color:${c}"` : '')(amountColor(item, 'panel'))}>${escapeHTML(item.formattedAmount)}</span>
                             </div>
                             <span class="timestamp"><i class="fa-regular fa-clock"></i> ${timeAgo}</span>
                         </div>
@@ -1933,6 +1961,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bb.classList.toggle('is-blocked', blk);
         }
         els.focusAmount.textContent = item.formattedAmount;
+        els.focusAmount.style.color = amountColor(item, 'panel');
         els.focusMessage.innerHTML = item.message ? `"${messageHTML(item.message)}"` : '(Sin mensaje)';
         
         els.focusAvatar.innerHTML = item.avatar 
@@ -4051,6 +4080,11 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-fx-color').value = st.fxColor || '#FFD700';
         $('cfg-fx-panel').checked = st.fxPanel !== false;
         $('cfg-fx-obs').checked = st.fxObs !== false;
+        $('cfg-amt-enabled').checked = !!st.amtColorsEnabled;
+        $('cfg-amt-panel').checked = st.amtColorsPanel !== false;
+        $('cfg-amt-obs').checked = st.amtColorsObs !== false;
+        amtDraft = cleanAmtColors(st.amtColors).map(r => ({ ...r }));
+        renderAmtForm();
         $('cfg-ranks-enabled').checked = !!st.ranksEnabled;
         $('cfg-ranks-days').value = st.ranksDays || 30;
         $('cfg-ranks-name').checked = st.ranksShowName !== false;
@@ -4059,6 +4093,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ranksDraft = cleanRanks(st.ranks).map(r => ({ ...r }));
         renderRanksForm();
         updateHighlightForm();
+        updateAmtVisibility();
         $('cfg-big-sound-enabled').checked = !!st.bigSoundEnabled;
         $('cfg-big-sound-min').value = st.bigSoundMin || '';
         $('cfg-big-sound-choice').value = st.bigSoundChoice || 'fanfarria';
@@ -4205,6 +4240,11 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxColor = HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700';
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
+        st.amtColorsEnabled = $('cfg-amt-enabled').checked;
+        st.amtColorsPanel = $('cfg-amt-panel').checked;
+        st.amtColorsObs = $('cfg-amt-obs').checked;
+        syncAmtDraft();
+        st.amtColors = cleanAmtColors(amtDraft);
         st.ranksEnabled = $('cfg-ranks-enabled').checked;
         st.ranksDays = Math.min(3650, Math.max(1, parseInt($('cfg-ranks-days').value) || 30));
         st.ranksShowName = $('cfg-ranks-name').checked;
@@ -5182,6 +5222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateHighlightForm() {
         $('fx-picker').classList.toggle('hidden', !$('cfg-fx-enabled').checked);
         $('ranks-box').classList.toggle('hidden', !$('cfg-ranks-enabled').checked);
+        $('cfg-fx-color').classList.toggle('hidden', $('cfg-fx-type').value === 'rainbow'); // el arcoíris usa todos los colores
         const pv = $('fx-preview');
         pv.className = 'donation-card pf-ceneka has-fx fx-preview fx-' + (FX_TYPES.includes($('cfg-fx-type').value) ? $('cfg-fx-type').value : 'pulse');
         pv.style.setProperty('--fx-color', HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700');
@@ -5263,6 +5304,58 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('click', (e) => { if (!e.target.closest('#icon-pop')) $('icon-pop').classList.add('hidden'); });
     }
     initHighlightForm();
+
+    // Color del monto: filas "desde $X → color"
+    let amtDraft = [];
+    function syncAmtDraft() {
+        amtDraft = amtDraft.map((r, i) => ({
+            min: $('amt-min-' + i) ? $('amt-min-' + i).value : r.min,
+            color: $('amt-color-' + i) ? $('amt-color-' + i).value : r.color
+        }));
+    }
+    function renderAmtForm() {
+        const wrap = $('amt-list');
+        if (!amtDraft.length) { wrap.innerHTML = '<p class="pane-note">No hay colores. Agregá uno.</p>'; return; }
+        const order = amtDraft.map((r, i) => i).sort((a, b) => (parseFloat(amtDraft[a].min) || 0) - (parseFloat(amtDraft[b].min) || 0));
+        wrap.innerHTML = order.map(i => {
+            const r = amtDraft[i];
+            const color = HEX_RE.test(r.color || '') ? r.color : '#34D399';
+            const min = Math.max(0, parseInt(r.min) || 0);
+            return `
+            <div class="rank-row amt-row" style="--rank-color:${color}">
+                <label class="rank-field"><span>desde $</span><input type="number" id="amt-min-${i}" min="0" step="500" value="${min}" aria-label="Monto desde, en pesos"></label>
+                <input type="color" id="amt-color-${i}" class="bg-color-input" value="${color}" title="Color del monto">
+                <span class="amount-badge amt-preview" id="amt-preview-${i}" style="--accent-color:${color}">${escapeHTML(formatMoney(min || 1000, 'ARS'))}</span>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-amt-remove="${i}" title="Quitar este color"><i class="fa-solid fa-xmark"></i></button>
+            </div>`;
+        }).join('');
+    }
+    function updateAmtVisibility() { $('amt-box').classList.toggle('hidden', !$('cfg-amt-enabled').checked); }
+    function initAmtForm() {
+        $('cfg-amt-enabled').addEventListener('change', updateAmtVisibility);
+        $('btn-add-amt').addEventListener('click', () => {
+            syncAmtDraft();
+            if (amtDraft.length >= 10) { showToast('Máximo 10 colores', 'info'); return; }
+            const top = amtDraft.reduce((m, r) => Math.max(m, parseFloat(r.min) || 0), 0);
+            amtDraft.push({ min: top ? top * 2 : 1000, color: '#E879F9' });
+            renderAmtForm();
+            setSettingsDirty(true);
+        });
+        $('amt-list').addEventListener('click', (e) => {
+            const rm = e.target.closest('[data-amt-remove]');
+            if (rm) { syncAmtDraft(); amtDraft.splice(parseInt(rm.dataset.amtRemove), 1); renderAmtForm(); setSettingsDirty(true); }
+        });
+        $('amt-list').addEventListener('input', (e) => {
+            const m = /^amt-(min|color)-(\d+)$/.exec(e.target.id || '');
+            if (!m) return;
+            syncAmtDraft();
+            const i = +m[2], r = amtDraft[i], pv = $('amt-preview-' + i);
+            const color = HEX_RE.test(r.color) ? r.color : '#34D399';
+            if (pv) { pv.style.setProperty('--accent-color', color); pv.textContent = formatMoney(Math.max(0, parseInt(r.min) || 0) || 1000, 'ARS'); }
+            const row = e.target.closest('.rank-row'); if (row) row.style.setProperty('--rank-color', color);
+        });
+    }
+    initAmtForm();
 
     // Clics en tarjetas y en la base de datos (sin código dentro del HTML, así la página puede prohibir scripts sueltos)
     document.addEventListener('click', (e) => {

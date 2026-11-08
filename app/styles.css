@@ -2590,3 +2590,6 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .icon-choice { height: 36px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--text-primary); cursor: pointer; font-size: 0.95rem; }
 .icon-choice:hover { background: rgba(var(--ink-rgb), 0.08); }
 .icon-choice.active { border-color: var(--accent); color: var(--accent); }
+#amt-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+#amt-box.hidden { display: none; }
+.amt-row .amt-preview { margin-left: auto; font-size: 0.9rem; padding: 2px 10px; }
