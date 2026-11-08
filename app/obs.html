@@ -483,6 +483,13 @@
         /* Color del monto según cuánto donó (lo elige el streamer) */
         .obs-amount.has-amt-color, :root[data-mode="light"] .obs-amount.has-amt-color { color: var(--amt-color) !important; border-color: color-mix(in srgb, var(--amt-color) 45%, transparent) !important; }
         .obs-header-right .obs-tag { margin-right: 2px; }
+        /* La red como color: nombre y borde de la foto pintados */
+        .obs-alert.ceneka { --pcol: var(--pc-ceneka); } .obs-alert.youtube { --pcol: var(--pc-youtube); }
+        .obs-alert.twitch { --pcol: var(--pc-twitch); } .obs-alert.kick { --pcol: var(--pc-kick); }
+        .pstyle-color .obs-alert [data-el="platform"] { display: none !important; }
+        .pstyle-color .obs-nick > span:first-child, .pstyle-both .obs-nick > span:first-child { color: color-mix(in srgb, var(--pcol) 72%, #fff) !important; }
+        :root[data-mode="light"].pstyle-color .obs-nick > span:first-child, :root[data-mode="light"].pstyle-both .obs-nick > span:first-child { color: color-mix(in srgb, var(--pcol) 80%, #000) !important; }
+        .pstyle-color .obs-avatar, .pstyle-both .obs-avatar { outline: calc(2px * var(--obs-scale)) solid var(--pcol); outline-offset: 1px; }
         /* Ubicación de cada cosa: al lado del nombre, debajo o a la derecha */
         .obs-donor-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .obs-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: calc(1rem * var(--obs-scale) * var(--obs-head-scale)); }
@@ -533,6 +540,23 @@
             background: color-mix(in srgb, var(--rank-color) 18%, transparent); border: 1px solid color-mix(in srgb, var(--rank-color) 45%, transparent); }
         
         .obs-nick .rank-badge { font-size: 0.8em; }
+        /* ---- Cartel del rango: color propio y efecto ---- */
+        .rank-badge .rank-name { position: relative; overflow: hidden; isolation: isolate; }
+        .rank-badge .rank-name.has-bg { background: var(--badge-bg); color: var(--badge-ink); border-color: color-mix(in srgb, var(--badge-bg) 70%, #fff); }
+        .rank-name.rank-fx-shine::after { content: ''; position: absolute; top: 0; bottom: 0; width: 45%; left: -70%; z-index: -1;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.75), transparent); animation: rankShine 2.4s ease-in-out infinite; }
+        .rank-name.has-bg.rank-fx-shine::after { z-index: 1; mix-blend-mode: soft-light; }
+        @keyframes rankShine { 0% { left: -70%; } 55%, 100% { left: 130%; } }
+        .rank-name.rank-fx-pulse { animation: rankPulse 1.3s ease-in-out infinite; }
+        @keyframes rankPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .rank-name.rank-fx-glow { animation: rankGlow 1.6s ease-in-out infinite; overflow: visible; }
+        @keyframes rankGlow { 0%, 100% { box-shadow: 0 0 3px 0 var(--badge-bg, var(--rank-color)); } 50% { box-shadow: 0 0 12px 3px var(--badge-bg, var(--rank-color)); } }
+        .rank-name.rank-fx-rainbow { color: #fff !important; border-color: transparent !important;
+            background: linear-gradient(90deg, #ff004c, #ff9a00, #e6c200, #2bd400, #00b8e6, #6a5cff, #e600cc, #ff004c) !important;
+            background-size: 300% 100% !important; animation: rankRainbow 3s linear infinite; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+        @keyframes rankRainbow { to { background-position: 300% 0; } }
+        @media (prefers-reduced-motion: reduce) { .rank-name[class*="rank-fx-"], .rank-name[class*="rank-fx-"]::after { animation-duration: 5s !important; } }
+        
         /* En modo transparente no hay brillos: el anillo queda como borde */
         :root.obs-chroma .fx-glow .fx-ring { border-width: 3px; }
 

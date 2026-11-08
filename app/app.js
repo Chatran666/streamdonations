@@ -100,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Color del monto según cuánto donó
             // Ventana OBS: dónde va cada cosa ('name' al lado del nombre, 'below' debajo, 'right' a la derecha, 'hidden')
             obsLayout: { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' },
+            // Cómo se muestra la red: 'tag' etiqueta con el nombre, 'color' nombre y foto pintados con el color de la red, 'both' las dos
+            obsPlatformStyle: 'tag', panelPlatformStyle: 'tag',
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
                 { min: 0, color: '#34D399' },
@@ -109,9 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             ranksEnabled: false, ranksDays: 30, ranksPanel: true, ranksObs: true, ranksShowName: true,
             ranks: [
+                { name: 'Seguidor', mode: 'manual', users: '', icon: 'heart', color: '#F472B6', count: 1 },
                 { name: 'Colaborador', min: 5000, icon: 'star', color: '#60A5FA', count: 1 },
                 { name: 'Mecenas', min: 20000, icon: 'gem', color: '#A78BFA', count: 2 },
-                { name: 'Leyenda', min: 50000, icon: 'crown', color: '#FBBF24', count: 3 }
+                { name: 'Leyenda', min: 50000, icon: 'crown', color: '#FBBF24', count: 3, badgeColor: '#FBBF24', badgeFx: 'shine' }
             ],
             showAmounts: false,
             voiceName: '', // Voz elegida para la lectura (vacío = primera voz en español)
@@ -149,6 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- Efectos y rangos: valores permitidos (todo lo que se muestra pasa por acá) ----
     const HEX_RE = /^#[0-9a-fA-F]{6}$/;
     const FX_TYPES = ['pulse', 'glow', 'rainbow', 'shine'];
+    const RANK_FX = ['none', 'shine', 'pulse', 'glow', 'rainbow'];
+    // Texto blanco o negro según el color de fondo, para que siempre se lea
+    function inkFor(hex) {
+        if (!HEX_RE.test(hex || '')) return '#fff';
+        const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+        return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#111' : '#fff';
+    }
     const RANK_ICONS = ['star', 'gem', 'crown', 'heart', 'fire', 'bolt', 'medal', 'trophy', 'award', 'shield-halved', 'rocket', 'dragon',
         'skull', 'ghost', 'hat-wizard', 'chess-king', 'chess-queen', 'chess-knight', 'money-bill-wave', 'coins', 'sack-dollar', 'sun',
         'moon', 'meteor', 'paw', 'cat', 'dog', 'fish', 'horse', 'dove', 'feather', 'leaf', 'seedling', 'snowflake', 'gamepad', 'dice',
@@ -174,10 +184,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!Array.isArray(list)) return [];
         return list.filter(r => r && typeof r === 'object').slice(0, 10).map(r => ({
             name: String(r.name || '').replace(/[<>]/g, '').trim().slice(0, 24) || 'Rango',
+            mode: r.mode === 'manual' ? 'manual' : 'auto', // 'auto' = por monto donado, 'manual' = lo das vos
             min: Math.max(0, Math.round(parseFloat(r.min) || 0)),
+            users: String(r.users || '').split(/[\n,]+/).map(u => u.trim().replace(/^@+/, '').replace(/[<>]/g, '').slice(0, 60)).filter(Boolean).slice(0, 500).join('\n'),
             icon: RANK_ICONS.includes(r.icon) ? r.icon : 'star',
             color: HEX_RE.test(r.color || '') ? r.color : '#60A5FA',
-            count: Math.min(5, Math.max(1, parseInt(r.count) || 1))
+            count: Math.min(5, Math.max(1, parseInt(r.count) || 1)),
+            badgeColor: HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '', // color del cartel con el nombre ('' = el del rango)
+            badgeFx: RANK_FX.includes(r.badgeFx) ? r.badgeFx : 'none'
         }));
     }
 
@@ -220,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.settings.ranks = cleanRanks(state.settings.ranks);
         state.settings.amtColors = cleanAmtColors(state.settings.amtColors);
         state.settings.obsLayout = cleanObsLayout(state.settings.obsLayout);
+        ['obsPlatformStyle', 'panelPlatformStyle'].forEach(k => { if (!['tag', 'color', 'both'].includes(state.settings[k])) state.settings[k] = 'tag'; });
     }
     if (state.settings.hideLinksInObs === false && !state.settings._migratedObsLinks) {
         state.settings.obsLinkMode = 'full';
@@ -441,18 +456,47 @@ document.addEventListener('DOMContentLoaded', () => {
     function rankFor(nick, where) {
         const st = state.settings;
         if (!st.ranksEnabled || (where === 'obs' ? st.ranksObs === false : st.ranksPanel === false)) return null;
-        const total = donorTotals().get(nickKey(nick)) || 0;
-        if (total <= 0) return null;
-        let best = null;
-        (st.ranks || []).forEach(r => { if (total >= r.min && r.min > 0 && (!best || r.min > best.min)) best = r; });
-        return best ? { name: best.name, icon: best.icon, color: best.color, count: best.count, total, showName: st.ranksShowName !== false } : null;
+        const key = nickKey(nick);
+        if (!key) return null;
+        const total = donorTotals().get(key) || 0;
+        // Un rango dado a mano gana sobre el que se ganó por monto
+        let best = (st.ranks || []).find(r => r.mode === 'manual' && manualUsers(r).has(key)) || null;
+        if (!best && total > 0) {
+            (st.ranks || []).forEach(r => { if (r.mode !== 'manual' && total >= r.min && r.min > 0 && (!best || r.min > best.min)) best = r; });
+        }
+        return best ? { name: best.name, icon: best.icon, color: best.color, count: best.count, total, manual: best.mode === 'manual',
+            badgeColor: best.badgeColor || '', badgeFx: best.badgeFx || 'none', showName: st.ranksShowName !== false } : null;
+    }
+    const manualCache = new WeakMap();
+    function manualUsers(r) {
+        let c = manualCache.get(r);
+        if (!c || c.src !== r.users) { c = { src: r.users, set: new Set(String(r.users || '').split(/\n+/).map(nickKey).filter(Boolean)) }; manualCache.set(r, c); }
+        return c.set;
+    }
+    // Dar o quitar un rango "a mano" a una persona
+    function setManualRank(nick, rankIdx) {
+        const key = nickKey(nick), name = String(nick || '').trim().replace(/^@+/, '');
+        if (!key) return;
+        (state.settings.ranks || []).forEach((r, i) => {
+            if (r.mode !== 'manual') return;
+            const lines = String(r.users || '').split(/\n+/).map(x => x.trim()).filter(x => x && nickKey(x) !== key);
+            if (i === rankIdx) lines.push(name);
+            r.users = lines.join('\n');
+        });
+        persistSettings();
+    }
+    function rankNameHTML(r) {
+        const bg = HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '';
+        const style = bg ? ` style="--badge-bg:${bg};--badge-ink:${inkFor(bg)}"` : '';
+        const fx = RANK_FX.includes(r.badgeFx) && r.badgeFx !== 'none' ? ` rank-fx-${r.badgeFx}` : '';
+        return `<span class="rank-name${bg ? ' has-bg' : ''}${fx}"${style}>${escapeHTML(r.name)}</span>`;
     }
     function rankBadgeHTML(r) {
         if (!r) return '';
         const icons = Array.from({ length: r.count }, () => `<i class="fa-solid fa-${r.icon}"></i>`).join('');
         const days = parseInt(state.settings.ranksDays) || 30;
-        const tip = `${r.name} · ${formatMoney(Math.round(r.total), 'ARS')} en ${days} días`;
-        return `<span class="rank-badge" style="--rank-color:${r.color}" title="${escapeHTML(tip)}">${icons}${r.showName ? `<span class="rank-name">${escapeHTML(r.name)}</span>` : ''}</span>`;
+        const tip = r.manual ? `${r.name} · rango dado a mano` : `${r.name} · ${formatMoney(Math.round(r.total), 'ARS')} en ${days} días`;
+        return `<span class="rank-badge" style="--rank-color:${r.color}" title="${escapeHTML(tip)}">${icons}${r.showName ? rankNameHTML(r) : ''}</span>`;
     }
 
     // ¿Esta donación llega al monto del sonido especial? (en pesos; dólares, Bits y KICKs necesitan la cotización)
@@ -1213,7 +1257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             message: obsMessage(censorText(d.message, 'obs')),
             fx: fxFor(d, 'obs'),
             amtColor: amountColor(d, 'obs'),
-            rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName } : null)(rankFor(d.nick, 'obs')),
+            rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null)(rankFor(d.nick, 'obs')),
             obsHideMessage: !!state.settings.obsHideMessage,
             obsDuration: state.settings.obsDuration || 0
         };
@@ -1964,6 +2008,19 @@ document.addEventListener('DOMContentLoaded', () => {
         { const old = document.getElementById('focus-rank'); if (old) old.remove();
           const rb = rankBadgeHTML(rankFor(item.nick, 'panel'));
           if (rb) { els.focusNick.insertAdjacentHTML('afterend', rb); els.focusNick.nextElementSibling.id = 'focus-rank'; } }
+        // Rango dado a mano (si hay rangos "a mano" creados)
+        const rs = $('focus-rank-select');
+        if (rs) {
+            const manual = (state.settings.ranks || []).map((r, i) => ({ r, i })).filter(x => x.r.mode === 'manual');
+            const show = !!state.settings.ranksEnabled && manual.length > 0 && !item.isTest;
+            rs.classList.toggle('hidden', !show);
+            if (show) {
+                const key = nickKey(item.nick);
+                const cur = manual.find(x => manualUsers(x.r).has(key));
+                rs.innerHTML = '<option value="-1">Sin rango a mano</option>' + manual.map(x => `<option value="${x.i}">${escapeHTML(x.r.name)}</option>`).join('');
+                rs.value = cur ? String(cur.i) : '-1';
+            }
+        }
         const bb = $('btn-focus-block');
         if (bb) {
             const blk = isBlocked(item.nick);
@@ -1997,6 +2054,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     els.btnCloseFocus.addEventListener('click', window.closeFocusModal);
+
+    $('focus-rank-select').addEventListener('change', (e) => {
+        const item = state.donations.find(d => d.id === state.activeFocusId);
+        if (!item) return;
+        const idx = parseInt(e.target.value);
+        setManualRank(item.nick, idx);
+        rankCache.key = '';
+        render();
+        refreshOverlayMessages();
+        const r = (state.settings.ranks || [])[idx];
+        showToast(r ? `${escapeHTML(item.nick)} ahora es ${escapeHTML(r.name)}` : `${escapeHTML(item.nick)} ya no tiene rango a mano`, 'success');
+        const rb = rankBadgeHTML(rankFor(item.nick, 'panel'));
+        const old = document.getElementById('focus-rank'); if (old) old.remove();
+        if (rb) { els.focusNick.insertAdjacentHTML('afterend', rb); els.focusNick.nextElementSibling.id = 'focus-rank'; }
+    });
 
     $('btn-focus-block').addEventListener('click', () => {
         const item = state.donations.find(d => d.id === state.activeFocusId);
@@ -4091,6 +4163,8 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-fx-color').value = st.fxColor || '#FFD700';
         $('cfg-fx-panel').checked = st.fxPanel !== false;
         $('cfg-fx-obs').checked = st.fxObs !== false;
+        $('cfg-obs-pstyle').value = st.obsPlatformStyle || 'tag';
+        $('cfg-panel-pstyle').value = st.panelPlatformStyle || 'tag';
         { const lay = cleanObsLayout(st.obsLayout); Object.keys(LAYOUT_FIELDS).forEach(k => { $(LAYOUT_FIELDS[k]).value = lay[k]; }); }
         $('cfg-amt-enabled').checked = !!st.amtColorsEnabled;
         $('cfg-amt-panel').checked = st.amtColorsPanel !== false;
@@ -4187,6 +4261,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setSettingsDirty(false);
         lookDraft = null;
         obsLayoutDraft = null;
+        obsPStyleDraft = null;
+        applyPanelPStyle(state.settings.panelPlatformStyle);
         applyTheme();      // si había una vista previa sin guardar, vuelve a lo guardado
         applyLook();
         applyTextScales();
@@ -4197,7 +4273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function refreshOverlayMessages() {
         const items = state.donations
             .filter(d => !d.isRead)
-            .map(d => ({ id: d.id, nick: censorText(d.nick, 'obs'), message: obsMessage(censorText(d.message, 'obs')), obsHideMessage: !!state.settings.obsHideMessage }));
+            .map(d => { const pl = overlayPayload(d); return { id: d.id, nick: pl.nick, message: pl.message, rank: pl.rank, obsHideMessage: !!state.settings.obsHideMessage }; });
         const payload = { ts: Date.now(), items };
         try { localStorage.setItem('obs_alerts_update', JSON.stringify(payload)); } catch (e) {}
         if (state.overlayWindow && !state.overlayWindow.closed) {
@@ -4254,6 +4330,8 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
         st.obsLayout = readObsLayoutForm();
+        st.obsPlatformStyle = ['tag', 'color', 'both'].includes($('cfg-obs-pstyle').value) ? $('cfg-obs-pstyle').value : 'tag';
+        st.panelPlatformStyle = ['tag', 'color', 'both'].includes($('cfg-panel-pstyle').value) ? $('cfg-panel-pstyle').value : 'tag';
         st.amtColorsEnabled = $('cfg-amt-enabled').checked;
         st.amtColorsPanel = $('cfg-amt-panel').checked;
         st.amtColorsObs = $('cfg-amt-obs').checked;
@@ -4267,6 +4345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncRanksDraft();
         st.ranks = cleanRanks(ranksDraft);
         rankCache.key = '';
+        setTimeout(refreshOverlayMessages, 50); // los rangos de las alertas que ya están en OBS se actualizan
         st.bigSoundEnabled = $('cfg-big-sound-enabled').checked;
         st.bigSoundMin = Math.max(0, parseFloat($('cfg-big-sound-min').value) || 0);
         st.bigSoundChoice = $('cfg-big-sound-choice').value || 'fanfarria';
@@ -5088,6 +5167,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     var lastObsScale = 1, lastObsAmount = 0.8, lastObsHead = 0.75;
     var obsLayoutDraft = null; // vista previa sin guardar de "qué se ve y dónde"
+    var obsPStyleDraft = null;
+    $('cfg-obs-pstyle').addEventListener('change', () => { obsPStyleDraft = $('cfg-obs-pstyle').value; sendObsStyle(); });
+    $('cfg-panel-pstyle').addEventListener('change', () => applyPanelPStyle($('cfg-panel-pstyle').value));
+    function applyPanelPStyle(v) {
+        const root = document.documentElement;
+        root.classList.toggle('pstyle-color', v === 'color');
+        root.classList.toggle('pstyle-both', v === 'both');
+    }
+    applyPanelPStyle(state.settings.panelPlatformStyle);
     const LAYOUT_FIELDS = { amount: 'cfg-lay-amount', platform: 'cfg-lay-platform', rankIcons: 'cfg-lay-rankicons', rankName: 'cfg-lay-rankname' };
     function readObsLayoutForm() {
         const o = {};
@@ -5106,6 +5194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filterBar: state.settings.obsFilterBar !== false,
             platforms: visiblePlatforms(),
             layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),
+            platformStyle: obsPStyleDraft || state.settings.obsPlatformStyle || 'tag',
             ts: Date.now()
         };
         try { localStorage.setItem('obs_style', JSON.stringify(payload)); } catch (e) {}
@@ -5251,32 +5340,66 @@ document.addEventListener('DOMContentLoaded', () => {
         pv.style.setProperty('--fx-color', HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700');
     }
     function syncRanksDraft() {
+        const v = (id, d) => $(id) ? $(id).value : d;
         ranksDraft = ranksDraft.map((r, i) => ({
             ...r,
-            name: $('rank-name-' + i) ? $('rank-name-' + i).value : r.name,
-            min: $('rank-min-' + i) ? $('rank-min-' + i).value : r.min,
-            color: $('rank-color-' + i) ? $('rank-color-' + i).value : r.color,
-            count: $('rank-count-' + i) ? $('rank-count-' + i).value : r.count
+            name: v('rank-name-' + i, r.name),
+            mode: v('rank-mode-' + i, r.mode),
+            min: v('rank-min-' + i, r.min),
+            users: v('rank-users-' + i, r.users),
+            color: v('rank-color-' + i, r.color),
+            count: v('rank-count-' + i, r.count),
+            badgeColor: $('rank-bgon-' + i) ? ($('rank-bgon-' + i).checked ? v('rank-bg-' + i, r.badgeColor) : '') : r.badgeColor,
+            badgeFx: v('rank-fx-' + i, r.badgeFx)
         }));
     }
+    function rankPreviewHTML(r) {
+        const color = HEX_RE.test(r.color || '') ? r.color : '#60A5FA';
+        return rankBadgeHTML({ name: r.name || 'Rango', icon: RANK_ICONS.includes(r.icon) ? r.icon : 'star', color,
+            count: Math.min(5, Math.max(1, parseInt(r.count) || 1)), total: 0, manual: r.mode === 'manual',
+            badgeColor: HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '', badgeFx: RANK_FX.includes(r.badgeFx) ? r.badgeFx : 'none', showName: true });
+    }
+    const RANK_FX_LABELS = { none: 'Sin efecto', shine: 'Destello', pulse: 'Latido', glow: 'Brillo', rainbow: 'Arcoíris' };
     function renderRanksForm() {
         const wrap = $('ranks-list');
         if (!ranksDraft.length) { wrap.innerHTML = '<p class="pane-note">No hay rangos. Agregá uno.</p>'; return; }
-        const order = ranksDraft.map((r, i) => i).sort((a, b) => (parseFloat(ranksDraft[a].min) || 0) - (parseFloat(ranksDraft[b].min) || 0));
+        // Primero los que das a mano, después los de monto de menor a mayor
+        const order = ranksDraft.map((r, i) => i).sort((a, b) => {
+            const ma = ranksDraft[a].mode === 'manual' ? 0 : 1, mb = ranksDraft[b].mode === 'manual' ? 0 : 1;
+            return ma - mb || (parseFloat(ranksDraft[a].min) || 0) - (parseFloat(ranksDraft[b].min) || 0);
+        });
         wrap.innerHTML = order.map(i => {
             const r = ranksDraft[i];
             const icon = RANK_ICONS.includes(r.icon) ? r.icon : 'star';
             const color = HEX_RE.test(r.color || '') ? r.color : '#60A5FA';
             const cnt = Math.min(5, Math.max(1, parseInt(r.count) || 1));
+            const manual = r.mode === 'manual';
+            const bg = HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '';
+            const fx = RANK_FX.includes(r.badgeFx) ? r.badgeFx : 'none';
+            const nUsers = String(r.users || '').split(/\n+/).filter(x => x.trim()).length;
             return `
-            <div class="rank-row" style="--rank-color:${color}">
-                <button type="button" class="rank-icon-btn" data-rank-icon="${i}" title="Elegir ícono"><i class="fa-solid fa-${icon}"></i></button>
-                <input type="text" id="rank-name-${i}" class="rank-name-input" maxlength="24" value="${escapeHTML(r.name)}" placeholder="Nombre del rango" aria-label="Nombre del rango">
-                <label class="rank-field"><span>desde $</span><input type="number" id="rank-min-${i}" min="0" step="500" value="${Math.max(0, parseInt(r.min) || 0)}" aria-label="Monto mínimo en pesos"></label>
-                <label class="rank-field"><span>íconos</span><select id="rank-count-${i}" aria-label="Cantidad de íconos">${[1, 2, 3, 4, 5].map(n => `<option value="${n}"${n === cnt ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
-                <input type="color" id="rank-color-${i}" class="bg-color-input" value="${color}" title="Color del rango">
-                <span class="rank-preview" id="rank-preview-${i}">${rankBadgeHTML({ name: r.name || 'Rango', icon, color, count: cnt, total: 0, showName: false })}</span>
-                <button type="button" class="btn btn-outline-danger btn-sm" data-rank-remove="${i}" title="Quitar este rango"><i class="fa-solid fa-xmark"></i></button>
+            <div class="rank-row rank-card" style="--rank-color:${color}">
+                <div class="rank-line">
+                    <button type="button" class="rank-icon-btn" data-rank-icon="${i}" title="Elegir ícono"><i class="fa-solid fa-${icon}"></i></button>
+                    <input type="text" id="rank-name-${i}" class="rank-name-input" maxlength="24" value="${escapeHTML(r.name)}" placeholder="Nombre del rango" aria-label="Nombre del rango">
+                    <label class="rank-field"><span>íconos</span><select id="rank-count-${i}" aria-label="Cantidad de íconos">${[1, 2, 3, 4, 5].map(n => `<option value="${n}"${n === cnt ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+                    <input type="color" id="rank-color-${i}" class="bg-color-input" value="${color}" title="Color de los íconos">
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-rank-remove="${i}" title="Quitar este rango"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="rank-line">
+                    <label class="rank-field"><span>Cómo se gana</span><select id="rank-mode-${i}" data-rank-mode="${i}">
+                        <option value="auto"${manual ? '' : ' selected'}>Por lo que donó</option>
+                        <option value="manual"${manual ? ' selected' : ''}>Lo doy yo a mano</option></select></label>
+                    ${manual ? `<span class="pane-note rank-users-count">${nUsers} persona${nUsers === 1 ? '' : 's'}</span>`
+                             : `<label class="rank-field"><span>desde $</span><input type="number" id="rank-min-${i}" min="0" step="500" value="${Math.max(0, parseInt(r.min) || 0)}" aria-label="Monto mínimo en pesos"></label>`}
+                </div>
+                ${manual ? `<textarea id="rank-users-${i}" class="rank-users" rows="3" spellcheck="false" placeholder="Un nombre por línea, tal como aparece en la donación">${escapeHTML(r.users || '')}</textarea>` : ''}
+                <div class="rank-line">
+                    <label class="rank-field rank-check"><input type="checkbox" id="rank-bgon-${i}"${bg ? ' checked' : ''}><span>Color del cartel</span></label>
+                    <input type="color" id="rank-bg-${i}" class="bg-color-input" value="${bg || color}" title="Color de fondo del cartel con el nombre"${bg ? '' : ' disabled'}>
+                    <label class="rank-field"><span>Efecto</span><select id="rank-fx-${i}" aria-label="Efecto del cartel">${RANK_FX.map(f => `<option value="${f}"${f === fx ? ' selected' : ''}>${RANK_FX_LABELS[f]}</option>`).join('')}</select></label>
+                    <span class="rank-preview" id="rank-preview-${i}">${rankPreviewHTML(r)}</span>
+                </div>
             </div>`;
         }).join('');
     }
@@ -5295,7 +5418,7 @@ document.addEventListener('DOMContentLoaded', () => {
             syncRanksDraft();
             if (ranksDraft.length >= 10) { showToast('Máximo 10 rangos', 'info'); return; }
             const top = ranksDraft.reduce((m, r) => Math.max(m, parseFloat(r.min) || 0), 0);
-            ranksDraft.push({ name: 'Nuevo rango', min: top ? top * 2 : 5000, icon: 'medal', color: '#34D399', count: 1 });
+            ranksDraft.push({ name: 'Nuevo rango', mode: 'auto', min: top ? top * 2 : 5000, users: '', icon: 'medal', color: '#34D399', count: 1, badgeColor: '', badgeFx: 'none' });
             renderRanksForm();
             setSettingsDirty(true);
         });
@@ -5305,16 +5428,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const ib = e.target.closest('[data-rank-icon]');
             if (ib) { e.stopPropagation(); syncRanksDraft(); openIconPop(parseInt(ib.dataset.rankIcon), ib); }
         });
-        $('ranks-list').addEventListener('input', (e) => {
-            const m = /^rank-(name|color|count)-(\d+)$/.exec(e.target.id || '');
+        const onRankInput = (e) => {
+            const m = /^rank-(name|color|count|mode|bgon|bg|fx|users|min)-(\d+)$/.exec(e.target.id || '');
             if (!m) return;
             syncRanksDraft();
             const i = +m[2], r = ranksDraft[i];
+            if (m[1] === 'mode') { renderRanksForm(); return; }
+            if (m[1] === 'bgon') { const c = $('rank-bg-' + i); if (c) c.disabled = !e.target.checked; syncRanksDraft(); }
             const row = e.target.closest('.rank-row');
             if (row && HEX_RE.test(r.color)) row.style.setProperty('--rank-color', r.color);
             const pv = $('rank-preview-' + i);
-            if (pv) pv.innerHTML = rankBadgeHTML({ name: r.name, icon: r.icon, color: HEX_RE.test(r.color) ? r.color : '#60A5FA', count: Math.min(5, Math.max(1, parseInt(r.count) || 1)), total: 0, showName: false });
-        });
+            if (pv) pv.innerHTML = rankPreviewHTML(ranksDraft[i]);
+        };
+        $('ranks-list').addEventListener('input', onRankInput);
+        $('ranks-list').addEventListener('change', onRankInput);
         $('icon-pop').addEventListener('click', (e) => {
             const b = e.target.closest('[data-pick-icon]');
             if (!b) return;

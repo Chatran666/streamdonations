@@ -234,6 +234,7 @@
                 </div>
             </div>
             <div class="modal-footer focus-footer">
+                <select id="focus-rank-select" class="focus-rank-select hidden" title="Dar un rango a mano" aria-label="Dar un rango a mano"></select>
                 <button class="btn btn-outline btn-focus-block" id="btn-focus-block"><i class="fa-solid fa-user-slash"></i> <span>Bloquear</span></button>
                 <button class="btn btn-outline" id="btn-focus-speak"><i class="fa-solid fa-volume-high"></i> Leer en Voz Alta</button>
                 <button class="btn btn-primary" id="btn-focus-toggle-read"><i class="fa-solid fa-check-circle"></i> Marcar como Leído</button>
@@ -768,6 +769,17 @@
                         <h3 class="pane-title">Pantalla</h3>
                         <p class="pane-desc">Cómo se ve el panel principal. Lo de la ventana "Modo OBS" está en la sección <strong>OBS</strong>.</p>
 
+                        <div class="layout-box" style="margin-bottom:14px">
+                            <div class="layout-row">
+                                <label for="cfg-panel-pstyle"><i class="fa-solid fa-droplet"></i> Cómo se nota la red en el panel</label>
+                                <select id="cfg-panel-pstyle">
+                                    <option value="tag">Con una etiqueta (YOUTUBE, KICK…)</option>
+                                    <option value="color">Pintando el nombre y el borde de la foto</option>
+                                    <option value="both">Las dos cosas</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="form-group lang-group" data-no-i18n>
                             <label for="cfg-language"><i class="fa-solid fa-language"></i> Idioma / Language</label>
                             <select id="cfg-language">
@@ -988,6 +1000,14 @@
                                     <option value="below">Debajo del nombre</option>
                                     <option value="right">A la derecha</option>
                                     <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-obs-pstyle"><i class="fa-solid fa-droplet"></i> Cómo se nota la red</label>
+                                <select id="cfg-obs-pstyle">
+                                    <option value="tag">Con una etiqueta (YOUTUBE, KICK…)</option>
+                                    <option value="color">Pintando el nombre y el borde de la foto</option>
+                                    <option value="both">Las dos cosas</option>
                                 </select>
                             </div>
                             <small class="pane-note">Solo cambia la ventana "Modo OBS" (lo que ve tu audiencia). Abrila para ver los cambios en vivo. Los rangos se ven si están activados en Opciones → Destacar.</small>

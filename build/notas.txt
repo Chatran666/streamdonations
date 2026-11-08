@@ -1,5 +1,8 @@
-Novedades de la 1.9.2:
-- OBS: elegí dónde va cada cosa en las donaciones (monto, red, íconos del rango y nombre del rango): al lado del nombre, debajo, a la derecha o no mostrarla. Opciones → OBS → "Qué se ve en cada donación y dónde". Se ve en vivo mientras lo cambiás.
+Novedades de la 1.10.0:
+- Rangos que das vos a mano (por ejemplo "Seguidor" para tu gente de confianza), sin que tengan que donar. Se dan desde Opciones → Destacar o desde la donación en grande.
+- Cada rango puede tener el cartel con su nombre de otro color y con efecto (destello, latido, brillo o arcoíris).
+- La red de la donación se puede mostrar como etiqueta (YOUTUBE, KICK…), pintando el nombre y el borde de la foto con el color de la red, o las dos cosas. En OBS (Opciones → OBS) y en el panel (Opciones → Pantalla).
+- Los rangos de las donaciones que ya están en OBS se actualizan al cambiarlos.
 
-Novedades de la 1.9.1:
-- Color del monto según cuánto donó y la red a la derecha en OBS.
+Novedades de la 1.9.2:
+- Ubicación de monto, red y rango en OBS.

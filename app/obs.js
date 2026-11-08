@@ -107,10 +107,7 @@
             const HEX = /^#[0-9a-fA-F]{6}$/;
             const fx = d.fx && ['pulse', 'glow', 'rainbow', 'shine'].includes(d.fx.type) && HEX.test(d.fx.color || '') ? d.fx : null;
             if (fx) { alertEl.classList.add('has-fx', 'fx-' + fx.type); alertEl.style.setProperty('--fx-color', fx.color); }
-            const rk = d.rank && /^[a-z-]{2,30}$/.test(d.rank.icon || '') && HEX.test(d.rank.color || '') ? d.rank : null;
-            const rankIconsHTML = rk ? '<span class="rank-badge" data-el="rankIcons" style="--rank-color:' + rk.color + '">' +
-                Array.from({ length: Math.min(5, Math.max(1, parseInt(rk.count) || 1)) }, () => '<i class="fa-solid fa-' + rk.icon + '"></i>').join('') + '</span>' : '';
-            const rankNameHTML = rk && rk.showName ? '<span class="rank-badge" data-el="rankName" style="--rank-color:' + rk.color + '"><span class="rank-name">' + escapeHTML(String(rk.name || '').slice(0, 24)) + '</span></span>' : '';
+            const { iconsHTML: rankIconsHTML, nameHTML: rankNameHTML } = rankParts(d.rank);
             alertEl.dataset.alertId = alertId;
             alertEl.dataset.platform = d.platform || 'ceneka';
             
@@ -332,6 +329,14 @@
                 if (!el) return;
                 const nickEl = el.querySelector('.obs-nick span:first-child');
                 if (nickEl && typeof item.nick === 'string' && item.nick) nickEl.textContent = item.nick;
+                if ('rank' in item) {
+                    // El rango cambió (por ejemplo, se lo diste a mano): se vuelve a dibujar
+                    el.querySelectorAll('[data-el="rankIcons"], [data-el="rankName"]').forEach(x => x.remove());
+                    const parts = rankParts(item.rank);
+                    const nk = el.querySelector('.obs-nick');
+                    if (nk) nk.insertAdjacentHTML('beforeend', parts.iconsHTML + parts.nameHTML);
+                    placeElements(el);
+                }
                 let msgEl = el.querySelector('.obs-msg');
                 if (item.obsHideMessage || !item.message) {
                     if (msgEl) msgEl.remove();
@@ -363,6 +368,21 @@
 
         // --- TAMAÑO DEL TEXTO (lo manda la app) ---
         let lastStyleTs = 0;
+        // ---- Rango del donador: íconos y cartel con el nombre (solo valores conocidos) ----
+        function rankParts(rank) {
+            const HEX = /^#[0-9a-fA-F]{6}$/;
+            const rk = rank && /^[a-z-]{2,30}$/.test(rank.icon || '') && HEX.test(rank.color || '') ? rank : null;
+            if (!rk) return { iconsHTML: '', nameHTML: '' };
+            const iconsHTML = '<span class="rank-badge" data-el="rankIcons" style="--rank-color:' + rk.color + '">' +
+                Array.from({ length: Math.min(5, Math.max(1, parseInt(rk.count) || 1)) }, () => '<i class="fa-solid fa-' + rk.icon + '"></i>').join('') + '</span>';
+            const bBg = HEX.test(rk.badgeColor || '') ? rk.badgeColor : '';
+            const bFx = ['shine', 'pulse', 'glow', 'rainbow'].includes(rk.badgeFx) ? ' rank-fx-' + rk.badgeFx : '';
+            const bInk = bBg ? ((n => (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) > 150 ? '#111' : '#fff')(parseInt(bBg.slice(1), 16))) : '';
+            const nameHTML = rk.showName ? '<span class="rank-badge" data-el="rankName" style="--rank-color:' + rk.color + '"><span class="rank-name' + (bBg ? ' has-bg' : '') + bFx + '"' +
+                (bBg ? ' style="--badge-bg:' + bBg + ';--badge-ink:' + bInk + '"' : '') + '>' + escapeHTML(String(rk.name || '').slice(0, 24)) + '</span></span>' : '';
+            return { iconsHTML, nameHTML };
+        }
+
         // ---- Qué se ve en cada donación y dónde (lo elige el streamer) ----
         const LAYOUT_ORDER = ['rankIcons', 'rankName', 'platform', 'amount'];
         const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
@@ -410,6 +430,9 @@
             }
             applyObsBg(st.obsBg);
             setLayout(st.layout);
+            const ps = ['tag', 'color', 'both'].includes(st.platformStyle) ? st.platformStyle : 'tag';
+            document.documentElement.classList.toggle('pstyle-color', ps === 'color');
+            document.documentElement.classList.toggle('pstyle-both', ps === 'both');
             const as = Math.min(1.6, Math.max(0.5, parseFloat(st.amountScale) || 0.8));
             document.documentElement.style.setProperty('--obs-amount-scale', as);
             document.documentElement.style.setProperty('--obs-head-scale', Math.min(1.4, Math.max(0.5, parseFloat(st.headScale) || 0.75)));

@@ -2599,3 +2599,41 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .layout-row label { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 8px; }
 .layout-row label i { width: 16px; text-align: center; color: var(--accent); }
 .layout-row select { min-width: 200px; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 7px 10px; font-family: inherit; font-size: 0.82rem; }
+
+/* ---- Cartel del rango: color propio y efecto ---- */
+.rank-badge .rank-name { position: relative; overflow: hidden; isolation: isolate; }
+.rank-badge .rank-name.has-bg { background: var(--badge-bg); color: var(--badge-ink); border-color: color-mix(in srgb, var(--badge-bg) 70%, #fff); }
+.rank-name.rank-fx-shine::after { content: ''; position: absolute; top: 0; bottom: 0; width: 45%; left: -70%; z-index: -1;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.75), transparent); animation: rankShine 2.4s ease-in-out infinite; }
+.rank-name.has-bg.rank-fx-shine::after { z-index: 1; mix-blend-mode: soft-light; }
+@keyframes rankShine { 0% { left: -70%; } 55%, 100% { left: 130%; } }
+.rank-name.rank-fx-pulse { animation: rankPulse 1.3s ease-in-out infinite; }
+@keyframes rankPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.rank-name.rank-fx-glow { animation: rankGlow 1.6s ease-in-out infinite; overflow: visible; }
+@keyframes rankGlow { 0%, 100% { box-shadow: 0 0 3px 0 var(--badge-bg, var(--rank-color)); } 50% { box-shadow: 0 0 12px 3px var(--badge-bg, var(--rank-color)); } }
+.rank-name.rank-fx-rainbow { color: #fff !important; border-color: transparent !important;
+    background: linear-gradient(90deg, #ff004c, #ff9a00, #e6c200, #2bd400, #00b8e6, #6a5cff, #e600cc, #ff004c) !important;
+    background-size: 300% 100% !important; animation: rankRainbow 3s linear infinite; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+@keyframes rankRainbow { to { background-position: 300% 0; } }
+@media (prefers-reduced-motion: reduce) { .rank-name[class*="rank-fx-"], .rank-name[class*="rank-fx-"]::after { animation-duration: 5s !important; } }
+
+/* La red como color: nombre y borde de la foto pintados (Opciones → Pantalla) */
+.donation-card.pf-ceneka { --pcol: rgb(var(--pc-ceneka-rgb)); }
+.donation-card.pf-youtube { --pcol: rgb(var(--pc-youtube-rgb)); }
+.donation-card.pf-twitch { --pcol: rgb(var(--pc-twitch-rgb)); }
+.donation-card.pf-kick { --pcol: rgb(var(--pc-kick-rgb)); }
+.pstyle-color .donation-card .platform-tag { display: none; }
+.pstyle-color .donation-card .donor-nick-text, .pstyle-both .donation-card .donor-nick-text { color: color-mix(in srgb, var(--pcol) 72%, #fff); }
+:root[data-mode="light"].pstyle-color .donation-card .donor-nick-text, :root[data-mode="light"].pstyle-both .donation-card .donor-nick-text { color: color-mix(in srgb, var(--pcol) 80%, #000); }
+.pstyle-color .donation-card .donor-avatar, .pstyle-both .donation-card .donor-avatar { outline: 2px solid var(--pcol); outline-offset: 1px; }
+.focus-rank-select { background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 8px 10px; font-family: inherit; font-size: 0.85rem; }
+.focus-rank-select.hidden { display: none; }
+/* Editor de rangos en tarjetas */
+.rank-card { flex-direction: column; align-items: stretch; gap: 8px; }
+.rank-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rank-line .rank-preview { margin-left: auto; }
+.rank-check { cursor: pointer; }
+.rank-check input { accent-color: var(--accent); }
+.rank-users { width: 100%; resize: vertical; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.rank-users-count { margin: 0; }
+.bg-color-input:disabled { opacity: 0.35; cursor: not-allowed; }
