@@ -178,6 +178,12 @@
             gap: 8px;
         }
 
+        /* Nick largo: se corta con "…" y deja lugar al rango, al monto y al botón */
+        .obs-nick > span:first-child { flex: 0 1 auto; min-width: 4ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .obs-nick > [data-el], .obs-nick > .rank-badge { flex-shrink: 0; }
+        .obs-donor, .obs-donor-text { min-width: 0; }
+        .obs-header-right { flex-shrink: 0; }
+
         .obs-tag {
             font-size: 0.65rem;
             font-weight: 800;
