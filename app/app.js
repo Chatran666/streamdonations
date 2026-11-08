@@ -98,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
             fxEnabled: false, fxMin: 10000, fxType: 'pulse', fxColor: '#FFD700', fxPanel: true, fxObs: true,
             // Rangos de donadores (por lo donado en los últimos N días)
             // Color del monto según cuánto donó
+            // Ventana OBS: dónde va cada cosa ('name' al lado del nombre, 'below' debajo, 'right' a la derecha, 'hidden')
+            obsLayout: { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' },
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
                 { min: 0, color: '#34D399' },
@@ -153,6 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
         'music', 'guitar', 'microphone', 'headphones', 'mug-hot', 'beer-mug-empty', 'pizza-slice', 'cake-candles', 'gift', 'ribbon',
         'flag-checkered', 'hand-fist', 'thumbs-up', 'face-grin-stars', 'bomb', 'bullhorn', 'user-astronaut', 'robot', 'wand-magic-sparkles',
         'infinity', 'yin-yang', 'hat-cowboy'];
+    const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
+    const LAYOUT_DEFAULT = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
+    function cleanObsLayout(o) {
+        o = o && typeof o === 'object' ? o : {};
+        const out = {};
+        Object.keys(LAYOUT_DEFAULT).forEach(k => { out[k] = LAYOUT_SPOTS.includes(o[k]) ? o[k] : LAYOUT_DEFAULT[k]; });
+        return out;
+    }
     function cleanAmtColors(list) {
         if (!Array.isArray(list)) return [];
         return list.filter(r => r && typeof r === 'object').slice(0, 10).map(r => ({
@@ -209,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.settings.fxColor = HEX_RE.test(state.settings.fxColor || '') ? state.settings.fxColor : '#FFD700';
         state.settings.ranks = cleanRanks(state.settings.ranks);
         state.settings.amtColors = cleanAmtColors(state.settings.amtColors);
+        state.settings.obsLayout = cleanObsLayout(state.settings.obsLayout);
     }
     if (state.settings.hideLinksInObs === false && !state.settings._migratedObsLinks) {
         state.settings.obsLinkMode = 'full';
@@ -4080,6 +4091,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-fx-color').value = st.fxColor || '#FFD700';
         $('cfg-fx-panel').checked = st.fxPanel !== false;
         $('cfg-fx-obs').checked = st.fxObs !== false;
+        { const lay = cleanObsLayout(st.obsLayout); Object.keys(LAYOUT_FIELDS).forEach(k => { $(LAYOUT_FIELDS[k]).value = lay[k]; }); }
         $('cfg-amt-enabled').checked = !!st.amtColorsEnabled;
         $('cfg-amt-panel').checked = st.amtColorsPanel !== false;
         $('cfg-amt-obs').checked = st.amtColorsObs !== false;
@@ -4174,6 +4186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeSettings() {
         setSettingsDirty(false);
         lookDraft = null;
+        obsLayoutDraft = null;
         applyTheme();      // si había una vista previa sin guardar, vuelve a lo guardado
         applyLook();
         applyTextScales();
@@ -4240,6 +4253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxColor = HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700';
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
+        st.obsLayout = readObsLayoutForm();
         st.amtColorsEnabled = $('cfg-amt-enabled').checked;
         st.amtColorsPanel = $('cfg-amt-panel').checked;
         st.amtColorsObs = $('cfg-amt-obs').checked;
@@ -5073,6 +5087,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     var lastObsScale = 1, lastObsAmount = 0.8, lastObsHead = 0.75;
+    var obsLayoutDraft = null; // vista previa sin guardar de "qué se ve y dónde"
+    const LAYOUT_FIELDS = { amount: 'cfg-lay-amount', platform: 'cfg-lay-platform', rankIcons: 'cfg-lay-rankicons', rankName: 'cfg-lay-rankname' };
+    function readObsLayoutForm() {
+        const o = {};
+        Object.keys(LAYOUT_FIELDS).forEach(k => { o[k] = $(LAYOUT_FIELDS[k]).value; });
+        return cleanObsLayout(o);
+    }
+    Object.values(LAYOUT_FIELDS).forEach(id => $(id).addEventListener('change', () => { obsLayoutDraft = readObsLayoutForm(); sendObsStyle(); }));
     function sendObsStyle() {
         let lk = {};
         try { lk = look(); } catch (e) {}
@@ -5083,6 +5105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsBg: lk.obsBg,
             filterBar: state.settings.obsFilterBar !== false,
             platforms: visiblePlatforms(),
+            layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),
             ts: Date.now()
         };
         try { localStorage.setItem('obs_style', JSON.stringify(payload)); } catch (e) {}

@@ -483,6 +483,13 @@
         /* Color del monto según cuánto donó (lo elige el streamer) */
         .obs-amount.has-amt-color, :root[data-mode="light"] .obs-amount.has-amt-color { color: var(--amt-color) !important; border-color: color-mix(in srgb, var(--amt-color) 45%, transparent) !important; }
         .obs-header-right .obs-tag { margin-right: 2px; }
+        /* Ubicación de cada cosa: al lado del nombre, debajo o a la derecha */
+        .obs-donor-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .obs-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: calc(1rem * var(--obs-scale) * var(--obs-head-scale)); }
+        .obs-sub.empty, .lay-hidden { display: none !important; }
+        .obs-sub .obs-amount { font-size: calc(1.05rem * var(--obs-scale) * var(--obs-amount-scale)) !important; padding: 1px 8px !important; }
+        .obs-nick .obs-amount { font-size: calc(1rem * var(--obs-scale) * var(--obs-amount-scale)) !important; padding: 1px 8px !important; }
+        .obs-header-right .rank-badge { font-size: calc(1rem * var(--obs-scale) * var(--obs-head-scale)); }
         :root[data-mode="light"] .obs-tag.kick { color: color-mix(in srgb, var(--pc-kick) 70%, #000); }
 
         /* Fondo propio de la ventana OBS (color o imagen/GIF) */

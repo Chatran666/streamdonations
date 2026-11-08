@@ -952,6 +952,47 @@
                             <span class="toggle-switch"><input type="checkbox" id="cfg-strip-tracking"><span class="toggle-slider"></span></span>
                         </label>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-table-cells-large"></i> Qué se ve en cada donación y dónde</div>
+                        <div class="layout-box">
+                            <div class="layout-row">
+                                <label for="cfg-lay-amount"><i class="fa-solid fa-coins"></i> Monto</label>
+                                <select id="cfg-lay-amount">
+                                    <option value="name">Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right" selected>A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-lay-platform"><i class="fa-solid fa-tower-broadcast"></i> Red (YouTube, Kick…)</label>
+                                <select id="cfg-lay-platform">
+                                    <option value="name">Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right" selected>A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-lay-rankicons"><i class="fa-solid fa-crown"></i> Íconos del rango</label>
+                                <select id="cfg-lay-rankicons">
+                                    <option value="name" selected>Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right">A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-lay-rankname"><i class="fa-solid fa-tag"></i> Nombre del rango</label>
+                                <select id="cfg-lay-rankname">
+                                    <option value="name" selected>Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right">A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <small class="pane-note">Solo cambia la ventana "Modo OBS" (lo que ve tu audiencia). Abrila para ver los cambios en vivo. Los rangos se ven si están activados en Opciones → Destacar.</small>
+                        </div>
+
                         <label class="setting-row toggle-row">
                             <div><strong>Ocultar el texto de los mensajes en OBS</strong><small>En pantalla solo sale el nombre y el monto; vos leés el mensaje en el panel.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-hide-message"><span class="toggle-slider"></span></span>

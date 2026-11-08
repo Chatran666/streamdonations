@@ -2593,3 +2593,9 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 #amt-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
 #amt-box.hidden { display: none; }
 .amt-row .amt-preview { margin-left: auto; font-size: 0.9rem; padding: 2px 10px; }
+/* Opciones → OBS: qué se ve y dónde */
+.layout-box { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); }
+.layout-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; }
+.layout-row label { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 8px; }
+.layout-row label i { width: 16px; text-align: center; color: var(--accent); }
+.layout-row select { min-width: 200px; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 7px 10px; font-family: inherit; font-size: 0.82rem; }

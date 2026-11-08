@@ -1,7 +1,7 @@
 {
   "name": "streamdonations",
   "productName": "StreamDonations",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "private": true,
   "description": "Donaciones de Ceneka, YouTube, Twitch y Kick en un panel y en OBS",
   "author": "Mariano <mrlasheras@gmail.com>"

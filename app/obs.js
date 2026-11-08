@@ -108,9 +108,9 @@
             const fx = d.fx && ['pulse', 'glow', 'rainbow', 'shine'].includes(d.fx.type) && HEX.test(d.fx.color || '') ? d.fx : null;
             if (fx) { alertEl.classList.add('has-fx', 'fx-' + fx.type); alertEl.style.setProperty('--fx-color', fx.color); }
             const rk = d.rank && /^[a-z-]{2,30}$/.test(d.rank.icon || '') && HEX.test(d.rank.color || '') ? d.rank : null;
-            const rankHTML = rk ? '<span class="rank-badge" style="--rank-color:' + rk.color + '">' +
-                Array.from({ length: Math.min(5, Math.max(1, parseInt(rk.count) || 1)) }, () => '<i class="fa-solid fa-' + rk.icon + '"></i>').join('') +
-                (rk.showName ? '<span class="rank-name">' + escapeHTML(String(rk.name || '').slice(0, 24)) + '</span>' : '') + '</span>' : '';
+            const rankIconsHTML = rk ? '<span class="rank-badge" data-el="rankIcons" style="--rank-color:' + rk.color + '">' +
+                Array.from({ length: Math.min(5, Math.max(1, parseInt(rk.count) || 1)) }, () => '<i class="fa-solid fa-' + rk.icon + '"></i>').join('') + '</span>' : '';
+            const rankNameHTML = rk && rk.showName ? '<span class="rank-badge" data-el="rankName" style="--rank-color:' + rk.color + '"><span class="rank-name">' + escapeHTML(String(rk.name || '').slice(0, 24)) + '</span></span>' : '';
             alertEl.dataset.alertId = alertId;
             alertEl.dataset.platform = d.platform || 'ceneka';
             
@@ -126,13 +126,16 @@
                 <div class="obs-header">
                     <div class="obs-donor">
                         <div class="obs-avatar">${avatarHTML}</div>
-                        <div class="obs-nick">
-                            <span>${escapeHTML(d.nick || 'Anónimo')}</span>${rankHTML}
+                        <div class="obs-donor-text">
+                            <div class="obs-nick">
+                                <span>${escapeHTML(d.nick || 'Anónimo')}</span>${rankIconsHTML}${rankNameHTML}
+                            </div>
+                            <div class="obs-sub"></div>
                         </div>
                     </div>
                     <div class="obs-header-right">
-                        <span class="obs-tag ${d.platform || 'ceneka'}">${platformLabel}</span>
-                        <div class="obs-amount${amtColor ? ' has-amt-color' : ''}"${amtColor ? ' style="--amt-color:' + amtColor + '"' : ''}>${formattedAmt}</div>
+                        <span class="obs-tag ${d.platform || 'ceneka'}" data-el="platform">${platformLabel}</span>
+                        <div class="obs-amount${amtColor ? ' has-amt-color' : ''}" data-el="amount"${amtColor ? ' style="--amt-color:' + amtColor + '"' : ''}>${formattedAmt}</div>
                         <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar como leído y ocultar">
                             <i class="fa-solid fa-check"></i>
                         </button>
@@ -140,6 +143,8 @@
                 </div>
                 ${(!d.obsHideMessage && d.message) ? '<div class="obs-msg">' + escapeHTML(d.message) + '</div>' : ''}
             `;
+
+            placeElements(alertEl);
 
             // Si estás leyendo más abajo, la pantalla NO salta arriba: se mantiene donde estabas
             const reading = scrollArea && scrollArea.scrollTop > 30;
@@ -358,6 +363,34 @@
 
         // --- TAMAÑO DEL TEXTO (lo manda la app) ---
         let lastStyleTs = 0;
+        // ---- Qué se ve en cada donación y dónde (lo elige el streamer) ----
+        const LAYOUT_ORDER = ['rankIcons', 'rankName', 'platform', 'amount'];
+        const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
+        let obsLayout = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
+        function placeElements(card) {
+            const zones = { name: card.querySelector('.obs-nick'), below: card.querySelector('.obs-sub'), right: card.querySelector('.obs-header-right') };
+            const btn = card.querySelector('.obs-btn-dismiss');
+            if (!zones.name || !zones.below || !zones.right) return;
+            LAYOUT_ORDER.forEach(k => {
+                const el = card.querySelector('[data-el="' + k + '"]');
+                if (!el) return;
+                const spot = obsLayout[k];
+                el.classList.toggle('lay-hidden', spot === 'hidden');
+                if (spot === 'hidden') return;
+                if (spot === 'right') zones.right.insertBefore(el, btn);
+                else zones[spot].appendChild(el);
+            });
+            zones.below.classList.toggle('empty', !zones.below.querySelector('[data-el]:not(.lay-hidden)'));
+        }
+        function setLayout(lay) {
+            if (!lay || typeof lay !== 'object') return;
+            const next = {};
+            Object.keys(obsLayout).forEach(k => { next[k] = LAYOUT_SPOTS.includes(lay[k]) ? lay[k] : obsLayout[k]; });
+            if (JSON.stringify(next) === JSON.stringify(obsLayout)) return;
+            obsLayout = next;
+            document.querySelectorAll('.obs-alert').forEach(placeElements);
+        }
+
         function applyStyle(st) {
             if (!st || (st.ts && st.ts < lastStyleTs)) return;
             lastStyleTs = st.ts || Date.now();
@@ -376,6 +409,7 @@
                 });
             }
             applyObsBg(st.obsBg);
+            setLayout(st.layout);
             const as = Math.min(1.6, Math.max(0.5, parseFloat(st.amountScale) || 0.8));
             document.documentElement.style.setProperty('--obs-amount-scale', as);
             document.documentElement.style.setProperty('--obs-head-scale', Math.min(1.4, Math.max(0.5, parseFloat(st.headScale) || 0.75)));

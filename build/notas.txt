@@ -1,7 +1,5 @@
-Novedades de la 1.9.1:
-- Color del monto según cuánto donó: elegís los montos y los colores (en el panel y en OBS). Opciones → Destacar.
-- En OBS la red (YouTube, Kick, etc.) ahora va a la derecha, al lado del monto, para que no quede todo junto al nombre.
-- Con el efecto "Arcoíris" se oculta el selector de color (usa todos los colores).
+Novedades de la 1.9.2:
+- OBS: elegí dónde va cada cosa en las donaciones (monto, red, íconos del rango y nombre del rango): al lado del nombre, debajo, a la derecha o no mostrarla. Opciones → OBS → "Qué se ve en cada donación y dónde". Se ve en vivo mientras lo cambiás.
 
-Novedades de la 1.9.0:
-- Efecto para donaciones grandes y rangos de donadores con íconos.
+Novedades de la 1.9.1:
+- Color del monto según cuánto donó y la red a la derecha en OBS.
