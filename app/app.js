@@ -120,12 +120,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Cargar configuraciones guardadas de localStorage
+    const SETTINGS_DEFAULTS = JSON.parse(JSON.stringify(state.settings));
     try {
         const saved = localStorage.getItem('streamdonations_settings');
         if (saved) {
-            state.settings = { ...state.settings, ...JSON.parse(saved) };
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) state.settings = { ...state.settings, ...parsed };
         }
     } catch (e) {}
+    // Cada opción tiene que ser del tipo que espera la app (una copia vieja, rota o armada a propósito no la rompe)
+    Object.keys(SETTINGS_DEFAULTS).forEach(k => {
+        const def = SETTINGS_DEFAULTS[k], v = state.settings[k];
+        if (def === null || def === undefined || v === undefined) return;
+        if (typeof def === 'boolean' && typeof v !== 'boolean') state.settings[k] = def;
+        else if (typeof def === 'string' && typeof v !== 'string') state.settings[k] = def;
+        else if (typeof def === 'number' && !(typeof v === 'number' && isFinite(v))) {
+            const n = Number(v);
+            state.settings[k] = (v !== '' && v !== null && isFinite(n)) ? n : def;
+        }
+        else if (Array.isArray(def) && !Array.isArray(v)) state.settings[k] = def;
+        else if (def && typeof def === 'object' && !Array.isArray(def) && (!v || typeof v !== 'object' || Array.isArray(v))) state.settings[k] = def;
+    });
+    {
+        const PL = ['youtube', 'twitch', 'kick'];
+        const chs = Array.isArray(state.settings.seChannels) ? state.settings.seChannels : [];
+        state.settings.seChannels = chs.filter(c => c && typeof c === 'object').slice(0, 6).map(c => ({
+            label: String(c.label || '').slice(0, 40),
+            token: String(c.token || '').trim().slice(0, 4000),
+            platform: ['auto', 'none', ...PL].includes(c.platform) ? c.platform : 'auto',
+            detected: PL.includes(c.detected) ? c.detected : ''
+        }));
+        if (typeof state.settings.slToken !== 'string') state.settings.slToken = '';
+        if (Array.isArray(state.settings.splitColumns)) state.settings.splitColumns = state.settings.splitColumns.filter(k => ['ceneka', ...PL].includes(k));
+        if (state.settings.language !== 'en') state.settings.language = 'es';
+    }
     if (state.settings.hideLinksInObs === false && !state.settings._migratedObsLinks) {
         state.settings.obsLinkMode = 'full';
     }
@@ -1207,15 +1235,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const platformIcon = platformInfo(item.platform).icon;
 
         const readActionBtn = item.isRead 
-            ? `<button class="btn-card-action" onclick="window.toggleReadState('${item.id}')" title="Restaurar a pendientes">
+            ? `<button class="btn-card-action" data-act="toggle-read" data-id="${item.id}" title="Restaurar a pendientes">
                    <i class="fa-solid fa-arrow-rotate-left"></i> Restaurar
                </button>`
-            : `<button class="btn-card-action is-read-btn" onclick="window.toggleReadState('${item.id}')" title="Marcar como leído y quitar de la vista">
+            : `<button class="btn-card-action is-read-btn" data-act="toggle-read" data-id="${item.id}" title="Marcar como leído y quitar de la vista">
                    <i class="fa-solid fa-check"></i> Marcar Leído
                </button>`;
 
         return `
-            <div class="donation-card pf-${platformBadgeClass} ${item.tier} ${readClass}" data-id="${item.id}" onclick="window.openFocusModal('${item.id}')">
+            <div class="donation-card pf-${platformBadgeClass} ${item.tier} ${readClass}" data-id="${item.id}" data-act="focus">
                 <div class="card-header">
                     <div class="donor-info">
                         <div class="donor-avatar">
@@ -1234,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="timestamp"><i class="fa-regular fa-clock"></i> ${timeAgo}</span>
                         </div>
                     </div>
-                    <div class="card-read-action" onclick="event.stopPropagation()">
+                    <div class="card-read-action">
                         ${readActionBtn}
                     </div>
                 </div>
@@ -1572,7 +1600,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try { info = JSON.parse(txt); } catch (e) { info = { version: txt.trim().split(/\s+/)[0] }; }
                 if (!info || !/^v?\d+(\.\d+){0,2}$/.test(String(info.version || '').trim())) return;
                 info.version = String(info.version).trim().replace(/^v/i, '');
-                if (info.url && !/^https:\/\//i.test(info.url)) info.url = '';
+                // Solo se descarga desde las publicaciones oficiales del proyecto en GitHub
+                if (info.url && !/^https:\/\/github\.com\/Chatran666\/streamdonations\//i.test(String(info.url))) info.url = '';
                 info.linkUrl = /^https:\/\//i.test(info.linkUrl || '') ? String(info.linkUrl) : '';
                 info.linkText = info.linkText ? String(info.linkText).slice(0, 80) : '';
                 info.notes = info.notes ? String(info.notes).slice(0, 600) : '';
@@ -1843,7 +1872,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Escucha de Donaciones desde la Extensión, Webhooks y Modo OBS ---
+    // Solo se aceptan mensajes de la ventana "Modo OBS" que abrió este panel
+    function fromOverlay(event) {
+        const src = event.source;
+        if (!src || src === window) return false;
+        if (src === state.overlayWindow) return true;
+        try { return src.opener === window; } catch (e) { return false; }
+    }
     window.addEventListener('message', (event) => {
+        if (!fromOverlay(event)) return;
         if (event.data && event.data.type === 'OBS_OVERLAY_READY') {
             state.overlayWindow = event.source;
             applyTextScales();
@@ -3110,13 +3147,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="db-item-right">
-                        <span class="db-status-pill ${d.isRead ? 'read' : 'unread'}" onclick="window.dbToggleRead('${d.id}')" title="Clic para alternar estado">
+                        <span class="db-status-pill ${d.isRead ? 'read' : 'unread'}" data-act="db-toggle" data-id="${d.id}" title="Clic para alternar estado">
                             ${d.isRead ? '<i class="fa-solid fa-check"></i> Leído' : '<i class="fa-solid fa-clock"></i> Pendiente'}
                         </span>
-                        <button class="db-item-btn" onclick="window.dbEditChat('${d.id}')" title="Editar este registro">
+                        <button class="db-item-btn" data-act="db-edit" data-id="${d.id}" title="Editar este registro">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button class="db-item-btn btn-delete" onclick="window.dbDeleteChat('${d.id}')" title="Eliminar de la base de datos">
+                        <button class="db-item-btn btn-delete" data-act="db-delete" data-id="${d.id}" title="Eliminar de la base de datos">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
@@ -3850,6 +3887,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-sound-choice').value = st.soundChoice || 'campana';
         $('cfg-sound-volume').value = clampNum(st.soundVolume, 0, 1, 0.8);
         $('sound-file-name').textContent = st.soundFileName || 'Sin archivo';
+        $('sound-file-name').dataset.file = st.soundFileName || '';
         $('sound-file-name').dataset.ver = st.soundFileVer || 0;
         updateSoundForm();
         $('cfg-tts-enabled').checked = state.ttsEnabled;
@@ -3981,7 +4019,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.soundChoice = $('cfg-sound-choice').value || 'campana';
         st.soundVolume = clampNum($('cfg-sound-volume').value, 0, 1, 0.8);
         st.soundFileVer = parseInt($('sound-file-name').dataset.ver) || 0;
-        st.soundFileName = $('sound-file-name').textContent === 'Sin archivo' ? '' : $('sound-file-name').textContent;
+        st.soundFileName = $('sound-file-name').dataset.file || '';
         state.ttsEnabled = st.ttsEnabled = $('cfg-tts-enabled').checked;
         st.donationToasts = $('cfg-donation-toasts').checked;
         st.voiceName = $('cfg-voice').value || '';
@@ -4717,7 +4755,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!/^audio\//.test(f.type) && !/\.(wav|mp3|ogg)$/i.test(f.name)) { showToast('Elegí un archivo de sonido (WAV, MP3 u OGG)', 'warning'); return; }
             if (f.size > 3 * 1024 * 1024) { showToast('El sonido pesa más de 3 MB', 'warning'); return; }
             SDStore.put('alertSound', f).then(() => {
-                $('sound-file-name').textContent = f.name;
+                $('sound-file-name').textContent = f.name; $('sound-file-name').dataset.file = f.name;
                 $('sound-file-name').dataset.ver = Date.now();
                 $('cfg-sound-choice').value = 'pc';
                 updateSoundForm();
@@ -4919,6 +4957,20 @@ document.addEventListener('DOMContentLoaded', () => {
             tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
         );
     }
+
+    // Clics en tarjetas y en la base de datos (sin código dentro del HTML, así la página puede prohibir scripts sueltos)
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('[data-act]');
+        if (!el) return;
+        const id = el.dataset.id;
+        switch (el.dataset.act) {
+            case 'toggle-read': e.stopPropagation(); window.toggleReadState(id); break;
+            case 'focus': if (!e.target.closest('.card-read-action, .msg-link')) window.openFocusModal(id); break;
+            case 'db-toggle': window.dbToggleRead(id); break;
+            case 'db-edit': window.dbEditChat(id); break;
+            case 'db-delete': window.dbDeleteChat(id); break;
+        }
+    });
 
     syncHeaderToggles();
     updateLiveBadge();

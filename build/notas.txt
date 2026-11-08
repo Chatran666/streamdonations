@@ -1,9 +1,11 @@
-Novedades de la 1.8.1:
-- Tutorial corto la primera vez que abrís la app: dónde prender sonido y voz, los filtros y cómo conectar tu cuenta.
-- En instalaciones nuevas, el sonido, la voz y los atajos de teclado vienen apagados (si ya los usabas, quedan como los tenías).
-- Los atajos de teclado ahora se prenden y apagan en Opciones → Pantalla.
+Novedades de la 1.8.2 (seguridad):
+- Se revisó la app entera intentando romperla con donaciones, archivos y mensajes armados a propósito.
+- Protección extra: aunque alguien encontrara la forma de meter código en un mensaje, Chrome no lo ejecuta, y la app solo puede conectarse a StreamElements, Streamlabs, ntfy y GitHub.
+- Una copia de configuración rota o armada a propósito ya no puede trabar la app.
+- La ventana de OBS y el panel solo aceptan avisos entre ellos.
+- Las actualizaciones solo se descargan desde las publicaciones oficiales en GitHub.
+- Arreglo: el nombre del sonido elegido se guardaba mal con la app en inglés.
 
-Novedades de la 1.8.0:
-- Filtros: palabras prohibidas y usuarios bloqueados.
-- OBS: fondo transparente (recorte por color).
-- Exportar a Excel (.csv) e idioma inglés.
+Novedades de la 1.8.1:
+- Tutorial corto la primera vez que abrís la app.
+- En instalaciones nuevas, el sonido, la voz y los atajos de teclado vienen apagados.

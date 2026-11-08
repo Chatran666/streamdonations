@@ -16,7 +16,7 @@ jobs:
     env:
       FIRMAR: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Versión desde package.json
         env:
           GH_TOKEN: ${{ github.token }}
@@ -38,14 +38,14 @@ jobs:
       - name: Subir instalador sin firmar (para SignPath)
         id: sin-firmar
         if: env.YA_EXISTE != '1' && env.FIRMAR == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: instalador-sin-firmar
           path: dist/StreamDonations-Setup-${{ env.VERSION }}.exe
           if-no-files-found: error
       - name: Firmar con SignPath
         if: env.YA_EXISTE != '1' && env.FIRMAR == 'true'
-        uses: signpath/github-action-submit-signing-request@v3
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
@@ -79,7 +79,7 @@ jobs:
           cat dist/latest.json
       - name: Publicar en Releases
         if: env.YA_EXISTE != '1'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: v${{ env.VERSION }}
           target_commitish: ${{ github.sha }}

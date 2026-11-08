@@ -13,6 +13,8 @@ window.SD_I18N_EN = {
     'Top Donador': 'Top donor',
     'Controles rápidos': 'Quick controls',
     'Sonido de alerta: activado': 'Alert sound: on',
+    'Sonido de alerta: desactivado': 'Alert sound: off',
+    'Lectura en voz alta: desactivada': 'Read aloud: off',
     'Lectura en voz alta: activada': 'Read aloud: on',
     'Barra de filtros: visible': 'Filter bar: visible',
     'Sonido de alerta:': 'Alert sound:',
