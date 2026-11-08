@@ -1,5 +1,5 @@
 {
-  "version": "1.10.0",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.10.0/StreamDonations-Setup-1.10.0.exe",
-  "notes": "Novedades de la 1.10.0:\n- Rangos que das vos a mano (por ejemplo \"Seguidor\" para tu gente de confianza), sin que tengan que donar. Se dan desde Opciones → Destacar o desde la donación en grande.\n- Cada rango puede tener el cartel con su nombre de otro color y con efecto (destello, latido, brillo o arcoíris).\n- La red de la donación se puede mostrar como etiqueta (YOUTUBE, KICK…), pintando el nombre y el borde de la foto con el color de la red, o las dos cosas. En OBS (Opciones → OBS) y en el panel (Opciones → Pantalla).\n- Los rangos de las donaciones que ya están en OBS se actualizan al cambiarlos.\n\nNovedades de la 1.9.2:\n- Ubicación de monto, red y rango en OBS."
+  "version": "1.10.1",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.10.1/StreamDonations-Setup-1.10.1.exe",
+  "notes": "Novedades de la 1.10.1:\n- OBS: los nombres muy largos ahora se cortan con \"…\" y ya no tapan el rango, la red ni el monto.\n\nNovedades de la 1.10.0:\n- Rangos a mano, color y efecto del cartel de cada rango, y la red como color en el nombre y la foto."
 }
