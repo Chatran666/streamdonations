@@ -2637,3 +2637,14 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .rank-users { width: 100%; resize: vertical; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
 .rank-users-count { margin: 0; }
 .bg-color-input:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Menú de Opciones: si la pantalla es baja, el menú se achica y, si igual no entra, se desplaza (nunca se corta) */
+.settings-nav { overflow-y: auto; min-height: 0; scrollbar-width: thin; }
+.settings-tab { flex-shrink: 0; }
+@media (max-height: 820px) {
+    .settings-nav { padding: 8px 8px; gap: 1px; }
+    .settings-tab { padding: 7px 12px; }
+}
+@media (max-height: 700px) {
+    .settings-tab { padding: 5px 12px; font-size: 0.78rem; }
+}
