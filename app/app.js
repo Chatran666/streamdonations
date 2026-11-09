@@ -1835,9 +1835,18 @@ document.addEventListener('DOMContentLoaded', () => {
         $('update-how').textContent = direct
             ? 'Se descarga el instalador. Cuando termine, cerrá StreamDonations y abrilo: se instala encima y no perdés nada.'
             : 'Descargá el instalador, cerrá StreamDonations y ejecutalo: se instala encima y no perdés nada.';
+        const dlUrl = info.url || DOWNLOAD_PAGE;
         $('btn-update-go').onclick = () => {
-            window.open(info.url || DOWNLOAD_PAGE, '_blank', 'noopener');
-            if (direct) $('update-how').innerHTML = '<strong>Descargando…</strong> Cuando termine, cerrá StreamDonations y abrí el instalador desde tu carpeta Descargas.';
+            window.open(dlUrl, '_blank', 'noopener');
+            // La app corre en su propio Chrome: la descarga se abre ahí, no en tu navegador de siempre
+            $('update-how').innerHTML = '<strong>Se abrió una ventana de Chrome para descargar.</strong> La descarga está en la flecha <i class="fa-solid fa-download"></i> de arriba a la derecha de esa ventana. ' +
+                'Si Chrome avisa que el archivo "no se descarga habitualmente", tocá los tres puntitos y elegí <strong>Conservar</strong>. ' +
+                'Cuando termine, cerrá StreamDonations y abrí el instalador (también queda en tu carpeta Descargas).<br>' +
+                '¿Preferís bajarlo con tu navegador? <button type="button" class="btn btn-outline btn-sm" id="btn-update-copy"><i class="fa-solid fa-copy"></i> Copiar link de descarga</button>';
+            $('btn-update-copy').addEventListener('click', () => {
+                navigator.clipboard.writeText(dlUrl).then(() => showToast('Link copiado: pegalo en tu navegador', 'success'))
+                    .catch(() => { window.prompt('Copiá el link:', dlUrl); });
+            });
         };
         const extra = $('update-extra-link');
         if (info.linkUrl) {
