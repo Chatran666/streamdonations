@@ -1,5 +1,5 @@
 {
-  "version": "1.10.3",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.10.3/StreamDonations-Setup-1.10.3.exe",
-  "notes": "Novedades de la 1.10.3:\n- El menú de Opciones ya no se corta en pantallas bajas (por ejemplo 1366x768): se achica para que entre y, si igual no entra, se puede desplazar.\n\nNovedades de la 1.10.2:\n- La voz ya no queda trabada, orden fijo de rangos, simulador cada 10 segundos."
+  "version": "1.10.4",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.10.4/StreamDonations-Setup-1.10.4.exe",
+  "notes": "Novedades de la 1.10.4:\n- Actualizar es más claro: el aviso explica dónde aparece la descarga en la ventana de Chrome y tiene un botón para copiar el link y bajarla con tu navegador de siempre.\n\nNovedades de la 1.10.3:\n- El menú de Opciones ya no se corta en pantallas bajas."
 }
