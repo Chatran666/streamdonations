@@ -1,5 +1,8 @@
-Novedades de la 1.10.1:
-- OBS: los nombres muy largos ahora se cortan con "…" y ya no tapan el rango, la red ni el monto.
+Novedades de la 1.10.2:
+- Arreglo: la voz podía quedar trabada (por ejemplo al abrir la ventana de OBS o después de leer muchos mensajes seguidos) y dejaba de leer. Ahora se destraba sola y sigue con lo pendiente.
+- Rangos: al cambiar "Cómo se gana" el rango ya no salta de lugar en la lista.
+- El simulador de pruebas manda una donación cada 10 segundos (antes 5).
+- El sonido y la voz quedan apagados al actualizar; se prenden con los botones de arriba.
 
-Novedades de la 1.10.0:
-- Rangos a mano, color y efecto del cartel de cada rango, y la red como color en el nombre y la foto.
+Novedades de la 1.10.1:
+- Nombres largos con "…" en OBS.

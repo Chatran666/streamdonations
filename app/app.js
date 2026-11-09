@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             minTts: 100,
             obsHideMessage: false, // Ocultar texto del mensaje en la alerta de OBS
             obsDuration: 0, // Segundos que queda cada alerta en OBS (0 = queda hasta marcarla como leída)
-            simSpeed: 5,
+            simSpeed: 10,
             autoSaveDb: true, // Auto-guardado permanente en base de datos local
             soundEnabled: false,
             ttsEnabled: false,
@@ -255,6 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!state.settings._sim5Migrated) {
         if (!state.settings.simSpeed || state.settings.simSpeed === 4) state.settings.simSpeed = 5;
         state.settings._sim5Migrated = true;
+    }
+    // 1.10.2: simulador cada 10 segundos, y sonido y voz arrancan apagados (se prenden con los botones del encabezado)
+    if (!state.settings._defaults1102) {
+        if (!state.settings.simSpeed || state.settings.simSpeed === 5) state.settings.simSpeed = 10;
+        state.settings.soundEnabled = false;
+        state.settings.ttsEnabled = false;
+        state.settings._defaults1102 = true;
+        try { localStorage.setItem('streamdonations_settings', JSON.stringify(state.settings)); } catch (e) {}
     }
     if (!state.settings._obsStayMigrated) {
         state.settings.obsDuration = 0; // por defecto las alertas quedan en OBS hasta marcarlas como leídas
@@ -629,11 +637,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cantidad de frases en cola para leer (para no acumular lecturas de prueba)
     var speechPending = 0;
+    var speechQueue = [];        // frases que todavía no terminaron de leerse
+    var lastSpeechProgress = 0;  // última vez que la voz arrancó o terminó una frase
     function stopAllSpeech() {
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         stopLocalSpeech();
         speechPending = 0;
+        speechQueue = [];
     }
+    // Vigilante: Chrome a veces deja la voz trabada (por ejemplo después de unos 15 segundos seguidos de lectura,
+    // o cuando la ventana queda detrás de otra como la de OBS). Si pasa, se destraba y se sigue leyendo lo pendiente.
+    setInterval(() => {
+        if (!('speechSynthesis' in window)) return;
+        const syn = window.speechSynthesis;
+        // Mantener viva la voz en lecturas largas (truco conocido para las voces "Google")
+        if (syn.speaking && !syn.paused && speechQueue.length && speechQueue[0].network) { try { syn.pause(); syn.resume(); } catch (e) {} }
+        if (!speechPending) return;
+        const head = speechQueue[0];
+        const limit = head ? Math.max(12000, 4000 + head.text.length * 110 / clampNum(state.settings.voiceRate, 0.5, 2, 1)) : 12000;
+        if (Date.now() - lastSpeechProgress < limit) return;
+        console.warn('[voz] trabada: se reinicia y se sigue con lo pendiente');
+        const pending = speechQueue.slice(head && head.started ? 1 : 0).map(q => q.text);
+        syn.cancel();
+        speechPending = 0; speechQueue = [];
+        lastSpeechProgress = Date.now();
+        if (pending.length) setTimeout(() => speakWeb(pending.join(' '), currentVoiceName()), 300);
+    }, 3000);
     function ttsBusy() {
         return speechPending > 0 || !!localPlaying || ('speechSynthesis' in window && window.speechSynthesis.speaking);
     }
@@ -736,10 +765,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function speakWeb(text, vname) {
         try {
             const voice = getVoiceByName(vname) || state.selectedVoice;
+            if (!speechPending) lastSpeechProgress = Date.now();
             splitForSpeech(text).forEach(chunk => {
                 const utterance = new SpeechSynthesisUtterance(chunk);
+                const entry = { text: chunk, started: false, network: !!(voice && voice.localService === false) };
                 speechPending++;
-                utterance.onend = utterance.onerror = () => { speechPending = Math.max(0, speechPending - 1); };
+                speechQueue.push(entry);
+                utterance.onstart = () => { entry.started = true; lastSpeechProgress = Date.now(); };
+                utterance.onend = utterance.onerror = () => {
+                    speechPending = Math.max(0, speechPending - 1);
+                    const k = speechQueue.indexOf(entry); if (k >= 0) speechQueue.splice(k, 1);
+                    lastSpeechProgress = Date.now();
+                };
                 if (voice) {
                     utterance.voice = voice;
                     utterance.lang = voice.lang;
@@ -1176,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('cfg-min-tts')) document.getElementById('cfg-min-tts').value = state.settings.minTts || 100;
     if (document.getElementById('cfg-obs-hide-message')) document.getElementById('cfg-obs-hide-message').checked = !!state.settings.obsHideMessage;
     if (document.getElementById('cfg-obs-duration')) document.getElementById('cfg-obs-duration').value = (state.settings.obsDuration || 0);
-    if (document.getElementById('cfg-sim-speed')) document.getElementById('cfg-sim-speed').value = state.settings.simSpeed || 5;
+    if (document.getElementById('cfg-sim-speed')) document.getElementById('cfg-sim-speed').value = state.settings.simSpeed || 10;
     if (document.getElementById('cfg-auto-save-db')) document.getElementById('cfg-auto-save-db').checked = state.settings.autoSaveDb !== false;
     if (els.inputMinAmount && state.settings.minDisplayAmount) els.inputMinAmount.value = state.settings.minDisplayAmount;
 
@@ -4176,7 +4213,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-ranks-name').checked = st.ranksShowName !== false;
         $('cfg-ranks-panel').checked = st.ranksPanel !== false;
         $('cfg-ranks-obs').checked = st.ranksObs !== false;
-        ranksDraft = cleanRanks(st.ranks).map(r => ({ ...r }));
+        // Se ordenan una sola vez al abrir (primero los "a mano", después por monto); mientras editás no se mueven
+        ranksDraft = cleanRanks(st.ranks).map(r => ({ ...r }))
+            .sort((a, b) => (a.mode === 'manual' ? 0 : 1) - (b.mode === 'manual' ? 0 : 1) || a.min - b.min);
         renderRanksForm();
         updateHighlightForm();
         updateAmtVisibility();
@@ -4226,7 +4265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-goal-obs').checked = st.goalShowInObs !== false;
         $('cfg-goal-reset-session').checked = !!st.goalResetOnSession;
         $('cfg-auto-save-db').checked = st.autoSaveDb !== false;
-        $('cfg-sim-speed').value = st.simSpeed || 5;
+        $('cfg-sim-speed').value = st.simSpeed || 10;
         if (els.cfgToggleSim) els.cfgToggleSim.checked = state.isSimulating;
         updateTestCount();
         updateGoalFieldsState();
@@ -4384,7 +4423,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.goalResetOnSession = $('cfg-goal-reset-session').checked;
 
         st.autoSaveDb = $('cfg-auto-save-db').checked;
-        st.simSpeed = Math.min(30, Math.max(1, parseFloat($('cfg-sim-speed').value) || 5));
+        st.simSpeed = Math.min(30, Math.max(1, parseFloat($('cfg-sim-speed').value) || 10));
 
         if (st.goalEnabled && !st.goalTarget) {
             switchSettingsPane('meta');
@@ -5363,11 +5402,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderRanksForm() {
         const wrap = $('ranks-list');
         if (!ranksDraft.length) { wrap.innerHTML = '<p class="pane-note">No hay rangos. Agregá uno.</p>'; return; }
-        // Primero los que das a mano, después los de monto de menor a mayor
-        const order = ranksDraft.map((r, i) => i).sort((a, b) => {
-            const ma = ranksDraft[a].mode === 'manual' ? 0 : 1, mb = ranksDraft[b].mode === 'manual' ? 0 : 1;
-            return ma - mb || (parseFloat(ranksDraft[a].min) || 0) - (parseFloat(ranksDraft[b].min) || 0);
-        });
+        const order = ranksDraft.map((r, i) => i); // en el mismo orden: no se mueven mientras editás
         wrap.innerHTML = order.map(i => {
             const r = ranksDraft[i];
             const icon = RANK_ICONS.includes(r.icon) ? r.icon : 'star';
