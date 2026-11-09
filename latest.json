@@ -1,5 +1,5 @@
 {
-  "version": "1.10.1",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.10.1/StreamDonations-Setup-1.10.1.exe",
-  "notes": "Novedades de la 1.10.1:\n- OBS: los nombres muy largos ahora se cortan con \"…\" y ya no tapan el rango, la red ni el monto.\n\nNovedades de la 1.10.0:\n- Rangos a mano, color y efecto del cartel de cada rango, y la red como color en el nombre y la foto."
+  "version": "1.10.2",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.10.2/StreamDonations-Setup-1.10.2.exe",
+  "notes": "Novedades de la 1.10.2:\n- Arreglo: la voz podía quedar trabada (por ejemplo al abrir la ventana de OBS o después de leer muchos mensajes seguidos) y dejaba de leer. Ahora se destraba sola y sigue con lo pendiente.\n- Rangos: al cambiar \"Cómo se gana\" el rango ya no salta de lugar en la lista.\n- El simulador de pruebas manda una donación cada 10 segundos (antes 5).\n- El sonido y la voz quedan apagados al actualizar; se prenden con los botones de arriba.\n\nNovedades de la 1.10.1:\n- Nombres largos con \"…\" en OBS."
 }
