@@ -96,12 +96,15 @@ document.addEventListener('DOMContentLoaded', () => {
             bigSoundFileName: '',
             // Efecto visual para donaciones grandes
             fxEnabled: false, fxMin: 10000, fxType: 'pulse', fxColor: '#FFD700', fxPanel: true, fxObs: true,
+            fxStyle: 'arcoiris', // estilo para las donaciones grandes
+            styles: null, // se llenan con los estilos de fábrica al cargar
             // Rangos de donadores (por lo donado en los últimos N días)
             // Color del monto según cuánto donó
             // Ventana OBS: dónde va cada cosa ('name' al lado del nombre, 'below' debajo, 'right' a la derecha, 'hidden')
             obsLayout: { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' },
             // Cómo se muestra la red: 'tag' etiqueta con el nombre, 'color' nombre y foto pintados con el color de la red, 'both' las dos
             obsPlatformStyle: 'tag', panelPlatformStyle: 'tag',
+            customIcons: [], // imágenes propias para los rangos: [{ id, name }] (el archivo queda guardado en esta PC)
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
                 { min: 0, color: '#34D399' },
@@ -114,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 { name: 'Seguidor', mode: 'manual', users: '', icon: 'heart', color: '#F472B6', count: 1 },
                 { name: 'Colaborador', min: 5000, icon: 'star', color: '#60A5FA', count: 1 },
                 { name: 'Mecenas', min: 20000, icon: 'gem', color: '#A78BFA', count: 2 },
-                { name: 'Leyenda', min: 50000, icon: 'crown', color: '#FBBF24', count: 3, badgeColor: '#FBBF24', badgeFx: 'shine' }
+                { name: 'Leyenda', min: 50000, icon: 'crown', color: '#FBBF24', count: 3, badgeColor: '#FBBF24', style: 'dorado' }
             ],
             showAmounts: false,
             voiceName: '', // Voz elegida para la lectura (vacío = primera voz en español)
@@ -153,18 +156,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const HEX_RE = /^#[0-9a-fA-F]{6}$/;
     const FX_TYPES = ['pulse', 'glow', 'rainbow', 'shine'];
     const RANK_FX = ['none', 'shine', 'pulse', 'glow', 'rainbow'];
+    // ---- Estilos: un "look" con nombre que pinta cada parte de la donación ----
+    const STYLE_PARTS = ['card', 'msg', 'nick', 'rank', 'amount'];
+    const BOX_FX = ['none', 'pulse', 'glow', 'breathe', 'neon', 'rainbow', 'gradient', 'snake', 'snake-left', 'snake2', 'dash', 'tick', 'shine', 'double'];
+    const TEXT_FX = ['none', 'glow', 'neon', 'breathe', 'pulse', 'rainbow', 'gradient'];
+    const BADGE_FX = ['none', 'shine', 'pulse', 'glow', 'breathe', 'neon', 'rainbow', 'gradient'];
+    const PART_FX = { card: BOX_FX, msg: BOX_FX, nick: TEXT_FX, amount: TEXT_FX, rank: BADGE_FX };
+    const TWO_COLOR_FX = new Set(['gradient', 'snake', 'snake-left', 'snake2', 'double']);
+    const NO_COLOR_FX = new Set(['none', 'rainbow']);
+    const GLOW_FX = new Set(['glow', 'breathe', 'neon']); // se recortan con el fondo transparente de OBS
+    const sp = (fx, c1, c2) => ({ fx, c1: c1 || '#FFD700', c2: c2 || '#FF4D00', gi: 1, sp: 1 });
+    const DEFAULT_STYLES = [
+        { id: 'dorado', name: 'Dorado brillante', parts: { card: sp('glow', '#FFD700'), rank: sp('shine', '#FFD700'), amount: sp('glow', '#FFD700') } },
+        { id: 'neon-rosa', name: 'Neón rosa', parts: { card: sp('neon', '#FF2BD6'), nick: sp('neon', '#FF2BD6') } },
+        { id: 'serpiente', name: 'Serpiente', parts: { card: sp('snake', '#22D3EE', '#A78BFA'), rank: sp('glow', '#22D3EE') } },
+        { id: 'arcoiris', name: 'Arcoíris', parts: { card: sp('rainbow'), nick: sp('rainbow') } },
+        { id: 'fuego', name: 'Fuego', parts: { card: sp('snake2', '#FF4D00', '#FFC800'), nick: sp('gradient', '#FF4D00', '#FFC800'), amount: sp('glow', '#FF7A00') } },
+        { id: 'suave', name: 'Suave', parts: { card: sp('breathe', '#60A5FA') } }
+    ];
+    function cleanPart(p, part) {
+        if (!p || typeof p !== 'object') return null;
+        const fx = (PART_FX[part] || []).includes(p.fx) ? p.fx : 'none';
+        if (fx === 'none') return null;
+        const num = (v, lo, hi, d) => { const n = parseFloat(v); return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+        return { fx, c1: HEX_RE.test(p.c1 || '') ? p.c1 : '#FFD700', c2: HEX_RE.test(p.c2 || '') ? p.c2 : '#FF4D00', gi: num(p.gi, 0.3, 2.5, 1), sp: num(p.sp, 0.3, 2.5, 1) };
+    }
+    function cleanStyles(list) {
+        if (!Array.isArray(list)) return JSON.parse(JSON.stringify(DEFAULT_STYLES));
+        const seen = new Set();
+        return list.filter(x => x && typeof x === 'object' && /^[a-z0-9-]{1,40}$/.test(x.id || '') && !seen.has(x.id) && seen.add(x.id)).slice(0, 30).map(x => {
+            const parts = {};
+            STYLE_PARTS.forEach(k => { const c = cleanPart(x.parts && x.parts[k], k); if (c) parts[k] = c; });
+            return { id: x.id, name: String(x.name || '').replace(/[<>]/g, '').trim().slice(0, 30) || 'Estilo', parts };
+        });
+    }
+    const partVars = (p) => `--c1:${p.c1};--c2:${p.c2};--gi:${p.gi};--sp:${p.sp}`;
     // Texto blanco o negro según el color de fondo, para que siempre se lea
     function inkFor(hex) {
         if (!HEX_RE.test(hex || '')) return '#fff';
         const n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
         return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#111' : '#fff';
     }
-    const RANK_ICONS = ['star', 'gem', 'crown', 'heart', 'fire', 'bolt', 'medal', 'trophy', 'award', 'shield-halved', 'rocket', 'dragon',
-        'skull', 'ghost', 'hat-wizard', 'chess-king', 'chess-queen', 'chess-knight', 'money-bill-wave', 'coins', 'sack-dollar', 'sun',
-        'moon', 'meteor', 'paw', 'cat', 'dog', 'fish', 'horse', 'dove', 'feather', 'leaf', 'seedling', 'snowflake', 'gamepad', 'dice',
-        'music', 'guitar', 'microphone', 'headphones', 'mug-hot', 'beer-mug-empty', 'pizza-slice', 'cake-candles', 'gift', 'ribbon',
-        'flag-checkered', 'hand-fist', 'thumbs-up', 'face-grin-stars', 'bomb', 'bullhorn', 'user-astronaut', 'robot', 'wand-magic-sparkles',
-        'infinity', 'yin-yang', 'hat-cowboy'];
+    // ---- Íconos de los rangos: Font Awesome (fa:), marcas (fab:), emoji (emoji:) o imagen propia (img:) ----
+    const ICON_LIB = window.SD_ICONS || { solid: [], brands: [], es: {}, emojis: [] };
+    const FA_SOLID = new Set(ICON_LIB.solid.flatMap(e => e.split('|')));
+    const FA_BRANDS = new Set(ICON_LIB.brands.flatMap(e => e.split('|')));
+    const EMOJI_RE = /^[^\x00-\x7F]{1,16}$/u;
+    const IMG_ID_RE = /^[a-z0-9]{6,24}$/;
+    function cleanIcon(v) {
+        v = String(v || '');
+        if (FA_SOLID.has(v)) return 'fa:' + v; // formato viejo: solo el nombre
+        const m = /^(fa|fab|emoji|img):(.+)$/u.exec(v);
+        if (!m) return 'fa:star';
+        if (m[1] === 'fa' && FA_SOLID.has(m[2])) return v;
+        if (m[1] === 'fab' && FA_BRANDS.has(m[2])) return v;
+        if (m[1] === 'emoji' && EMOJI_RE.test(m[2])) return v;
+        if (m[1] === 'img' && IMG_ID_RE.test(m[2])) return v;
+        return 'fa:star';
+    }
+    // Imágenes propias: se guardan en esta PC (como el sonido propio) y se cargan una vez
+    const customIconUrls = {};
+    function loadCustomIcons() {
+        if (!window.SDStore) return Promise.resolve();
+        const list = Array.isArray(state.settings.customIcons) ? state.settings.customIcons : [];
+        return Promise.all(list.map(ic => customIconUrls[ic.id] ? null : SDStore.get('icon:' + ic.id).then(blob => {
+            if (blob) customIconUrls[ic.id] = URL.createObjectURL(blob);
+        }).catch(() => {}))).then(() => { if (typeof render === 'function') render(); });
+    }
+    function iconHTML(icon, count) {
+        icon = cleanIcon(icon);
+        const n = Math.min(5, Math.max(1, parseInt(count) || 1));
+        const [kind, val] = [icon.slice(0, icon.indexOf(':')), icon.slice(icon.indexOf(':') + 1)];
+        let one;
+        if (kind === 'fa') one = `<i class="fa-solid fa-${val}"></i>`;
+        else if (kind === 'fab') one = `<i class="fa-brands fa-${val}"></i>`;
+        else if (kind === 'emoji') one = `<span class="rank-emoji">${escapeHTML(val)}</span>`;
+        else one = customIconUrls[val] ? `<img class="rank-img" src="${customIconUrls[val]}" alt="">` : `<i class="fa-solid fa-image"></i>`;
+        return Array.from({ length: n }, () => one).join('');
+    }
     const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
     const LAYOUT_DEFAULT = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
     function cleanObsLayout(o) {
@@ -187,9 +256,10 @@ document.addEventListener('DOMContentLoaded', () => {
             mode: r.mode === 'manual' ? 'manual' : 'auto', // 'auto' = por monto donado, 'manual' = lo das vos
             min: Math.max(0, Math.round(parseFloat(r.min) || 0)),
             users: String(r.users || '').split(/[\n,]+/).map(u => u.trim().replace(/^@+/, '').replace(/[<>]/g, '').slice(0, 60)).filter(Boolean).slice(0, 500).join('\n'),
-            icon: RANK_ICONS.includes(r.icon) ? r.icon : 'star',
+            icon: cleanIcon(r.icon),
             color: HEX_RE.test(r.color || '') ? r.color : '#60A5FA',
             count: Math.min(5, Math.max(1, parseInt(r.count) || 1)),
+            style: /^[a-z0-9-]{1,40}$/.test(r.style || '') ? r.style : '',
             badgeColor: HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '', // color del cartel con el nombre ('' = el del rango)
             badgeFx: RANK_FX.includes(r.badgeFx) ? r.badgeFx : 'none'
         }));
@@ -197,11 +267,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cargar configuraciones guardadas de localStorage
     const SETTINGS_DEFAULTS = JSON.parse(JSON.stringify(state.settings));
+    let savedFxOn = false; // tenía prendido el "efecto para donaciones grandes" de antes de los estilos
     try {
         const saved = localStorage.getItem('streamdonations_settings');
         if (saved) {
             const parsed = JSON.parse(saved);
-            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) state.settings = { ...state.settings, ...parsed };
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) { state.settings = { ...state.settings, ...parsed }; savedFxOn = parsed.fxEnabled === true && !Array.isArray(parsed.styles); }
         }
     } catch (e) {}
     // Cada opción tiene que ser del tipo que espera la app (una copia vieja, rota o armada a propósito no la rompe)
@@ -231,6 +302,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.settings.language !== 'en') state.settings.language = 'es';
         state.settings.fxType = FX_TYPES.includes(state.settings.fxType) ? state.settings.fxType : 'pulse';
         state.settings.fxColor = HEX_RE.test(state.settings.fxColor || '') ? state.settings.fxColor : '#FFD700';
+        state.settings.customIcons = (Array.isArray(state.settings.customIcons) ? state.settings.customIcons : [])
+            .filter(ic => ic && IMG_ID_RE.test(ic.id || '')).slice(0, 40).map(ic => ({ id: ic.id, name: String(ic.name || '').replace(/[<>]/g, '').slice(0, 60) }));
+        // 1.11: estilos. Lo que estaba en "efecto para donaciones grandes" pasa a ser un estilo
+        if (!Array.isArray(state.settings.styles)) {
+            state.settings.styles = JSON.parse(JSON.stringify(DEFAULT_STYLES));
+            if (savedFxOn && state.settings.fxType) {
+                const t = FX_TYPES.includes(state.settings.fxType) ? state.settings.fxType : 'pulse';
+                if (t === 'rainbow') state.settings.fxStyle = 'arcoiris';
+                else { state.settings.styles.unshift({ id: 'grande', name: 'Donación grande', parts: { card: sp(t, state.settings.fxColor) } }); state.settings.fxStyle = 'grande'; }
+            }
+        }
+        state.settings._styles111 = true;
+        state.settings.styles = cleanStyles(state.settings.styles);
+        if (state.settings.fxStyle && !state.settings.styles.some(x => x.id === state.settings.fxStyle)) state.settings.fxStyle = '';
         state.settings.ranks = cleanRanks(state.settings.ranks);
         state.settings.amtColors = cleanAmtColors(state.settings.amtColors);
         state.settings.obsLayout = cleanObsLayout(state.settings.obsLayout);
@@ -423,11 +508,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const min = parseFloat(st.fxMin) || 0;
         const ars = toARS(d);
         if (ars === null || ars < min || (min <= 0 && ars <= 0)) return null;
-        return { type: FX_TYPES.includes(st.fxType) ? st.fxType : 'pulse', color: HEX_RE.test(st.fxColor || '') ? st.fxColor : '#FFD700' };
+        return st.fxStyle ? { style: st.fxStyle } : null;
     }
-    function fxAttrs(fx) {
-        return fx ? { cls: ` has-fx fx-${fx.type}`, style: ` style="--fx-color:${fx.color}"`, ring: '<span class="fx-ring" aria-hidden="true"></span>' } : { cls: '', style: '', ring: '' };
+    function styleById(id, list) { return (list || state.settings.styles || []).find(x => x.id === id) || null; }
+    // Partes con efecto para esta donación: primero las del estilo del rango; la donación grande pisa las que también tenga
+    function mergedStyle(d, where, rank) {
+        const out = {};
+        if (rank === undefined) rank = d && !d.blocked ? rankFor(d.nick, where) : null;
+        const rs = rank && rank.style ? styleById(rank.style) : null;
+        if (rs) Object.assign(out, rs.parts);
+        const big = fxFor(d, where);
+        const bs = big ? styleById(big.style) : null;
+        if (bs) Object.assign(out, bs.parts);
+        return Object.keys(out).length ? out : null;
     }
+    const ringHTML = (p) => p ? `<span class="sfx-ring sfx-${p.fx}" style="${partVars(p)}" aria-hidden="true"></span>` : '';
+    const tfxAttr = (p) => p ? { cls: ` tfx tfx-${p.fx}`, style: partVars(p) } : { cls: '', style: '' };
 
     // ---- Color del monto según cuánto donó ----
     function amountColor(d, where) {
@@ -473,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
             (st.ranks || []).forEach(r => { if (r.mode !== 'manual' && total >= r.min && r.min > 0 && (!best || r.min > best.min)) best = r; });
         }
         return best ? { name: best.name, icon: best.icon, color: best.color, count: best.count, total, manual: best.mode === 'manual',
-            badgeColor: best.badgeColor || '', badgeFx: best.badgeFx || 'none', showName: st.ranksShowName !== false } : null;
+            badgeColor: best.badgeColor || '', badgeFx: best.badgeFx || 'none', style: best.style || '', showName: st.ranksShowName !== false } : null;
     }
     const manualCache = new WeakMap();
     function manualUsers(r) {
@@ -493,18 +589,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         persistSettings();
     }
-    function rankNameHTML(r) {
+    function rankNameHTML(r, part) {
         const bg = HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '';
-        const style = bg ? ` style="--badge-bg:${bg};--badge-ink:${inkFor(bg)}"` : '';
-        const fx = RANK_FX.includes(r.badgeFx) && r.badgeFx !== 'none' ? ` rank-fx-${r.badgeFx}` : '';
-        return `<span class="rank-name${bg ? ' has-bg' : ''}${fx}"${style}>${escapeHTML(r.name)}</span>`;
+        let vars = bg ? `--badge-bg:${bg};--badge-ink:${inkFor(bg)}` : '';
+        let fx = '';
+        if (part) { fx = ` bfx bfx-${part.fx}`; vars += (vars ? ';' : '') + partVars(part); }
+        else if (RANK_FX.includes(r.badgeFx) && r.badgeFx !== 'none') fx = ` rank-fx-${r.badgeFx}`; // rangos de antes de los estilos
+        return `<span class="rank-name${bg ? ' has-bg' : ''}${fx}"${vars ? ` style="${vars}"` : ''}>${escapeHTML(r.name)}</span>`;
     }
-    function rankBadgeHTML(r) {
+    function rankBadgeHTML(r, part) {
         if (!r) return '';
-        const icons = Array.from({ length: r.count }, () => `<i class="fa-solid fa-${r.icon}"></i>`).join('');
+        const icons = iconHTML(r.icon, r.count);
         const days = parseInt(state.settings.ranksDays) || 30;
         const tip = r.manual ? `${r.name} · rango dado a mano` : `${r.name} · ${formatMoney(Math.round(r.total), 'ARS')} en ${days} días`;
-        return `<span class="rank-badge" style="--rank-color:${r.color}" title="${escapeHTML(tip)}">${icons}${r.showName ? rankNameHTML(r) : ''}</span>`;
+        return `<span class="rank-badge" style="--rank-color:${r.color}" title="${escapeHTML(tip)}">${icons}${r.showName ? rankNameHTML(r, part) : ''}</span>`;
     }
 
     // ¿Esta donación llega al monto del sonido especial? (en pesos; dólares, Bits y KICKs necesitan la cotización)
@@ -1292,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ...d,
             nick: censorText(d.nick, 'obs'),
             message: obsMessage(censorText(d.message, 'obs')),
-            fx: fxFor(d, 'obs'),
+            sty: mergedStyle(d, 'obs'),
             amtColor: amountColor(d, 'obs'),
             rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null)(rankFor(d.nick, 'obs')),
             obsHideMessage: !!state.settings.obsHideMessage,
@@ -1512,9 +1610,13 @@ document.addEventListener('DOMContentLoaded', () => {
                    <i class="fa-solid fa-check"></i> Marcar Leído
                </button>`;
 
-        const fx = fxAttrs(item.isRead ? null : fxFor(item, 'panel'));
+        // Estilo (rango y/o donación grande): los bordes animados solo mientras está pendiente
+        const rk = item.blocked ? null : rankFor(item.nick, 'panel');
+        const sty = mergedStyle(item, 'panel', rk) || {};
+        const nickFx = tfxAttr(sty.nick), amtFx = tfxAttr(sty.amount);
+        const amtCol = amountColor(item, 'panel');
         return `
-            <div class="donation-card pf-${platformBadgeClass} ${item.tier} ${readClass}${fx.cls}" data-id="${item.id}" data-act="focus"${fx.style}>${fx.ring}
+            <div class="donation-card pf-${platformBadgeClass} ${item.tier} ${readClass}${sty.card && !item.isRead ? ' sfx-host' : ''}" data-id="${item.id}" data-act="focus">${item.isRead ? '' : ringHTML(sty.card)}
                 <div class="card-header">
                     <div class="donor-info">
                         <div class="donor-avatar">
@@ -1522,14 +1624,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="donor-meta">
                             <div class="donor-nick">
-                                <span class="donor-nick-text">${escapeHTML(panelNick(item.nick))}</span>
-                                ${item.blocked ? '' : rankBadgeHTML(rankFor(item.nick, 'panel'))}
+                                <span class="donor-nick-text user-link${nickFx.cls}" data-act="user" data-id="${item.id}" role="button" tabindex="0" title="Opciones de este usuario"${nickFx.style ? ` style="${nickFx.style}"` : ''}>${escapeHTML(panelNick(item.nick))}</span>
+                                ${rankBadgeHTML(rk, sty.rank)}
                                 ${item.isTest ? '<span class="test-tag">PRUEBA</span>' : ''}
                                 ${item.blocked ? '<span class="test-tag blocked-tag"><i class="fa-solid fa-user-slash"></i> BLOQUEADO</span>' : ''}
                                 <span class="platform-tag ${platformBadgeClass}">
                                     <i class="${platformIcon}"></i> ${platformInfo(item.platform).label}
                                 </span>
-                                <span class="amount-badge"${(c => c ? ` style="--accent-color:${c}"` : '')(amountColor(item, 'panel'))}>${escapeHTML(item.formattedAmount)}</span>
+                                <span class="amount-badge${amtFx.cls}"${(amtCol || amtFx.style) ? ` style="${amtCol ? `--accent-color:${amtCol};` : ''}${amtFx.style}"` : ''}>${escapeHTML(item.formattedAmount)}</span>
                             </div>
                             <span class="timestamp"><i class="fa-regular fa-clock"></i> ${timeAgo}</span>
                         </div>
@@ -1538,7 +1640,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${readActionBtn}
                     </div>
                 </div>
-                ${item.message ? `<div class="card-message">${messageHTML(item.message)}</div>` : ''}
+                ${item.message ? `<div class="card-message${sty.msg && !item.isRead ? ' sfx-host' : ''}">${item.isRead ? '' : ringHTML(sty.msg)}${messageHTML(item.message)}</div>` : ''}
             </div>
         `;
     }
@@ -2119,6 +2221,12 @@ document.addEventListener('DOMContentLoaded', () => {
     $('btn-focus-block').addEventListener('click', () => {
         const item = state.donations.find(d => d.id === state.activeFocusId);
         if (!item) return;
+        toggleBlockUser(item.nick);
+        window.closeFocusModal();
+    });
+    // Bloquear o desbloquear a alguien (desde la donación en grande o desde el menú del nombre)
+    function toggleBlockUser(nick) {
+        const item = { nick };
         const on = !isBlocked(item.nick);
         setBlocked(item.nick, on);
         const k = nickKey(item.nick);
@@ -2132,9 +2240,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         saveDonationsToStorage();
         render();
-        window.closeFocusModal();
         showToast(on ? `${escapeHTML(item.nick)} bloqueado${hidden ? ` (${hidden} pendiente${hidden > 1 ? 's' : ''} pasaron a Leídos)` : ''}. Se desbloquea en Opciones → Filtros.`
                      : `${escapeHTML(item.nick)} desbloqueado`, 'info');
+    }
+
+    // ---- Menú rápido al tocar el nombre de alguien en el panel ----
+    function openUserMenu(id, anchor) {
+        const item = state.donations.find(d => d.id === id);
+        const menu = $('user-menu');
+        if (!item || !menu) return;
+        const key = nickKey(item.nick);
+        const mine = state.donations.filter(d => !d.isTest && nickKey(d.nick) === key);
+        const total = mine.reduce((a, d) => a + (toARS(d) || 0), 0);
+        const blk = isBlocked(item.nick);
+        const manual = (state.settings.ranks || []).map((r, i) => ({ r, i })).filter(x => x.r.mode === 'manual');
+        const cur = manual.find(x => manualUsers(x.r).has(key));
+        const rk = rankFor(item.nick, 'panel');
+        menu.innerHTML = `
+            <div class="um-head"><strong>${escapeHTML(item.nick)}</strong>${rankBadgeHTML(rk)}</div>
+            <div class="um-stats">${mine.length} donaci${mine.length === 1 ? 'ón' : 'ones'} · ${formatMoney(Math.round(total), 'ARS')} en total</div>
+            ${item.isTest ? '<p class="pane-note">Es una donación de prueba.</p>' : `
+            <label class="um-row"><span><i class="fa-solid fa-crown"></i> Rango a mano</span>
+                <select id="um-rank">${manual.length ? '<option value="-1">Ninguno</option>' + manual.map(x => `<option value="${x.i}"${cur && cur.i === x.i ? ' selected' : ''}>${escapeHTML(x.r.name)}</option>`).join('') : '<option value="-1">Creá uno en Opciones → Destacar</option>'}</select></label>
+            ${!state.settings.ranksEnabled && manual.length ? '<small class="pane-note">Los rangos están apagados en Opciones → Destacar.</small>' : ''}
+            <button type="button" class="um-btn" id="um-filter"><i class="fa-solid fa-magnifying-glass"></i> Ver sus donaciones</button>
+            <button type="button" class="um-btn${blk ? '' : ' danger'}" id="um-block"><i class="fa-solid fa-user-slash"></i> ${blk ? 'Desbloquear' : 'Bloquear'}</button>`}`;
+        if (menu.parentElement !== document.body) document.body.appendChild(menu);
+        menu.classList.remove('hidden');
+        const r = anchor.getBoundingClientRect(), w = menu.offsetWidth, h = menu.offsetHeight;
+        menu.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + 'px';
+        menu.style.top = (r.bottom + h + 8 < innerHeight ? r.bottom + 6 : Math.max(8, r.top - h - 6)) + 'px';
+        menu.dataset.id = id;
+        const rs = $('um-rank');
+        if (rs) rs.addEventListener('change', () => {
+            const idx = parseInt(rs.value);
+            if (!manual.length) return;
+            setManualRank(item.nick, idx);
+            rankCache.key = '';
+            render(); refreshOverlayMessages();
+            const rr = (state.settings.ranks || [])[idx];
+            showToast(rr ? `${escapeHTML(item.nick)} ahora es ${escapeHTML(rr.name)}` : `${escapeHTML(item.nick)} ya no tiene rango a mano`, 'success');
+            closeUserMenu();
+        });
+        const fb = $('um-filter');
+        if (fb) fb.addEventListener('click', () => { els.inputSearch.value = item.nick; state.filter.search = item.nick; render(); closeUserMenu(); els.inputSearch.focus(); });
+        const bb = $('um-block');
+        if (bb) bb.addEventListener('click', () => { toggleBlockUser(item.nick); closeUserMenu(); });
+    }
+    function closeUserMenu() { const m = $('user-menu'); if (m) m.classList.add('hidden'); }
+    document.addEventListener('click', (e) => { if (!e.target.closest('#user-menu') && !e.target.closest('[data-act="user"]')) closeUserMenu(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeUserMenu();
+        const t = e.target.closest && e.target.closest('.user-link');
+        if (t && e.key === 'Enter') { e.preventDefault(); openUserMenu(t.dataset.id, t); }
     });
 
     els.btnFocusSpeak.addEventListener('click', () => {
@@ -4205,8 +4363,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-sound-maxsecs').value = String(st.soundMaxSecs ?? 3);
         $('cfg-fx-enabled').checked = !!st.fxEnabled;
         $('cfg-fx-min').value = st.fxMin || '';
-        $('cfg-fx-type').value = st.fxType || 'pulse';
-        $('cfg-fx-color').value = st.fxColor || '#FFD700';
+        stylesDraft = cleanStyles(st.styles).map(x => JSON.parse(JSON.stringify(x)));
+        fillStyleSelect($('cfg-fx-style'), st.fxStyle || '');
+        renderStyleChips();
         $('cfg-fx-panel').checked = st.fxPanel !== false;
         $('cfg-fx-obs').checked = st.fxObs !== false;
         $('cfg-obs-pstyle').value = st.obsPlatformStyle || 'tag';
@@ -4321,7 +4480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function refreshOverlayMessages() {
         const items = state.donations
             .filter(d => !d.isRead)
-            .map(d => { const pl = overlayPayload(d); return { id: d.id, nick: pl.nick, message: pl.message, rank: pl.rank, obsHideMessage: !!state.settings.obsHideMessage }; });
+            .map(d => { const pl = overlayPayload(d); return { id: d.id, nick: pl.nick, message: pl.message, rank: pl.rank, sty: pl.sty || {}, obsHideMessage: !!state.settings.obsHideMessage }; });
         const payload = { ts: Date.now(), items };
         try { localStorage.setItem('obs_alerts_update', JSON.stringify(payload)); } catch (e) {}
         if (state.overlayWindow && !state.overlayWindow.closed) {
@@ -4373,8 +4532,8 @@ document.addEventListener('DOMContentLoaded', () => {
         st.soundMaxSecs = clampNum($('cfg-sound-maxsecs').value, 0, 10, 3);
         st.fxEnabled = $('cfg-fx-enabled').checked;
         st.fxMin = Math.max(0, parseFloat($('cfg-fx-min').value) || 0);
-        st.fxType = FX_TYPES.includes($('cfg-fx-type').value) ? $('cfg-fx-type').value : 'pulse';
-        st.fxColor = HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700';
+        st.styles = cleanStyles(stylesDraft);
+        st.fxStyle = st.styles.some(x => x.id === $('cfg-fx-style').value) ? $('cfg-fx-style').value : '';
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
         st.obsLayout = readObsLayoutForm();
@@ -5343,7 +5502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             try { APP_STORAGE_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) {}
             // Imágenes y sonidos elegidos (guardados aparte)
-            if (window.SDStore) ['panelBg', 'obsBg', 'alertSound', 'alertSoundBig'].forEach(k => { try { SDStore.del(k).catch(() => {}); } catch (e) {} });
+            if (window.SDStore) ['panelBg', 'obsBg', 'alertSound', 'alertSoundBig', ...(state.settings.customIcons || []).map(ic => 'icon:' + ic.id)].forEach(k => { try { SDStore.del(k).catch(() => {}); } catch (e) {} });
             // La ventana de OBS necesita saber que tiene que limpiar todo
             try { localStorage.setItem('obs_dismiss_queue', JSON.stringify([{ id: 'all', _t: Date.now() }])); } catch (e) {}
             location.reload();
@@ -5382,10 +5541,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateHighlightForm() {
         $('fx-picker').classList.toggle('hidden', !$('cfg-fx-enabled').checked);
         $('ranks-box').classList.toggle('hidden', !$('cfg-ranks-enabled').checked);
-        $('cfg-fx-color').classList.toggle('hidden', $('cfg-fx-type').value === 'rainbow'); // el arcoíris usa todos los colores
-        const pv = $('fx-preview');
-        pv.className = 'donation-card pf-ceneka has-fx fx-preview fx-' + (FX_TYPES.includes($('cfg-fx-type').value) ? $('cfg-fx-type').value : 'pulse');
-        pv.style.setProperty('--fx-color', HEX_RE.test($('cfg-fx-color').value) ? $('cfg-fx-color').value : '#FFD700');
+
     }
     function syncRanksDraft() {
         const v = (id, d) => $(id) ? $(id).value : d;
@@ -5398,14 +5554,16 @@ document.addEventListener('DOMContentLoaded', () => {
             color: v('rank-color-' + i, r.color),
             count: v('rank-count-' + i, r.count),
             badgeColor: $('rank-bgon-' + i) ? ($('rank-bgon-' + i).checked ? v('rank-bg-' + i, r.badgeColor) : '') : r.badgeColor,
-            badgeFx: v('rank-fx-' + i, r.badgeFx)
+            badgeFx: r.badgeFx,
+            style: v('rank-style-' + i, r.style || '')
         }));
     }
     function rankPreviewHTML(r) {
         const color = HEX_RE.test(r.color || '') ? r.color : '#60A5FA';
-        return rankBadgeHTML({ name: r.name || 'Rango', icon: RANK_ICONS.includes(r.icon) ? r.icon : 'star', color,
+        return rankBadgeHTML({ name: r.name || 'Rango', icon: cleanIcon(r.icon), color,
             count: Math.min(5, Math.max(1, parseInt(r.count) || 1)), total: 0, manual: r.mode === 'manual',
-            badgeColor: HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '', badgeFx: RANK_FX.includes(r.badgeFx) ? r.badgeFx : 'none', showName: true });
+            badgeColor: HEX_RE.test(r.badgeColor || '') ? r.badgeColor : '', badgeFx: RANK_FX.includes(r.badgeFx) ? r.badgeFx : 'none', showName: true },
+            (styleById(r.style, stylesDraft) || { parts: {} }).parts.rank);
     }
     const RANK_FX_LABELS = { none: 'Sin efecto', shine: 'Destello', pulse: 'Latido', glow: 'Brillo', rainbow: 'Arcoíris' };
     function renderRanksForm() {
@@ -5414,7 +5572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const order = ranksDraft.map((r, i) => i); // en el mismo orden: no se mueven mientras editás
         wrap.innerHTML = order.map(i => {
             const r = ranksDraft[i];
-            const icon = RANK_ICONS.includes(r.icon) ? r.icon : 'star';
+            const icon = cleanIcon(r.icon);
             const color = HEX_RE.test(r.color || '') ? r.color : '#60A5FA';
             const cnt = Math.min(5, Math.max(1, parseInt(r.count) || 1));
             const manual = r.mode === 'manual';
@@ -5424,7 +5582,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
             <div class="rank-row rank-card" style="--rank-color:${color}">
                 <div class="rank-line">
-                    <button type="button" class="rank-icon-btn" data-rank-icon="${i}" title="Elegir ícono"><i class="fa-solid fa-${icon}"></i></button>
+                    <button type="button" class="rank-icon-btn" data-rank-icon="${i}" title="Elegir ícono">${iconHTML(icon, 1)}</button>
                     <input type="text" id="rank-name-${i}" class="rank-name-input" maxlength="24" value="${escapeHTML(r.name)}" placeholder="Nombre del rango" aria-label="Nombre del rango">
                     <label class="rank-field"><span>íconos</span><select id="rank-count-${i}" aria-label="Cantidad de íconos">${[1, 2, 3, 4, 5].map(n => `<option value="${n}"${n === cnt ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
                     <input type="color" id="rank-color-${i}" class="bg-color-input" value="${color}" title="Color de los íconos">
@@ -5441,23 +5599,116 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="rank-line">
                     <label class="rank-field rank-check"><input type="checkbox" id="rank-bgon-${i}"${bg ? ' checked' : ''}><span>Color del cartel</span></label>
                     <input type="color" id="rank-bg-${i}" class="bg-color-input" value="${bg || color}" title="Color de fondo del cartel con el nombre"${bg ? '' : ' disabled'}>
-                    <label class="rank-field"><span>Efecto</span><select id="rank-fx-${i}" aria-label="Efecto del cartel">${RANK_FX.map(f => `<option value="${f}"${f === fx ? ' selected' : ''}>${RANK_FX_LABELS[f]}</option>`).join('')}</select></label>
+                    <label class="rank-field"><span>Estilo</span><select id="rank-style-${i}" class="style-select" aria-label="Estilo del rango">${styleOptionsHTML(r.style || '')}</select></label>
                     <span class="rank-preview" id="rank-preview-${i}">${rankPreviewHTML(r)}</span>
                 </div>
             </div>`;
         }).join('');
     }
-    function openIconPop(i, btn) {
+    // ---- Selector de íconos: buscador, marcas, emojis e imágenes propias ----
+    let iconPopTab = 'fa', iconPopQuery = '', iconPopRank = -1;
+    const normTxt = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+    function searchIcons(list, q) {
+        if (!q) return list;
+        const nq = normTxt(q);
+        const tokens = new Set();
+        Object.entries(ICON_LIB.es || {}).forEach(([k, v]) => { const nk = normTxt(k); if (nk.startsWith(nq) || (nq.length >= 4 && nq.startsWith(nk))) v.split(' ').forEach(t => t && tokens.add(t)); });
+        // Una palabra coincide con una parte entera del nombre ("cat" sí con "cat", no con "certificate")
+        const partMatch = (n, t) => n === t || n.startsWith(t + '-') || n.endsWith('-' + t) || n.includes('-' + t + '-');
+        const exact = [], byEs = [], byName = [];
+        const nq2 = nq.replace(/\s+/g, '-');
+        list.forEach(e => {
+            const names = e.split('|');
+            if (names.some(n => tokens.has(n) || n === nq2)) exact.push(e);
+            else if ([...tokens].some(t => names.some(n => partMatch(n, t)))) byEs.push(e);
+            else if (names.some(n => n.includes(nq2))) byName.push(e);
+        });
+        return exact.concat(byEs, byName);
+    }
+    function renderIconPop() {
         const pop = $('icon-pop');
-        pop.innerHTML = RANK_ICONS.map(ic => `<button type="button" class="icon-choice${ranksDraft[i].icon === ic ? ' active' : ''}" data-pick-icon="${ic}" title="${ic}"><i class="fa-solid fa-${ic}"></i></button>`).join('');
-        pop.dataset.rank = i;
+        const cur = iconPopRank >= 0 && ranksDraft[iconPopRank] ? cleanIcon(ranksDraft[iconPopRank].icon) : '';
+        const tabs = [['fa', 'fa-icons', 'Íconos'], ['fab', 'fa-hashtag', 'Marcas'], ['emoji', 'fa-face-smile', 'Emojis'], ['img', 'fa-image', 'Mis imágenes']]
+            .map(([k, ic, t]) => `<button type="button" class="icon-tab${iconPopTab === k ? ' active' : ''}" data-icon-tab="${k}"><i class="fa-solid ${ic}"></i> ${t}</button>`).join('');
+        let body = '';
+        if (iconPopTab === 'fa' || iconPopTab === 'fab') {
+            const list = searchIcons(iconPopTab === 'fa' ? ICON_LIB.solid : ICON_LIB.brands, iconPopQuery);
+            const cls = iconPopTab === 'fa' ? 'fa-solid' : 'fa-brands';
+            body = list.length ? list.map(e => { const n = e.split('|')[0]; const v = iconPopTab + ':' + n;
+                return `<button type="button" class="icon-choice${cur === v ? ' active' : ''}" data-pick-icon="${v}" title="${escapeHTML(n)}"><i class="${cls} fa-${n}"></i></button>`; }).join('')
+                : '<p class="pane-note icon-empty">No encontré íconos con esa palabra. Probá con otra (por ejemplo "fuego", "gato", "corona").</p>';
+        } else if (iconPopTab === 'emoji') {
+            body = (ICON_LIB.emojis || []).map(em => { const v = 'emoji:' + em;
+                return `<button type="button" class="icon-choice emoji${cur === v ? ' active' : ''}" data-pick-icon="${escapeHTML(v)}">${escapeHTML(em)}</button>`; }).join('');
+        } else {
+            const list = Array.isArray(state.settings.customIcons) ? state.settings.customIcons : [];
+            body = list.map(ic => { const v = 'img:' + ic.id;
+                return `<div class="icon-custom"><button type="button" class="icon-choice${cur === v ? ' active' : ''}" data-pick-icon="${v}" title="${escapeHTML(ic.name)}">${customIconUrls[ic.id] ? `<img src="${customIconUrls[ic.id]}" alt="">` : '<i class="fa-solid fa-image"></i>'}</button>
+                    <button type="button" class="icon-del" data-del-icon="${ic.id}" title="Borrar esta imagen"><i class="fa-solid fa-xmark"></i></button></div>`; }).join('') +
+                `<button type="button" class="icon-choice icon-upload" id="btn-icon-upload" title="Subir imagen"><i class="fa-solid fa-plus"></i></button>`;
+        }
+        const searchBar = (iconPopTab === 'fa' || iconPopTab === 'fab')
+            ? `<input type="search" id="icon-search" class="icon-search" placeholder="Buscar: fuego, gato, corona, dinero…" value="${escapeHTML(iconPopQuery)}" autocomplete="off">` : '';
+        const foot = iconPopTab === 'emoji'
+            ? `<div class="icon-foot"><input type="text" id="icon-emoji-own" maxlength="16" placeholder="O pegá cualquier emoji acá" autocomplete="off"><button type="button" class="btn btn-outline btn-sm" id="btn-icon-emoji-own">Usar</button></div>`
+            : iconPopTab === 'img' ? '<small class="pane-note icon-foot-note">PNG, GIF (animado), WebP, JPG o SVG, hasta 200 KB. Se guardan en esta PC. Se ven en el panel y en OBS.</small>' : '';
+        pop.innerHTML = `<div class="icon-tabs">${tabs}</div>${searchBar}<div class="icon-grid">${body}</div>${foot}`;
+        const sb = $('icon-search');
+        if (sb) { sb.addEventListener('input', () => { iconPopQuery = sb.value; const pos = sb.selectionStart; renderIconPop(); const nb = $('icon-search'); nb.focus(); nb.setSelectionRange(pos, pos); }); }
+    }
+    function openIconPop(i, btn) {
+        iconPopRank = i;
+        const cur = cleanIcon(ranksDraft[i] && ranksDraft[i].icon);
+        iconPopTab = cur.split(':')[0];
+        const pop = $('icon-pop');
+        if (pop.parentElement !== document.body) document.body.appendChild(pop); // así nunca queda cortado dentro de Opciones
+        renderIconPop();
         pop.classList.remove('hidden');
-        const pane = pop.parentElement.getBoundingClientRect(), r = btn.getBoundingClientRect();
-        pop.style.left = Math.max(8, r.left - pane.left) + 'px';
-        pop.style.top = (r.bottom - pane.top + 6) + 'px';
+        const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+        pop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + 'px';
+        pop.style.top = (r.bottom + h + 8 < innerHeight ? r.bottom + 6 : Math.max(8, r.top - h - 6)) + 'px';
+        const sb = $('icon-search'); if (sb) sb.focus();
+    }
+    function pickIcon(v) {
+        if (iconPopRank < 0 || !ranksDraft[iconPopRank]) return;
+        ranksDraft[iconPopRank].icon = cleanIcon(v);
+        $('icon-pop').classList.add('hidden');
+        renderRanksForm();
+        setSettingsDirty(true);
+    }
+    function uploadCustomIcon() {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/png,image/gif,image/webp,image/jpeg,image/svg+xml';
+        inp.addEventListener('change', () => {
+            const f = inp.files && inp.files[0];
+            if (!f) return;
+            if (!/^image\/(png|gif|webp|jpeg|svg\+xml)$/.test(f.type)) { showToast('Elegí una imagen PNG, GIF, WebP, JPG o SVG', 'warning'); return; }
+            if (f.size > 200 * 1024) { showToast('La imagen pesa más de 200 KB. Achicala un poco.', 'warning'); return; }
+            const list = Array.isArray(state.settings.customIcons) ? state.settings.customIcons : (state.settings.customIcons = []);
+            if (list.length >= 40) { showToast('Máximo 40 imágenes propias', 'info'); return; }
+            const id = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => (b % 36).toString(36)).join('') + Date.now().toString(36).slice(-4);
+            SDStore.put('icon:' + id, f).then(() => {
+                customIconUrls[id] = URL.createObjectURL(f);
+                list.push({ id, name: String(f.name || 'imagen').replace(/[<>]/g, '').slice(0, 60) });
+                persistSettings();
+                pickIcon('img:' + id);
+                showToast('Imagen agregada', 'success');
+            }).catch(() => showToast('No se pudo guardar la imagen', 'warning'));
+        });
+        inp.click();
+    }
+    function deleteCustomIcon(id) {
+        if (!confirm('¿Borrar esta imagen? Los rangos que la usan vuelven a un ícono común.')) return;
+        state.settings.customIcons = (state.settings.customIcons || []).filter(ic => ic.id !== id);
+        ranksDraft.forEach(r => { if (r.icon === 'img:' + id) r.icon = 'fa:star'; });
+        (state.settings.ranks || []).forEach(r => { if (r.icon === 'img:' + id) r.icon = 'fa:star'; });
+        persistSettings();
+        try { SDStore.del('icon:' + id); } catch (e) {}
+        if (customIconUrls[id]) { URL.revokeObjectURL(customIconUrls[id]); delete customIconUrls[id]; }
+        renderIconPop(); renderRanksForm(); render();
     }
     function initHighlightForm() {
-        ['cfg-fx-enabled', 'cfg-fx-type', 'cfg-fx-color', 'cfg-ranks-enabled'].forEach(id => { $(id).addEventListener('input', updateHighlightForm); $(id).addEventListener('change', updateHighlightForm); });
+        ['cfg-fx-enabled', 'cfg-ranks-enabled'].forEach(id => { $(id).addEventListener('input', updateHighlightForm); $(id).addEventListener('change', updateHighlightForm); });
         $('btn-add-rank').addEventListener('click', () => {
             syncRanksDraft();
             if (ranksDraft.length >= 10) { showToast('Máximo 10 rangos', 'info'); return; }
@@ -5473,7 +5724,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (ib) { e.stopPropagation(); syncRanksDraft(); openIconPop(parseInt(ib.dataset.rankIcon), ib); }
         });
         const onRankInput = (e) => {
-            const m = /^rank-(name|color|count|mode|bgon|bg|fx|users|min)-(\d+)$/.exec(e.target.id || '');
+            const m = /^rank-(name|color|count|mode|bgon|bg|fx|users|min|style)-(\d+)$/.exec(e.target.id || '');
             if (!m) return;
             syncRanksDraft();
             const i = +m[2], r = ranksDraft[i];
@@ -5487,14 +5738,21 @@ document.addEventListener('DOMContentLoaded', () => {
         $('ranks-list').addEventListener('input', onRankInput);
         $('ranks-list').addEventListener('change', onRankInput);
         $('icon-pop').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const t = e.target.closest('[data-icon-tab]');
+            if (t) { iconPopTab = t.dataset.iconTab; iconPopQuery = ''; renderIconPop(); const sb = $('icon-search'); if (sb) sb.focus(); return; }
+            const del = e.target.closest('[data-del-icon]');
+            if (del) { deleteCustomIcon(del.dataset.delIcon); return; }
+            if (e.target.closest('#btn-icon-upload')) { uploadCustomIcon(); return; }
+            if (e.target.closest('#btn-icon-emoji-own')) {
+                const v = ($('icon-emoji-own').value || '').trim();
+                if (!EMOJI_RE.test(v)) { showToast('Pegá un emoji (sin letras ni números)', 'info'); return; }
+                pickIcon('emoji:' + v); return;
+            }
             const b = e.target.closest('[data-pick-icon]');
-            if (!b) return;
-            const i = parseInt($('icon-pop').dataset.rank);
-            if (ranksDraft[i] && RANK_ICONS.includes(b.dataset.pickIcon)) ranksDraft[i].icon = b.dataset.pickIcon;
-            $('icon-pop').classList.add('hidden');
-            renderRanksForm();
-            setSettingsDirty(true);
+            if (b) pickIcon(b.dataset.pickIcon);
         });
+        $('icon-pop').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); $('icon-pop').classList.add('hidden'); } });
         document.addEventListener('click', (e) => { if (!e.target.closest('#icon-pop')) $('icon-pop').classList.add('hidden'); });
     }
     initHighlightForm();
@@ -5551,6 +5809,159 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     initAmtForm();
 
+    // ==========================================================================
+    // ESTILOS: menús para elegirlos y la ventana para crearlos/editarlos
+    // ==========================================================================
+    let stylesDraft = [];
+    const PART_LABELS = { card: ['fa-square', 'Tarjeta'], msg: ['fa-message', 'Mensaje'], nick: ['fa-user', 'Nick'], rank: ['fa-crown', 'Rango'], amount: ['fa-coins', 'Monto'] };
+    const FX_NAMES = { none: 'Nada', pulse: 'Latido', glow: 'Brillo', breathe: 'Respiración', neon: 'Neón', rainbow: 'Arcoíris', gradient: 'Degradado',
+        snake: 'Serpiente', 'snake-left': 'Serpiente (al revés)', snake2: 'Serpiente doble', dash: 'Guiones', tick: 'Reloj', shine: 'Destello', double: 'Borde doble' };
+    function styleOptionsHTML(sel) {
+        return '<option value="">Sin estilo</option>' + stylesDraft.map(x => `<option value="${x.id}"${x.id === sel ? ' selected' : ''}>${escapeHTML(x.name)}</option>`).join('');
+    }
+    function fillStyleSelect(el, sel) { if (el) el.innerHTML = styleOptionsHTML(sel); }
+    function renderStyleChips() {
+        const wrap = $('styles-chips');
+        if (!wrap) return;
+        wrap.innerHTML = stylesDraft.map(x => `<span class="style-chip" data-edit-style="${x.id}" title="Editar">${escapeHTML(x.name)}</span>`).join('') || '<span class="pane-note">No hay estilos todavía.</span>';
+    }
+    function refreshStyleSelects() {
+        const fs = $('cfg-fx-style'); fillStyleSelect(fs, fs.value);
+        renderStyleChips();
+        syncRanksDraft(); renderRanksForm();
+    }
+
+    let edStyle = null, edPart = 'card';
+    // Tarjeta de ejemplo que usa exactamente el mismo dibujo que el panel
+    function stylePreviewHTML(x) {
+        const pr = x.parts || {};
+        const ring = (p) => p ? ringHTML(p) : '';
+        const nk = tfxAttr(pr.nick), am = tfxAttr(pr.amount);
+        const badge = rankBadgeHTML({ name: 'Rango', icon: 'fa:crown', color: '#FBBF24', count: 2, total: 0, manual: true, badgeColor: '', badgeFx: 'none', showName: true }, pr.rank);
+        return `<div class="donation-card pf-ceneka style-demo${pr.card ? ' sfx-host' : ''}">${ring(pr.card)}
+            <div class="card-header"><div class="donor-info"><div class="donor-avatar">A</div><div class="donor-meta"><div class="donor-nick">
+                <span class="donor-nick-text${nk.cls}"${nk.style ? ` style="${nk.style}"` : ''}>Alguien</span>${badge}
+                <span class="amount-badge${am.cls}"${am.style ? ` style="${am.style}"` : ''}>$5.000</span>
+            </div></div></div></div>
+            <div class="card-message${pr.msg ? ' sfx-host' : ''}">${ring(pr.msg)}¡Así se ve una donación con este estilo!</div></div>`;
+    }
+    function tileHTML(part, fx, cur) {
+        const p = { fx, c1: cur ? cur.c1 : '#FFD700', c2: cur ? cur.c2 : '#FF4D00', gi: 1, sp: 1 };
+        let demo;
+        if (fx === 'none') demo = '<span class="tile-none"><i class="fa-solid fa-ban"></i></span>';
+        else if (part === 'card' || part === 'msg') demo = `<span class="tile-box sfx-host">${ringHTML(p)}</span>`;
+        else if (part === 'rank') demo = `<span class="rank-name bfx bfx-${fx}" style="${partVars(p)}">Rango</span>`;
+        else demo = `<span class="tile-text tfx tfx-${fx}" style="${partVars(p)}">Aa</span>`;
+        const on = (cur ? cur.fx : 'none') === fx;
+        return `<button type="button" class="style-tile${on ? ' active' : ''}" data-tile-fx="${fx}" aria-pressed="${on}">${demo}<span class="tile-label">${FX_NAMES[fx]}</span></button>`;
+    }
+    function renderStyleEditor() {
+        const list = $('styles-list');
+        list.innerHTML = stylesDraft.map(x => `<button type="button" class="styles-item${edStyle && edStyle.id === x.id ? ' active' : ''}" data-pick-style="${x.id}">${escapeHTML(x.name)}</button>`).join('');
+        const main = document.querySelector('.styles-main');
+        main.classList.toggle('hidden', !edStyle);
+        if (!edStyle) return;
+        $('style-name').value = edStyle.name;
+        $('style-preview').innerHTML = stylePreviewHTML(edStyle);
+        $('style-parts').innerHTML = STYLE_PARTS.map(k => {
+            const has = !!(edStyle.parts[k]);
+            return `<button type="button" role="tab" class="style-part-tab${edPart === k ? ' active' : ''}" data-part="${k}" aria-selected="${edPart === k}"><i class="fa-solid ${PART_LABELS[k][0]}"></i> ${PART_LABELS[k][1]}${has ? ' <span class="part-dot"></span>' : ''}</button>`;
+        }).join('');
+        const cur = edStyle.parts[edPart] || null;
+        $('style-tiles').innerHTML = PART_FX[edPart].map(fx => tileHTML(edPart, fx, cur)).join('');
+        const fx = cur ? cur.fx : 'none';
+        $('style-colors').classList.toggle('hidden', NO_COLOR_FX.has(fx));
+        $('style-c2-wrap').classList.toggle('hidden', !TWO_COLOR_FX.has(fx) && !(fx === 'gradient'));
+        $('style-more').classList.toggle('hidden', fx === 'none');
+        $('style-glow-note').classList.toggle('hidden', !GLOW_FX.has(fx));
+        if (cur) {
+            $('style-c1').value = cur.c1; $('style-c2').value = cur.c2;
+            $('style-gi').value = cur.gi; $('style-sp').value = cur.sp;
+            $('lbl-style-gi').textContent = cur.gi.toFixed(1) + '×'; $('lbl-style-sp').textContent = cur.sp.toFixed(1) + '×';
+        }
+    }
+    function openStyleEditor(id) {
+        edStyle = styleById(id, stylesDraft) || stylesDraft[0] || null;
+        edPart = edStyle ? (STYLE_PARTS.find(k => edStyle.parts[k]) || 'card') : 'card';
+        renderStyleEditor();
+        $('modal-styles').classList.remove('hidden');
+    }
+    function closeStyleEditor() {
+        $('modal-styles').classList.add('hidden');
+        refreshStyleSelects();
+    }
+    function styleChanged() { setSettingsDirty(true); renderStyleEditor(); }
+    function newStyleId(base) {
+        const b = (normTxt(base).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'estilo').slice(0, 30);
+        let id = b, n = 2;
+        while (stylesDraft.some(x => x.id === id)) id = b + '-' + n++;
+        return id;
+    }
+    function initStyleEditor() {
+        $('btn-edit-styles').addEventListener('click', () => openStyleEditor(stylesDraft[0] && stylesDraft[0].id));
+        $('styles-chips').addEventListener('click', (e) => { const c = e.target.closest('[data-edit-style]'); if (c) openStyleEditor(c.dataset.editStyle); });
+        $('btn-close-styles').addEventListener('click', closeStyleEditor);
+        $('btn-styles-done').addEventListener('click', closeStyleEditor);
+        $('modal-styles').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeStyleEditor(); } });
+        $('styles-list').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-pick-style]'); if (!b) return;
+            edStyle = styleById(b.dataset.pickStyle, stylesDraft);
+            edPart = STYLE_PARTS.find(k => edStyle.parts[k]) || 'card';
+            renderStyleEditor();
+        });
+        $('btn-style-new').addEventListener('click', () => {
+            if (stylesDraft.length >= 30) { showToast('Máximo 30 estilos', 'info'); return; }
+            const x = { id: newStyleId('Mi estilo'), name: 'Mi estilo', parts: { card: { fx: 'glow', c1: '#8B5CF6', c2: '#22D3EE', gi: 1, sp: 1 } } };
+            stylesDraft.push(x); edStyle = x; edPart = 'card'; styleChanged();
+            $('style-name').focus(); $('style-name').select();
+        });
+        $('btn-style-dup').addEventListener('click', () => {
+            if (!edStyle || stylesDraft.length >= 30) return;
+            const x = JSON.parse(JSON.stringify(edStyle)); x.name = (edStyle.name + ' (copia)').slice(0, 30); x.id = newStyleId(x.name);
+            stylesDraft.push(x); edStyle = x; styleChanged();
+        });
+        $('btn-style-del').addEventListener('click', () => {
+            if (!edStyle) return;
+            if (!confirm(`¿Borrar el estilo "${edStyle.name}"? Los rangos y las donaciones grandes que lo usan quedan sin estilo.`)) return;
+            const id = edStyle.id;
+            stylesDraft = stylesDraft.filter(x => x.id !== id);
+            ranksDraft.forEach(r => { if (r.style === id) r.style = ''; });
+            if ($('cfg-fx-style').value === id) fillStyleSelect($('cfg-fx-style'), '');
+            edStyle = stylesDraft[0] || null; styleChanged();
+        });
+        $('style-name').addEventListener('input', () => {
+            if (!edStyle) return;
+            edStyle.name = $('style-name').value.replace(/[<>]/g, '').slice(0, 30) || 'Estilo';
+            setSettingsDirty(true);
+            const it = document.querySelector(`[data-pick-style="${edStyle.id}"]`); if (it) it.textContent = edStyle.name;
+        });
+        $('style-parts').addEventListener('click', (e) => { const t = e.target.closest('[data-part]'); if (t) { edPart = t.dataset.part; renderStyleEditor(); } });
+        $('style-tiles').addEventListener('click', (e) => {
+            const t = e.target.closest('[data-tile-fx]'); if (!t || !edStyle) return;
+            const fx = t.dataset.tileFx;
+            if (fx === 'none') delete edStyle.parts[edPart];
+            else {
+                const old = edStyle.parts[edPart];
+                edStyle.parts[edPart] = { fx, c1: old ? old.c1 : '#FFD700', c2: old ? old.c2 : '#FF4D00', gi: old ? old.gi : 1, sp: old ? old.sp : 1 };
+            }
+            styleChanged();
+        });
+        const live = (k, conv) => (e) => {
+            const p = edStyle && edStyle.parts[edPart]; if (!p) return;
+            p[k] = conv(e.target.value);
+            setSettingsDirty(true);
+            $('style-preview').innerHTML = stylePreviewHTML(edStyle);
+            if (k === 'gi') $('lbl-style-gi').textContent = p.gi.toFixed(1) + '×';
+            if (k === 'sp') $('lbl-style-sp').textContent = p.sp.toFixed(1) + '×';
+            if (k === 'c1' || k === 'c2') $('style-tiles').innerHTML = PART_FX[edPart].map(fx => tileHTML(edPart, fx, p)).join('');
+        };
+        $('style-c1').addEventListener('input', live('c1', v => HEX_RE.test(v) ? v : '#FFD700'));
+        $('style-c2').addEventListener('input', live('c2', v => HEX_RE.test(v) ? v : '#FF4D00'));
+        $('style-gi').addEventListener('input', live('gi', v => Math.min(2.5, Math.max(0.3, parseFloat(v) || 1))));
+        $('style-sp').addEventListener('input', live('sp', v => Math.min(2.5, Math.max(0.3, parseFloat(v) || 1))));
+    }
+    initStyleEditor();
+
     // Clics en tarjetas y en la base de datos (sin código dentro del HTML, así la página puede prohibir scripts sueltos)
     document.addEventListener('click', (e) => {
         const el = e.target.closest('[data-act]');
@@ -5558,6 +5969,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = el.dataset.id;
         switch (el.dataset.act) {
             case 'toggle-read': e.stopPropagation(); window.toggleReadState(id); break;
+            case 'user': e.stopPropagation(); openUserMenu(id, el); break;
             case 'focus': if (!e.target.closest('.card-read-action, .msg-link')) window.openFocusModal(id); break;
             case 'db-toggle': window.dbToggleRead(id); break;
             case 'db-edit': window.dbEditChat(id); break;
@@ -5568,6 +5980,7 @@ document.addEventListener('DOMContentLoaded', () => {
     syncHeaderToggles();
     updateLiveBadge();
     initExtras();
+    loadCustomIcons();
     if (document.getElementById('about-version')) document.getElementById('about-version').textContent = APP_VERSION;
     initLinks();
     applyTheme();

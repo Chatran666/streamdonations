@@ -105,9 +105,8 @@
             alertEl.className = 'obs-alert ' + (d.platform || 'ceneka');
             // Efecto para donaciones grandes y rango del donador (se aceptan solo valores conocidos)
             const HEX = /^#[0-9a-fA-F]{6}$/;
-            const fx = d.fx && ['pulse', 'glow', 'rainbow', 'shine'].includes(d.fx.type) && HEX.test(d.fx.color || '') ? d.fx : null;
-            if (fx) { alertEl.classList.add('has-fx', 'fx-' + fx.type); alertEl.style.setProperty('--fx-color', fx.color); }
-            const { iconsHTML: rankIconsHTML, nameHTML: rankNameHTML } = rankParts(d.rank);
+            const sty = cleanSty(d.sty);
+            const { iconsHTML: rankIconsHTML, nameHTML: rankNameHTML } = rankParts(d.rank, sty.rank);
             alertEl.dataset.alertId = alertId;
             alertEl.dataset.platform = d.platform || 'ceneka';
             
@@ -119,26 +118,27 @@
             const amtColor = /^#[0-9a-fA-F]{6}$/.test(d.amtColor || '') ? d.amtColor : '';
             const formattedAmt = escapeHTML(d.formattedAmount || ('$' + (parseFloat(d.amount) || 0)));
 
-            alertEl.innerHTML = (fx ? '<span class="fx-ring" aria-hidden="true"></span>' : '') + `
+            if (sty.card) alertEl.classList.add('sfx-host');
+            alertEl.innerHTML = ringHTML(sty.card) + `
                 <div class="obs-header">
                     <div class="obs-donor">
                         <div class="obs-avatar">${avatarHTML}</div>
                         <div class="obs-donor-text">
                             <div class="obs-nick">
-                                <span>${escapeHTML(d.nick || 'Anónimo')}</span>${rankIconsHTML}${rankNameHTML}
+                                <span${tAttr(sty.nick)}>${escapeHTML(d.nick || 'Anónimo')}</span>${rankIconsHTML}${rankNameHTML}
                             </div>
                             <div class="obs-sub"></div>
                         </div>
                     </div>
                     <div class="obs-header-right">
                         <span class="obs-tag ${d.platform || 'ceneka'}" data-el="platform">${platformLabel}</span>
-                        <div class="obs-amount${amtColor ? ' has-amt-color' : ''}" data-el="amount"${amtColor ? ' style="--amt-color:' + amtColor + '"' : ''}>${formattedAmt}</div>
+                        <div class="obs-amount${amtColor ? ' has-amt-color' : ''}${sty.amount ? ' tfx tfx-' + sty.amount.fx : ''}" data-el="amount" style="${amtColor ? '--amt-color:' + amtColor + ';' : ''}${sty.amount ? vars(sty.amount) : ''}">${formattedAmt}</div>
                         <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar como leído y ocultar">
                             <i class="fa-solid fa-check"></i>
                         </button>
                     </div>
                 </div>
-                ${(!d.obsHideMessage && d.message) ? '<div class="obs-msg">' + escapeHTML(d.message) + '</div>' : ''}
+                ${(!d.obsHideMessage && d.message) ? '<div class="obs-msg' + (sty.msg ? ' sfx-host' : '') + '">' + ringHTML(sty.msg) + escapeHTML(d.message) + '</div>' : ''}
             `;
 
             placeElements(alertEl);
@@ -329,10 +329,24 @@
                 if (!el) return;
                 const nickEl = el.querySelector('.obs-nick span:first-child');
                 if (nickEl && typeof item.nick === 'string' && item.nick) nickEl.textContent = item.nick;
+                const sty = 'sty' in item ? cleanSty(item.sty) : null;
+                if (sty) {
+                    // El estilo cambió: se vuelven a poner los efectos de la tarjeta, el mensaje, el nick y el monto
+                    el.querySelectorAll(':scope > .sfx-ring, .obs-msg > .sfx-ring').forEach(x => x.remove());
+                    el.classList.toggle('sfx-host', !!sty.card);
+                    if (sty.card) el.insertAdjacentHTML('afterbegin', ringHTML(sty.card));
+                    const nickSpan = el.querySelector('.obs-nick > span:first-child');
+                    if (nickSpan) { nickSpan.className = sty.nick ? 'tfx tfx-' + sty.nick.fx : ''; nickSpan.setAttribute('style', sty.nick ? vars(sty.nick) : ''); }
+                    const am = el.querySelector('[data-el="amount"]');
+                    if (am) { am.className = am.className.replace(/\s*tfx(-[a-z0-9-]+)?/g, '') + (sty.amount ? ' tfx tfx-' + sty.amount.fx : '');
+                        am.style.cssText = am.style.cssText.replace(/--(c1|c2|gi|sp):[^;]*;?/g, '') + (sty.amount ? vars(sty.amount) : ''); }
+                    const mm = el.querySelector('.obs-msg');
+                    if (mm) { mm.classList.toggle('sfx-host', !!sty.msg); if (sty.msg) mm.insertAdjacentHTML('afterbegin', ringHTML(sty.msg)); }
+                }
                 if ('rank' in item) {
                     // El rango cambió (por ejemplo, se lo diste a mano): se vuelve a dibujar
                     el.querySelectorAll('[data-el="rankIcons"], [data-el="rankName"]').forEach(x => x.remove());
-                    const parts = rankParts(item.rank);
+                    const parts = rankParts(item.rank, sty ? sty.rank : undefined);
                     const nk = el.querySelector('.obs-nick');
                     if (nk) nk.insertAdjacentHTML('beforeend', parts.iconsHTML + parts.nameHTML);
                     placeElements(el);
@@ -368,18 +382,63 @@
 
         // --- TAMAÑO DEL TEXTO (lo manda la app) ---
         let lastStyleTs = 0;
+        // ---- Íconos: Font Awesome (fa:), marcas (fab:), emoji (emoji:) o imagen propia guardada en la PC (img:) ----
+        const obsIconUrls = {};
+        function obsIconHTML(icon) {
+            const v = String(icon || '');
+            let m = /^(fa|fab):([a-z0-9-]{1,40})$/.exec(v);
+            if (!m && /^[a-z0-9-]{1,40}$/.test(v)) m = [v, 'fa', v];
+            if (m) return '<i class="' + (m[1] === 'fab' ? 'fa-brands' : 'fa-solid') + ' fa-' + m[2] + '"></i>';
+            m = /^emoji:([^\x00-\x7F]{1,16})$/u.exec(v);
+            if (m) return '<span class="rank-emoji">' + escapeHTML(m[1]) + '</span>';
+            m = /^img:([a-z0-9]{6,24})$/.exec(v);
+            if (m) {
+                const id = m[1];
+                if (obsIconUrls[id]) return '<img class="rank-img" src="' + obsIconUrls[id] + '" alt="">';
+                if (window.SDStore && !(id in obsIconUrls)) {
+                    obsIconUrls[id] = '';
+                    SDStore.get('icon:' + id).then(blob => {
+                        if (!blob) return;
+                        obsIconUrls[id] = URL.createObjectURL(blob);
+                        document.querySelectorAll('img[data-icon-wait="' + id + '"]').forEach(im => { im.src = obsIconUrls[id]; im.removeAttribute('data-icon-wait'); });
+                    }).catch(() => {});
+                }
+                return '<img class="rank-img" data-icon-wait="' + id + '" alt="">';
+            }
+            return '<i class="fa-solid fa-star"></i>';
+        }
+
         // ---- Rango del donador: íconos y cartel con el nombre (solo valores conocidos) ----
-        function rankParts(rank) {
+        // ---- Estilos: solo efectos y valores conocidos ----
+        const SFX = { card: ['pulse', 'glow', 'breathe', 'neon', 'rainbow', 'gradient', 'snake', 'snake-left', 'snake2', 'dash', 'tick', 'shine', 'double'],
+            nick: ['glow', 'neon', 'breathe', 'pulse', 'rainbow', 'gradient'], rank: ['shine', 'pulse', 'glow', 'breathe', 'neon', 'rainbow', 'gradient'] };
+        SFX.msg = SFX.card; SFX.amount = SFX.nick;
+        function cleanSty(st) {
+            const out = {};
+            if (!st || typeof st !== 'object') return out;
             const HEX = /^#[0-9a-fA-F]{6}$/;
-            const rk = rank && /^[a-z-]{2,30}$/.test(rank.icon || '') && HEX.test(rank.color || '') ? rank : null;
+            const num = (v, d) => { const n = parseFloat(v); return isFinite(n) ? Math.min(2.5, Math.max(0.3, n)) : d; };
+            Object.keys(SFX).forEach(k => {
+                const p = st[k];
+                if (p && SFX[k].includes(p.fx)) out[k] = { fx: p.fx, c1: HEX.test(p.c1 || '') ? p.c1 : '#FFD700', c2: HEX.test(p.c2 || '') ? p.c2 : '#FF4D00', gi: num(p.gi, 1), sp: num(p.sp, 1) };
+            });
+            return out;
+        }
+        const vars = (p) => '--c1:' + p.c1 + ';--c2:' + p.c2 + ';--gi:' + p.gi + ';--sp:' + p.sp;
+        const ringHTML = (p) => p ? '<span class="sfx-ring sfx-' + p.fx + '" style="' + vars(p) + '" aria-hidden="true"></span>' : '';
+        const tAttr = (p) => p ? ' class="tfx tfx-' + p.fx + '" style="' + vars(p) + '"' : '';
+
+        function rankParts(rank, part) {
+            const HEX = /^#[0-9a-fA-F]{6}$/;
+            const rk = rank && HEX.test(rank.color || '') ? rank : null;
             if (!rk) return { iconsHTML: '', nameHTML: '' };
             const iconsHTML = '<span class="rank-badge" data-el="rankIcons" style="--rank-color:' + rk.color + '">' +
-                Array.from({ length: Math.min(5, Math.max(1, parseInt(rk.count) || 1)) }, () => '<i class="fa-solid fa-' + rk.icon + '"></i>').join('') + '</span>';
+                Array.from({ length: Math.min(5, Math.max(1, parseInt(rk.count) || 1)) }, () => obsIconHTML(rk.icon)).join('') + '</span>';
             const bBg = HEX.test(rk.badgeColor || '') ? rk.badgeColor : '';
-            const bFx = ['shine', 'pulse', 'glow', 'rainbow'].includes(rk.badgeFx) ? ' rank-fx-' + rk.badgeFx : '';
+            const bFx = part ? ' bfx bfx-' + part.fx : (['shine', 'pulse', 'glow', 'rainbow'].includes(rk.badgeFx) ? ' rank-fx-' + rk.badgeFx : '');
             const bInk = bBg ? ((n => (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) > 150 ? '#111' : '#fff')(parseInt(bBg.slice(1), 16))) : '';
             const nameHTML = rk.showName ? '<span class="rank-badge" data-el="rankName" style="--rank-color:' + rk.color + '"><span class="rank-name' + (bBg ? ' has-bg' : '') + bFx + '"' +
-                (bBg ? ' style="--badge-bg:' + bBg + ';--badge-ink:' + bInk + '"' : '') + '>' + escapeHTML(String(rk.name || '').slice(0, 24)) + '</span></span>' : '';
+                ((bBg || part) ? ' style="' + (bBg ? '--badge-bg:' + bBg + ';--badge-ink:' + bInk + ';' : '') + (part ? vars(part) : '') + '"' : '') + '>' + escapeHTML(String(rk.name || '').slice(0, 24)) + '</span></span>' : '';
             return { iconsHTML, nameHTML };
         }
 

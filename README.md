@@ -15,7 +15,8 @@ Necesita **Google Chrome** instalado. La app avisa sola cuando hay una versión 
 - Montos mínimos para mostrar, para OBS y para leer en voz alta.
 - Modo OBS: temas, fondo con imagen o GIF, tamaños ajustables, menú por plataforma.
 - Links limpios contra el "doxxing accidental" y aviso antes de abrir links acortados.
-- Filtro de palabras prohibidas y usuarios bloqueados.
+- Filtro de palabras prohibidas y usuarios bloqueados (también desde el nombre de cada donador).
+- Estilos con efectos (serpiente, neón, degradado, guiones…) para donaciones grandes y rangos, con íconos propios.
 - Fondo transparente para OBS (recorte por color), exportar a Excel (.csv), atajos de teclado.
 - Sincronización entre dos PCs para streams de dos personas.
 - Interfaz en español e inglés.
@@ -41,4 +42,5 @@ This program will not transfer any information to other networked systems unless
 ## Créditos
 
 Íconos Font Awesome Free (CC BY 4.0) · Tipografías Plus Jakarta Sans y JetBrains Mono (SIL OFL 1.1) · Socket.IO (MIT).
+Algunos efectos de borde están inspirados en [OverlayGO!](https://github.com/techconchris/OverlayGO) de TechConChris (MIT).
 StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; este proyecto no está afiliado a ellos.

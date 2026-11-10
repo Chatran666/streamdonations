@@ -11,6 +11,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="lib/fa/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="effects.css">
 </head>
 <body>
     <div class="app-container">
@@ -306,6 +307,49 @@
         </div>
     </div>
 
+    <!-- MENÚ RÁPIDO DE UN USUARIO -->
+    <div class="user-menu hidden" id="user-menu" role="dialog" aria-label="Opciones del usuario"></div>
+
+    <!-- EDITOR DE ESTILOS -->
+    <div class="modal-overlay hidden" id="modal-styles" role="dialog" aria-modal="true" aria-labelledby="styles-title">
+        <div class="modal-card styles-card">
+            <div class="modal-header">
+                <h2 id="styles-title"><i class="fa-solid fa-paintbrush"></i> Estilos</h2>
+                <button class="btn-close" id="btn-close-styles" title="Listo"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="styles-layout">
+                <aside class="styles-side">
+                    <div class="styles-list" id="styles-list"></div>
+                    <button type="button" class="btn btn-outline btn-sm" id="btn-style-new"><i class="fa-solid fa-plus"></i> Nuevo estilo</button>
+                </aside>
+                <section class="styles-main">
+                    <div class="style-head">
+                        <input type="text" id="style-name" maxlength="30" placeholder="Nombre del estilo" aria-label="Nombre del estilo">
+                        <button type="button" class="btn btn-outline btn-sm" id="btn-style-dup" title="Hacer una copia para modificarla"><i class="fa-solid fa-copy"></i> Duplicar</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" id="btn-style-del" title="Borrar este estilo"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="style-preview" id="style-preview"></div>
+                    <div class="style-parts" id="style-parts" role="tablist"></div>
+                    <div class="style-tiles" id="style-tiles"></div>
+                    <div class="style-colors" id="style-colors">
+                        <label class="rank-field"><span>Color</span><input type="color" id="style-c1" class="bg-color-input"></label>
+                        <label class="rank-field" id="style-c2-wrap"><span>Segundo color</span><input type="color" id="style-c2" class="bg-color-input"></label>
+                    </div>
+                    <details class="style-more" id="style-more">
+                        <summary>Más opciones</summary>
+                        <div class="sound-row"><label for="style-gi">Intensidad del brillo</label><input type="range" id="style-gi" min="0.3" max="2.5" step="0.1"><span class="range-value" id="lbl-style-gi">1×</span></div>
+                        <div class="sound-row"><label for="style-sp">Velocidad</label><input type="range" id="style-sp" min="0.3" max="2.5" step="0.1"><span class="range-value" id="lbl-style-sp">1×</span></div>
+                    </details>
+                    <small class="pane-note style-glow-note hidden" id="style-glow-note"><i class="fa-solid fa-circle-info"></i> Con el fondo transparente de OBS los efectos de brillo se recortan y se ven solo como borde.</small>
+                </section>
+            </div>
+            <div class="modal-footer styles-footer">
+                <small class="pane-note">Los cambios se guardan con "Guardar cambios" en Opciones.</small>
+                <button type="button" class="btn btn-primary" id="btn-styles-done"><i class="fa-solid fa-check"></i> Listo</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL HAY UNA VERSIÓN NUEVA -->
     <div class="modal-overlay hidden" id="modal-update">
         <div class="modal-card update-card">
@@ -529,9 +573,16 @@
                         <h3 class="pane-title">Destacar</h3>
                         <p class="pane-desc">Que las donaciones grandes y los que más te apoyan se noten.</p>
 
-                        <div class="pane-subtitle"><i class="fa-solid fa-wand-magic-sparkles"></i> Efecto para donaciones grandes</div>
+                        <div class="pane-subtitle"><i class="fa-solid fa-wand-magic-sparkles"></i> Estilos</div>
+                        <div class="styles-intro">
+                            <p class="pane-note">Un estilo es un "look" con nombre (por ejemplo <em>Dorado brillante</em> o <em>Neón rosa</em>) que le pone efectos a la tarjeta, el mensaje, el nick, el rango y el monto. Después lo elegís para las donaciones grandes o para cada rango.</p>
+                            <div class="styles-chips" id="styles-chips"></div>
+                            <button type="button" class="btn btn-primary btn-sm" id="btn-edit-styles"><i class="fa-solid fa-paintbrush"></i> Crear y editar estilos</button>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-sack-dollar"></i> Donaciones grandes</div>
                         <label class="setting-row toggle-row">
-                            <div><strong>Activar efecto</strong><small>La tarjeta de la donación se destaca con un efecto animado mientras está pendiente.</small></div>
+                            <div><strong>Destacar donaciones grandes</strong><small>Desde el monto que elijas, la donación se ve con un estilo especial.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-fx-enabled"><span class="toggle-slider"></span></span>
                         </label>
                         <div class="sound-picker" id="fx-picker">
@@ -541,26 +592,15 @@
                                 <span class="pane-note big-sound-unit">pesos</span>
                             </div>
                             <div class="sound-row">
-                                <label for="cfg-fx-type"><strong>Efecto</strong></label>
-                                <select id="cfg-fx-type">
-                                    <option value="pulse">Borde latiendo</option>
-                                    <option value="glow">Brillo (resplandor)</option>
-                                    <option value="rainbow">Arcoíris girando</option>
-                                    <option value="shine">Destello que pasa</option>
-                                </select>
-                                <input type="color" id="cfg-fx-color" value="#FFD700" class="bg-color-input" title="Color del efecto">
-                            </div>
-                            <div class="fx-preview-wrap">
-                                <div class="donation-card pf-ceneka has-fx fx-pulse fx-preview" id="fx-preview"><span class="fx-ring" aria-hidden="true"></span>
-                                    <strong>Así se ve</strong><small>Una donación grande con este efecto.</small>
-                                </div>
+                                <label for="cfg-fx-style"><strong>Estilo</strong></label>
+                                <select id="cfg-fx-style" class="style-select"></select>
                             </div>
                             <label class="setting-row toggle-row compact">
                                 <div><strong>En el panel</strong></div>
                                 <span class="toggle-switch"><input type="checkbox" id="cfg-fx-panel"><span class="toggle-slider"></span></span>
                             </label>
                             <label class="setting-row toggle-row compact">
-                                <div><strong>En OBS</strong><small>En el fondo transparente el "Brillo" se ve como borde.</small></div>
+                                <div><strong>En OBS</strong></div>
                                 <span class="toggle-switch"><input type="checkbox" id="cfg-fx-obs"><span class="toggle-slider"></span></span>
                             </label>
                         </div>
@@ -1200,7 +1240,7 @@
                             </div>
                             <button type="button" class="btn btn-outline btn-sm" id="btn-replay-tour"><i class="fa-solid fa-route"></i> Ver el tutorial de nuevo</button>
                             <p class="pane-note">¿Encontraste un error o tenés una idea? Escribime al mail de contacto e indicá la versión.</p>
-                            <p class="pane-note about-credits">Usa íconos de <strong>Font Awesome Free</strong> (licencia CC BY 4.0), las tipografías <strong>Plus Jakarta Sans</strong> y <strong>JetBrains Mono</strong> (licencia SIL OFL 1.1) y la librería <strong>Socket.IO</strong> (licencia MIT). StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; esta app no está afiliada a ellos.</p>
+                            <p class="pane-note about-credits">Usa íconos de <strong>Font Awesome Free</strong> (licencia CC BY 4.0), las tipografías <strong>Plus Jakarta Sans</strong> y <strong>JetBrains Mono</strong> (licencia SIL OFL 1.1) y la librería <strong>Socket.IO</strong> (licencia MIT). Algunos efectos están inspirados en OverlayGO! de TechConChris (licencia MIT). StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; esta app no está afiliada a ellos.</p>
                         </div>
                     </section>
 
@@ -1403,6 +1443,7 @@
     <script src="socket.io.js"></script>
     <script src="xfiles-fx.js"></script>
     <script src="sd-store.js"></script>
+    <script src="icons.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
