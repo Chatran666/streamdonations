@@ -1,5 +1,7 @@
-Novedades de la 1.11.1:
-- La "copia completa" ahora también guarda tus imágenes y sonidos (fondos, sonidos propios e íconos propios), y al importarla se recupera todo. Se puede destildar si querés una copia liviana.
+Novedades de la 1.12.0:
+- Modo transparente real para OBS Studio (28 o más nuevo): las donaciones aparecen en una fuente de navegador dentro de OBS, sin fondo y con brillos y sombras perfectos sobre tu escena. Sin internet, todo queda en tu PC.
+- Se activa en Opciones → OBS: activás el servidor WebSocket en OBS, pegás la contraseña, tocás "Conectar" y "Agregar a mi escena" (la app crea la fuente sola).
+- La captura de ventana de siempre sigue funcionando igual.
 
-Novedades de la 1.11.0:
-- Estilos con efectos, todos los íconos con buscador, emojis e imágenes propias, y menú rápido al tocar un nombre.
+Novedades de la 1.11.1:
+- La copia completa incluye imágenes y sonidos.

@@ -1,6 +1,68 @@
 /* StreamDonations - ventana Modo OBS */
-        // Mensajes válidos: solo los que manda la ventana del panel que abrió esta
-        const fromPanel = (e) => !!window.opener && e.source === window.opener;
+        // Mensajes válidos: los que manda la ventana del panel que abrió esta, o los que llegan por la conexión con OBS
+        const fromPanel = (e) => e.__sdWs === true || (!!window.opener && e.source === window.opener);
+
+        // ---- Modo transparente real: esta página está dentro de OBS (fuente de navegador) y recibe todo por obs-websocket ----
+        const WS_PARAMS = new URLSearchParams(location.hash.slice(1));
+        const WS_MODE = /^\d{1,5}$/.test(WS_PARAMS.get('ws') || '');
+        if (WS_MODE) document.documentElement.classList.add('obs-ws');
+        const obsLink = { sock: null, ready: false, n: 0 };
+        async function sha256b64(text) {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+            return btoa(String.fromCharCode(...new Uint8Array(buf)));
+        }
+        function wsToPanel(msg) {
+            if (!obsLink.ready) return;
+            obsLink.sock.send(JSON.stringify({ op: 6, d: { requestType: 'BroadcastCustomEvent', requestId: 'o' + (++obsLink.n), requestData: { eventData: { sd: 1, from: 'obs', msg } } } }));
+        }
+        function wsConnect() {
+            const port = WS_PARAMS.get('ws'), pw = WS_PARAMS.get('k') || '';
+            let sock;
+            try { sock = new WebSocket('ws://127.0.0.1:' + port); } catch (e) { setTimeout(wsConnect, 3000); return; }
+            obsLink.sock = sock;
+            sock.onmessage = async (ev) => {
+                let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+                if (m.op === 0) {
+                    const d = { rpcVersion: 1, eventSubscriptions: 1 };
+                    if (m.d && m.d.authentication) d.authentication = await sha256b64(await sha256b64(pw + m.d.authentication.salt) + m.d.authentication.challenge);
+                    sock.send(JSON.stringify({ op: 1, d }));
+                } else if (m.op === 2) {
+                    obsLink.ready = true;
+                    wsToPanel({ type: 'HELLO' }); // el panel contesta mandando todo lo que hay que mostrar
+                } else if (m.op === 5 && m.d && m.d.eventType === 'CustomEvent') {
+                    const e = m.d.eventData || {};
+                    if (e.sd !== 1 || e.from !== 'panel' || !e.msg || typeof e.msg.type !== 'string') return;
+                    handleWsMsg(e.msg);
+                }
+            };
+            sock.onclose = () => { obsLink.ready = false; setTimeout(wsConnect, 3000); };
+            sock.onerror = () => {};
+        }
+        function handleWsMsg(msg) {
+            if (msg.type === 'ICON') {
+                if (/^[a-z0-9]{6,24}$/.test(msg.id || '') && /^image\/(png|gif|webp|jpeg|svg\+xml)$/.test(msg.mime || '') && /^[A-Za-z0-9+/=]+$/.test(msg.data || '') && msg.data.length < 300000) {
+                    obsIconUrls[msg.id] = 'data:' + msg.mime + ';base64,' + msg.data;
+                    document.querySelectorAll('img[data-icon-wait="' + msg.id + '"]').forEach(im => { im.src = obsIconUrls[msg.id]; im.removeAttribute('data-icon-wait'); });
+                }
+                return;
+            }
+            if (msg.type === 'RESET') {
+                // Se vacía al instante: enseguida llegan otra vez las pendientes
+                document.querySelectorAll('.obs-alert').forEach(el => el.remove());
+                renderedIds.clear();
+                if (typeof updateAlertCounter === 'function') updateAlertCounter();
+                return;
+            }
+            if (msg.type === 'STYLE_UPDATE' && msg.data && (msg.data.lang === 'en' || msg.data.lang === 'es') && msg.data.lang !== window.SD_LANG) {
+                // Mismo idioma que el panel (esta fuente tiene su propio almacenamiento)
+                try { localStorage.setItem('streamdonations_settings', JSON.stringify({ language: msg.data.lang })); } catch (e) {}
+                location.reload();
+                return;
+            }
+            const ev = new MessageEvent('message', { data: msg });
+            ev.__sdWs = true;
+            window.dispatchEvent(ev);
+        }
         const container = document.getElementById('alerts-container');
         const statusMsg = document.getElementById('status-msg');
         const scrollArea = document.getElementById('obs-scroll-area');
@@ -215,6 +277,7 @@
 
         function dismissAndMarkRead(id) {
             dismissAlert(id);
+            if (WS_MODE) wsToPanel({ type: 'MARK_READ', id });
 
             // 1. Notificar vía BroadcastChannel
             if (typeof BroadcastChannel !== 'undefined') {
@@ -600,6 +663,8 @@
 
         // Estado inicial
         updateAlertCounter();
+
+        if (WS_MODE) wsConnect();
 
         // Clics de la barra de plataformas y del botón ✓ (sin código dentro del HTML)
         document.addEventListener('click', (e) => {

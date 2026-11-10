@@ -810,6 +810,26 @@ window.SD_I18N_EN = {
     'Monto desde, en pesos': 'Amount from, in pesos',
     'Máximo 10 colores': 'Maximum 10 colors',
 
+    // ---- 1.12: real transparent mode (obs-websocket) ----
+    'Modo transparente real': 'Real transparent mode',
+    'Mostrar las donaciones dentro de OBS, con transparencia real': 'Show donations inside OBS, with real transparency',
+    'En vez de capturar la ventana, las donaciones aparecen en una fuente de navegador de OBS: sin fondo, con brillos y sombras perfectos sobre tu escena. Necesita OBS Studio 28 o más nuevo. Todo queda en tu PC, no usa internet.': 'Instead of capturing the window, donations appear in an OBS browser source: no background, with perfect glows and shadows over your scene. Needs OBS Studio 28 or newer. Everything stays on your PC, no internet needed.',
+    'En OBS:': 'In OBS:', 'Herramientas → Configuración del servidor WebSocket': 'Tools → WebSocket Server Settings',
+    '. Tildá': '. Check', 'Habilitar servidor WebSocket': 'Enable WebSocket server', 'y tocá': 'and click', 'Aplicar': 'Apply',
+    'Ahí mismo tocá': 'In the same window click', 'Mostrar información de conexión': 'Show Connect Info', ', copiá la': ', copy the', 'contraseña': 'password',
+    'y pegala acá abajo. Tocá': 'and paste it below. Click', 'Conectar': 'Connect', 'Tocá': 'Click', 'Agregar a mi escena': 'Add to my scene',
+    ': la app crea la fuente "StreamDonations" en la escena que tengas al aire. Acomodala y achicala como quieras.': ': the app creates the "StreamDonations" source in the scene you have live. Move and resize it as you like.',
+    'Puerto': 'Port', 'Contraseña': 'Password', 'La de OBS': "OBS's one", 'Mostrar/ocultar contraseña': 'Show/hide password',
+    'Copiar link de la fuente': 'Copy source link',
+    'Con la fuente de navegador no hace falta la ventana "Modo OBS" ni el recorte por color. El link de la fuente lleva tu contraseña de OBS: no lo compartas. Si cambiás la contraseña en OBS, pegá la nueva acá y volvé a tocar "Agregar a mi escena" para actualizar la fuente.': 'With the browser source you don\'t need the "OBS mode" window or the color key. The source link contains your OBS password: don\'t share it. If you change the password in OBS, paste the new one here and click "Add to my scene" again to update the source.',
+    'Apagado': 'Off', 'Conectando con OBS…': 'Connecting to OBS…', 'No se pudo conectar': "Couldn't connect", 'OBS pide contraseña: pegala acá': 'OBS asks for a password: paste it here',
+    'Contraseña incorrecta': 'Wrong password', 'OBS no responde: ¿está abierto y con el servidor WebSocket activado?': "OBS isn't responding: is it open with the WebSocket server enabled?",
+    'Conectado{}': 'Connected{}', 'Conectado (OBS {})': 'Connected (OBS {})',
+    'Listo: agregué la fuente "{}" a la escena "{}". Acomodala y achicala en OBS como quieras.': 'Done: I added the "{}" source to the "{}" scene. Move and resize it in OBS as you like.',
+    'La fuente "{}" ya estaba en OBS: le actualicé el link.': 'The "{}" source was already in OBS: I updated its link.',
+    'No pude crear la fuente en OBS ({}). Usá "Copiar link de la fuente" y agregala a mano.': 'I couldn\'t create the source in OBS ({}). Use "Copy source link" and add it manually.',
+    'Link copiado. En OBS: + → Navegador → destildá "Archivo local" y pegalo en URL.': 'Link copied. In OBS: + → Browser → uncheck "Local file" and paste it in URL.',
+
     // ---- 1.11: styles, icons, user menu ----
     'Incluir imágenes y sonidos (fondos, sonidos propios e íconos propios)': 'Include images and sounds (backgrounds, own sounds and own icons)',
     'Copia guardada en Descargas: {} (con {} imágenes o sonidos, {} MB)': 'Backup saved in Downloads: {} (with {} images or sounds, {} MB)',

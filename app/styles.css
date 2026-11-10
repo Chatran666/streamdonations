@@ -2735,3 +2735,19 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .um-btn.danger { color: #F87171; border-color: rgba(239, 68, 68, 0.4); }
 .user-menu .pane-note { margin: 0; }
 .backup-media-check { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.78rem; color: var(--text-secondary); }
+/* Modo transparente real (Opciones → OBS) */
+.obsws-box { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 10px; }
+.obsws-box.hidden { display: none; }
+.obsws-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+.obsws-steps strong { color: var(--text-primary); }
+.obsws-fields, .obsws-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.obsws-fields input { background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); padding: 7px 9px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+#cfg-obsws-port { width: 84px; }
+.obsws-pw input { width: 220px; }
+.obsws-status.ok { color: #34D399; } .obsws-status.ok .status-dot { background: #34D399; }
+.obsws-status.wait { color: #FBBF24; } .obsws-status.wait .status-dot { background: #FBBF24; }
+.obsws-status.err { color: #F87171; } .obsws-status.err .status-dot { background: #F87171; }
+.obsws-status.off { color: var(--text-secondary); }
+.obsws-box .pane-note { margin: 0; }
+.obsws-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid currentColor; font-size: 0.78rem; font-weight: 700; }
+.obsws-status .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }

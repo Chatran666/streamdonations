@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsLayout: { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' },
             // Cómo se muestra la red: 'tag' etiqueta con el nombre, 'color' nombre y foto pintados con el color de la red, 'both' las dos
             obsPlatformStyle: 'tag', panelPlatformStyle: 'tag',
+            obsWsEnabled: false, obsWsPort: 4455, obsWsPassword: '', // modo transparente real (obs-websocket)
             customIcons: [], // imágenes propias para los rangos: [{ id, name }] (el archivo queda guardado en esta PC)
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
@@ -2397,6 +2398,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (src === state.overlayWindow) return true;
         try { return src.opener === window; } catch (e) { return false; }
     }
+    function markReadFromObs(id) {
+        if (id === 'all') {
+            state.donations.forEach(d => { d.isRead = true; });
+            saveDonationsToStorage(); render();
+            showToast('Todas las donaciones marcadas como leídas desde OBS', 'info');
+            return;
+        }
+        const item = state.donations.find(d => d.id === id);
+        if (item && !item.isRead) {
+            item.isRead = true;
+            saveDonationsToStorage(); render();
+            showToast(`Chat de ${escapeHTML(item.nick)} marcado como leído desde OBS`, 'info');
+        }
+    }
     window.addEventListener('message', (event) => {
         if (!fromOverlay(event)) return;
         if (event.data && event.data.type === 'OBS_OVERLAY_READY') {
@@ -3137,10 +3152,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.overlayWindow && !state.overlayWindow.closed) {
             try { state.overlayWindow.postMessage(msg, '*'); } catch (e) {}
         }
+        // 4. Fuente de navegador de OBS (modo transparente real)
+        obsWsSend(msg);
     }
 
     function dismissOverlayAlert(id) {
         const msg = { type: 'DISMISS_ALERT', id: id };
+        obsWsSend(msg);
 
         if (state.obsChannel) {
             try { state.obsChannel.postMessage(msg); } catch (e) {}
@@ -4127,6 +4145,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.overlayWindow && !state.overlayWindow.closed) {
             try { state.overlayWindow.postMessage({ type: 'GOAL_UPDATE', data: payload }, '*'); } catch (e) {}
         }
+        wsGoal = payload;
+        obsWsSend({ type: 'GOAL_UPDATE', data: payload });
     }
 
     function forceGoalSync() {
@@ -4416,6 +4436,10 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-fx-panel').checked = st.fxPanel !== false;
         $('cfg-fx-obs').checked = st.fxObs !== false;
         $('cfg-obs-pstyle').value = st.obsPlatformStyle || 'tag';
+        $('cfg-obsws-enabled').checked = !!st.obsWsEnabled;
+        $('obsws-box').classList.toggle('hidden', !st.obsWsEnabled);
+        $('cfg-obsws-port').value = st.obsWsPort || 4455;
+        $('cfg-obsws-pw').value = st.obsWsPassword || '';
         $('cfg-panel-pstyle').value = st.panelPlatformStyle || 'tag';
         { const lay = cleanObsLayout(st.obsLayout); Object.keys(LAYOUT_FIELDS).forEach(k => { $(LAYOUT_FIELDS[k]).value = lay[k]; }); }
         $('cfg-amt-enabled').checked = !!st.amtColorsEnabled;
@@ -4529,6 +4553,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(d => !d.isRead)
             .map(d => { const pl = overlayPayload(d); return { id: d.id, nick: pl.nick, message: pl.message, rank: pl.rank, sty: pl.sty || {}, obsHideMessage: !!state.settings.obsHideMessage }; });
         const payload = { ts: Date.now(), items };
+        obsWsSend({ type: 'UPDATE_ALERTS', data: payload });
         try { localStorage.setItem('obs_alerts_update', JSON.stringify(payload)); } catch (e) {}
         if (state.overlayWindow && !state.overlayWindow.closed) {
             try { state.overlayWindow.postMessage({ type: 'UPDATE_ALERTS', data: payload }, '*'); } catch (e) {}
@@ -4584,6 +4609,11 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
         st.obsLayout = readObsLayoutForm();
+        const wsBefore = JSON.stringify([st.obsWsEnabled, st.obsWsPort, st.obsWsPassword]);
+        st.obsWsEnabled = $('cfg-obsws-enabled').checked;
+        st.obsWsPort = Math.min(65535, Math.max(1, parseInt($('cfg-obsws-port').value) || 4455));
+        st.obsWsPassword = $('cfg-obsws-pw').value.slice(0, 200);
+        if (JSON.stringify([st.obsWsEnabled, st.obsWsPort, st.obsWsPassword]) !== wsBefore) setTimeout(() => { obsWs.authFailed = false; obsWsConnect(); }, 50);
         st.obsPlatformStyle = ['tag', 'color', 'both'].includes($('cfg-obs-pstyle').value) ? $('cfg-obs-pstyle').value : 'tag';
         st.panelPlatformStyle = ['tag', 'color', 'both'].includes($('cfg-panel-pstyle').value) ? $('cfg-panel-pstyle').value : 'tag';
         st.amtColorsEnabled = $('cfg-amt-enabled').checked;
@@ -5449,8 +5479,11 @@ document.addEventListener('DOMContentLoaded', () => {
             platforms: visiblePlatforms(),
             layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),
             platformStyle: obsPStyleDraft || state.settings.obsPlatformStyle || 'tag',
+            lang: window.SD_LANG === 'en' ? 'en' : 'es',
             ts: Date.now()
         };
+        lastObsStylePayload = payload;
+        obsWsSend({ type: 'STYLE_UPDATE', data: payload });
         try { localStorage.setItem('obs_style', JSON.stringify(payload)); } catch (e) {}
         if (state.overlayWindow && !state.overlayWindow.closed) {
             try { state.overlayWindow.postMessage({ type: 'STYLE_UPDATE', data: payload }, '*'); } catch (e) {}
@@ -5511,6 +5544,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearOverlayForReset() {
         dismissOverlayAlert('all');
         const goalOff = { enabled: false };
+        wsGoal = goalOff;
+        obsWsSend({ type: 'GOAL_UPDATE', data: goalOff });
         try { localStorage.setItem('obs_goal_state', JSON.stringify(goalOff)); } catch (e) {}
         if (state.overlayWindow && !state.overlayWindow.closed) {
             try { state.overlayWindow.postMessage({ type: 'GOAL_UPDATE', data: goalOff }, '*'); } catch (e) {}
@@ -6008,6 +6043,160 @@ document.addEventListener('DOMContentLoaded', () => {
         $('style-sp').addEventListener('input', live('sp', v => Math.min(2.5, Math.max(0.3, parseFloat(v) || 1))));
     }
     initStyleEditor();
+
+    // ==========================================================================
+    // MODO TRANSPARENTE REAL: conexión con OBS Studio (obs-websocket, viene con OBS 28 o más nuevo)
+    // La app le manda a una fuente de navegador de OBS lo mismo que a la ventana "Modo OBS".
+    // Todo queda dentro de la PC (127.0.0.1): no pasa por internet.
+    // ==========================================================================
+    var lastObsStylePayload = null, wsGoal = null;
+    var obsWs = { sock: null, ready: false, reqId: 0, pending: {}, retry: null, sentIcons: new Set(), authFailed: false };
+    function obsWsCfg() {
+        const st = state.settings;
+        return { on: !!st.obsWsEnabled, port: Math.min(65535, Math.max(1, parseInt(st.obsWsPort) || 4455)), pw: String(st.obsWsPassword || '') };
+    }
+    async function sha256b64(text) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+        return btoa(String.fromCharCode(...new Uint8Array(buf)));
+    }
+    function obsWsStatus(kind, text) {
+        const el = $('obsws-status');
+        if (el) { el.className = 'conn-status obsws-status ' + kind; el.innerHTML = `<span class="status-dot"></span> ${escapeHTML(text)}`; }
+        const add = $('btn-obsws-add'); if (add) add.disabled = kind !== 'ok';
+    }
+    function obsWsRequest(type, data) {
+        return new Promise((resolve, reject) => {
+            if (!obsWs.ready || !obsWs.sock) { reject(new Error('sin conexión')); return; }
+            const id = 'sd' + (++obsWs.reqId);
+            obsWs.pending[id] = { resolve, reject, t: setTimeout(() => { delete obsWs.pending[id]; reject(new Error('sin respuesta')); }, 8000) };
+            obsWs.sock.send(JSON.stringify({ op: 6, d: { requestType: type, requestId: id, requestData: data || {} } }));
+        });
+    }
+    // Lo que va para la fuente de navegador (se ignora si no hay conexión)
+    function obsWsSend(msg) {
+        if (!obsWs || !obsWs.ready || !msg) return;
+        // Las imágenes propias de los rangos viajan una vez por conexión (la fuente de OBS no ve los archivos de la app)
+        const sendIcon = (icon) => {
+            const m = /^img:([a-z0-9]{6,24})$/.exec(icon || '');
+            if (!m || obsWs.sentIcons.has(m[1]) || !window.SDStore) return Promise.resolve();
+            obsWs.sentIcons.add(m[1]);
+            return SDStore.get('icon:' + m[1]).then(b => b && blobToBase64(b).then(data =>
+                obsWsRequest('BroadcastCustomEvent', { eventData: { sd: 1, from: 'panel', msg: { type: 'ICON', id: m[1], mime: b.type, data } } }).catch(() => {}))).catch(() => {});
+        };
+        const icons = [];
+        if (msg.type === 'NEW_DONATION' && msg.data && msg.data.rank) icons.push(msg.data.rank.icon);
+        if (msg.type === 'UPDATE_ALERTS' && msg.data && Array.isArray(msg.data.items)) msg.data.items.forEach(it => it.rank && icons.push(it.rank.icon));
+        Promise.all(icons.map(sendIcon)).then(() => obsWsRequest('BroadcastCustomEvent', { eventData: { sd: 1, from: 'panel', msg } }).catch(() => {}));
+    }
+    // Manda a la fuente todo lo que tiene que mostrar ahora (al conectar o cuando la fuente recién arranca)
+    function obsWsSyncAll() {
+        if (!obsWs.ready) return;
+        obsWsSend({ type: 'RESET' });
+        if (lastObsStylePayload) obsWsSend({ type: 'STYLE_UPDATE', data: lastObsStylePayload });
+        if (wsGoal) obsWsSend({ type: 'GOAL_UPDATE', data: wsGoal });
+        state.donations.filter(d => !d.isRead && !belowMin(d, state.settings.obsMinAmount)).reverse()
+            .forEach(d => obsWsSend({ type: 'NEW_DONATION', data: overlayPayload(d) }));
+    }
+    function obsWsClose() {
+        clearTimeout(obsWs.retry); obsWs.retry = null;
+        obsWs.ready = false;
+        if (obsWs.sock) { try { obsWs.sock.onclose = null; obsWs.sock.close(); } catch (e) {} obsWs.sock = null; }
+    }
+    function obsWsConnect() {
+        obsWsClose();
+        const c = obsWsCfg();
+        if (!c.on) { obsWsStatus('off', 'Apagado'); return; }
+        obsWsStatus('wait', 'Conectando con OBS…');
+        let sock;
+        try { sock = new WebSocket('ws://127.0.0.1:' + c.port); } catch (e) { obsWsStatus('err', 'No se pudo conectar'); return; }
+        obsWs.sock = sock;
+        sock.onmessage = async (ev) => {
+            let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+            if (m.op === 0) { // Hello
+                const d = { rpcVersion: 1, eventSubscriptions: 1 }; // 1 = eventos generales (incluye los avisos propios)
+                if (m.d && m.d.authentication) {
+                    if (!c.pw) { obsWsStatus('err', 'OBS pide contraseña: pegala acá'); obsWs.authFailed = true; sock.close(); return; }
+                    const secret = await sha256b64(c.pw + m.d.authentication.salt);
+                    d.authentication = await sha256b64(secret + m.d.authentication.challenge);
+                }
+                sock.send(JSON.stringify({ op: 1, d }));
+            } else if (m.op === 2) { // Identified
+                obsWs.ready = true; obsWs.authFailed = false; obsWs.sentIcons = new Set();
+                let ver = '';
+                try { const r = await obsWsRequest('GetVersion'); ver = r && r.obsVersion ? ' (OBS ' + r.obsVersion + ')' : ''; } catch (e) {}
+                obsWsStatus('ok', 'Conectado' + ver);
+                obsWsSyncAll();
+            } else if (m.op === 5 && m.d && m.d.eventType === 'CustomEvent') {
+                const e = m.d.eventData || {};
+                if (e.sd !== 1 || e.from !== 'obs' || !e.msg) return;
+                if (e.msg.type === 'HELLO') { obsWs.sentIcons = new Set(); obsWsSyncAll(); }
+                else if (e.msg.type === 'MARK_READ' && typeof e.msg.id === 'string') markReadFromObs(e.msg.id.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) || 'x');
+            } else if (m.op === 7 && m.d) { // respuesta a un pedido
+                const p = obsWs.pending[m.d.requestId];
+                if (!p) return;
+                clearTimeout(p.t); delete obsWs.pending[m.d.requestId];
+                if (m.d.requestStatus && m.d.requestStatus.result) p.resolve(m.d.responseData || {});
+                else p.reject(Object.assign(new Error((m.d.requestStatus && m.d.requestStatus.comment) || 'error'), { code: m.d.requestStatus && m.d.requestStatus.code }));
+            }
+        };
+        sock.onclose = (ev) => {
+            obsWs.ready = false; obsWs.sock = null;
+            if (!obsWsCfg().on) return;
+            if (ev.code === 4009) { obsWs.authFailed = true; obsWsStatus('err', 'Contraseña incorrecta'); }
+            else if (!obsWs.authFailed) obsWsStatus('wait', 'OBS no responde: ¿está abierto y con el servidor WebSocket activado?');
+            obsWs.retry = setTimeout(obsWsConnect, obsWs.authFailed ? 20000 : 5000);
+        };
+        sock.onerror = () => {};
+    }
+    function obsSourceUrl() {
+        const c = obsWsCfg();
+        const base = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'obs.html';
+        return base + '#ws=' + c.port + (c.pw ? '&k=' + encodeURIComponent(c.pw) : '');
+    }
+    async function obsWsAddSource() {
+        const name = 'StreamDonations';
+        const url = obsSourceUrl();
+        try {
+            const sc = await obsWsRequest('GetCurrentProgramScene');
+            const sceneName = sc.currentProgramSceneName || sc.sceneName;
+            const settings = { is_local_file: false, url, width: 600, height: 1000, css: '', shutdown: false, restart_when_active: false, reroute_audio: false };
+            try {
+                await obsWsRequest('CreateInput', { sceneName, inputName: name, inputKind: 'browser_source', inputSettings: settings, sceneItemEnabled: true });
+                showToast(`Listo: agregué la fuente "${name}" a la escena "${escapeHTML(sceneName)}". Acomodala y achicala en OBS como quieras.`, 'success');
+            } catch (e) {
+                if (e.code === 601) { // ya existe: se actualiza el link
+                    await obsWsRequest('SetInputSettings', { inputName: name, inputSettings: { is_local_file: false, url } });
+                    showToast(`La fuente "${name}" ya estaba en OBS: le actualicé el link.`, 'success');
+                } else throw e;
+            }
+        } catch (e) {
+            showToast('No pude crear la fuente en OBS (' + escapeHTML(e.message || 'error') + '). Usá "Copiar link de la fuente" y agregala a mano.', 'warning');
+        }
+    }
+    function initObsWs() {
+        const pw = $('cfg-obsws-pw');
+        $('cfg-obsws-enabled').addEventListener('change', () => { $('obsws-box').classList.toggle('hidden', !$('cfg-obsws-enabled').checked); });
+        $('btn-obsws-eye').addEventListener('click', () => { pw.type = pw.type === 'password' ? 'text' : 'password'; });
+        // "Conectar" aplica en el momento (no hace falta "Guardar cambios")
+        $('btn-obsws-connect').addEventListener('click', () => {
+            state.settings.obsWsEnabled = true;
+            $('cfg-obsws-enabled').checked = true;
+            state.settings.obsWsPort = Math.min(65535, Math.max(1, parseInt($('cfg-obsws-port').value) || 4455));
+            state.settings.obsWsPassword = pw.value.slice(0, 200);
+            persistSettings();
+            obsWs.authFailed = false;
+            obsWsConnect();
+        });
+        $('btn-obsws-add').addEventListener('click', obsWsAddSource);
+        $('btn-obsws-copy').addEventListener('click', () => {
+            const url = obsSourceUrl();
+            (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+                () => showToast('Link copiado. En OBS: + → Navegador → destildá "Archivo local" y pegalo en URL.', 'success'),
+                () => prompt('Copiá el link:', url));
+        });
+        if (obsWsCfg().on) obsWsConnect(); else obsWsStatus('off', 'Apagado');
+    }
+    initObsWs();
 
     // Clics en tarjetas y en la base de datos (sin código dentro del HTML, así la página puede prohibir scripts sueltos)
     document.addEventListener('click', (e) => {
