@@ -1,5 +1,5 @@
 {
-  "version": "1.10.4",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.10.4/StreamDonations-Setup-1.10.4.exe",
-  "notes": "Novedades de la 1.10.4:\n- Actualizar es más claro: el aviso explica dónde aparece la descarga en la ventana de Chrome y tiene un botón para copiar el link y bajarla con tu navegador de siempre.\n\nNovedades de la 1.10.3:\n- El menú de Opciones ya no se corta en pantallas bajas."
+  "version": "1.11.0",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.11.0/StreamDonations-Setup-1.11.0.exe",
+  "notes": "Novedades de la 1.11.0:\n- Estilos: \"looks\" con nombre que le ponen efectos a la tarjeta, al mensaje, al nick, al rango y al monto, cada parte por separado. Vienen 6 listos (Dorado brillante, Neón rosa, Serpiente, Arcoíris, Fuego, Suave) y podés crear los tuyos en una ventana aparte con vista previa en vivo.\n- Efectos nuevos: serpiente (para los dos lados), serpiente doble, guiones que corren, reloj, neón, respiración, degradado de dos colores, borde doble y más. Con intensidad y velocidad.\n- Cada rango y las donaciones grandes usan un estilo (Opciones → Destacar).\n- Íconos de rangos: ahora están todos (más de 1.800, con marcas como YouTube, Twitch o Discord), con buscador en español, emojis e imágenes propias (PNG, GIF animado, SVG…).\n- Tocá el nombre de alguien en el panel para darle un rango, ver sus donaciones o bloquearlo, sin ir a Opciones.\n\nNovedades de la 1.10.4:\n- Actualizar es más claro y hay un botón para copiar el link de descarga."
 }
