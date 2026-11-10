@@ -811,6 +811,11 @@ window.SD_I18N_EN = {
     'Máximo 10 colores': 'Maximum 10 colors',
 
     // ---- 1.12: real transparent mode (obs-websocket) ----
+    '¿De dónde saco la contraseña?': 'Where do I get the password?',
+    'Abrí': 'Open', 'En el menú de arriba:': 'In the top menu:', 'Herramientas': 'Tools', 'Configuración del servidor WebSocket': 'WebSocket Server Settings',
+    'Tocá el botón': 'Click the button', 'Contraseña del servidor': 'Server Password', 'Copiar': 'Copy', 'y pegala acá. El': 'and paste it here. The',
+    'que aparece ahí (casi siempre 4455) va en el casillero "Puerto".': 'shown there (almost always 4455) goes in the "Port" box.',
+    'Si en OBS destildaste "Habilitar autenticación", dejá la contraseña vacía. Si no ves "Configuración del servidor WebSocket" en Herramientas, tu OBS es anterior a la versión 28: actualizalo desde obsproject.com.': 'If you unchecked "Enable Authentication" in OBS, leave the password empty. If you don\'t see "WebSocket Server Settings" under Tools, your OBS is older than version 28: update it from obsproject.com.',
     'Modo transparente real': 'Real transparent mode',
     'Mostrar las donaciones dentro de OBS, con transparencia real': 'Show donations inside OBS, with real transparency',
     'En vez de capturar la ventana, las donaciones aparecen en una fuente de navegador de OBS: sin fondo, con brillos y sombras perfectos sobre tu escena. Necesita OBS Studio 28 o más nuevo. Todo queda en tu PC, no usa internet.': 'Instead of capturing the window, donations appear in an OBS browser source: no background, with perfect glows and shadows over your scene. Needs OBS Studio 28 or newer. Everything stays on your PC, no internet needed.',

@@ -6142,7 +6142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sock.onclose = (ev) => {
             obsWs.ready = false; obsWs.sock = null;
             if (!obsWsCfg().on) return;
-            if (ev.code === 4009) { obsWs.authFailed = true; obsWsStatus('err', 'Contraseña incorrecta'); }
+            if (ev.code === 4009) { obsWs.authFailed = true; obsWsStatus('err', 'Contraseña incorrecta'); $('obsws-help').classList.remove('hidden'); }
             else if (!obsWs.authFailed) obsWsStatus('wait', 'OBS no responde: ¿está abierto y con el servidor WebSocket activado?');
             obsWs.retry = setTimeout(obsWsConnect, obsWs.authFailed ? 20000 : 5000);
         };
@@ -6177,6 +6177,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const pw = $('cfg-obsws-pw');
         $('cfg-obsws-enabled').addEventListener('change', () => { $('obsws-box').classList.toggle('hidden', !$('cfg-obsws-enabled').checked); });
         $('btn-obsws-eye').addEventListener('click', () => { pw.type = pw.type === 'password' ? 'text' : 'password'; });
+        $('btn-obsws-help').addEventListener('click', () => {
+            const open = $('obsws-help').classList.toggle('hidden') === false;
+            $('btn-obsws-help').setAttribute('aria-expanded', String(open));
+        });
         // "Conectar" aplica en el momento (no hace falta "Guardar cambios")
         $('btn-obsws-connect').addEventListener('click', () => {
             state.settings.obsWsEnabled = true;

@@ -954,7 +954,19 @@
                                 <label class="rank-field"><span>Puerto</span><input type="number" id="cfg-obsws-port" min="1" max="65535" placeholder="4455"></label>
                                 <label class="rank-field obsws-pw"><span>Contraseña</span><input type="password" id="cfg-obsws-pw" maxlength="200" autocomplete="off" spellcheck="false" placeholder="La de OBS"></label>
                                 <button type="button" class="btn btn-outline btn-sm" id="btn-obsws-eye" title="Mostrar/ocultar contraseña"><i class="fa-solid fa-eye"></i></button>
+                                <button type="button" class="help-q" id="btn-obsws-help" aria-expanded="false" aria-controls="obsws-help" title="¿De dónde saco la contraseña?">?</button>
                                 <button type="button" class="btn btn-primary btn-sm" id="btn-obsws-connect"><i class="fa-solid fa-plug"></i> Conectar</button>
+                            </div>
+                            <div class="obsws-help hidden" id="obsws-help" role="note">
+                                <strong><i class="fa-solid fa-key"></i> ¿De dónde saco la contraseña?</strong>
+                                <ol>
+                                    <li>Abrí <strong>OBS Studio</strong>.</li>
+                                    <li>En el menú de arriba: <strong>Herramientas</strong> → <strong>Configuración del servidor WebSocket</strong>.</li>
+                                    <li>Tildá <strong>Habilitar servidor WebSocket</strong> y tocá <strong>Aplicar</strong>.</li>
+                                    <li>Tocá el botón <strong>Mostrar información de conexión</strong>.</li>
+                                    <li>En <strong>Contraseña del servidor</strong> tocá <strong>Copiar</strong> y pegala acá. El <strong>Puerto</strong> que aparece ahí (casi siempre 4455) va en el casillero "Puerto".</li>
+                                </ol>
+                                <small>Si en OBS destildaste "Habilitar autenticación", dejá la contraseña vacía. Si no ves "Configuración del servidor WebSocket" en Herramientas, tu OBS es anterior a la versión 28: actualizalo desde obsproject.com.</small>
                             </div>
                             <div class="obsws-actions">
                                 <span class="conn-status obsws-status off" id="obsws-status"><span class="status-dot"></span> Apagado</span>

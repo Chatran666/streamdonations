@@ -2751,3 +2751,11 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .obsws-box .pane-note { margin: 0; }
 .obsws-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid currentColor; font-size: 0.78rem; font-weight: 700; }
 .obsws-status .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+/* Botón (?) de ayuda */
+.help-q { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-color); background: transparent; color: var(--accent); font-weight: 800; font-family: inherit; cursor: pointer; flex-shrink: 0; }
+.help-q:hover, .help-q[aria-expanded="true"] { border-color: var(--accent); background: rgba(var(--ink-rgb), 0.06); }
+.obsws-help { padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-color)); background: rgba(var(--ink-rgb), 0.04); font-size: 0.82rem; line-height: 1.5; }
+.obsws-help.hidden { display: none; }
+.obsws-help ol { margin: 6px 0 6px; padding-left: 20px; color: var(--text-secondary); }
+.obsws-help ol strong { color: var(--text-primary); }
+.obsws-help small { color: var(--text-secondary); font-size: 0.74rem; }
