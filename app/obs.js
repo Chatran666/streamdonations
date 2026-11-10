@@ -585,11 +585,19 @@
                 r.setProperty('--obs-accent2', t.accent2);
                 r.setProperty('--obs-on-accent', t.onAccent || '#fff');
                 r.setProperty('--obs-bg-rgb', t.obsBgRgb);
-                r.setProperty('--obs-ink-rgb', t.mode === 'light' ? '15, 23, 42' : '255, 255, 255');
-                r.setProperty('--obs-text', t.mode === 'light' ? '#111827' : '#FFFFFF');
+                // Color de las letras (el del tema o el elegido en Personalizado) y la sombra que le corresponde
+                const txt = /^#[0-9a-fA-F]{6}$/.test(t.text || '') && t.customText ? t.text : (t.mode === 'light' ? '#111827' : '#FFFFFF');
+                const rgb = [1, 3, 5].map(i => parseInt(txt.slice(i, i + 2), 16));
+                const lum = rgb.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+                const L = 0.2126 * lum[0] + 0.7152 * lum[1] + 0.0722 * lum[2];
+                r.setProperty('--obs-ink-rgb', t.customText ? rgb.join(', ') : (t.mode === 'light' ? '15, 23, 42' : '255, 255, 255'));
+                r.setProperty('--obs-text', txt);
+                r.setProperty('--obs-shadow-rgb', L > 0.35 ? '0, 0, 0' : '255, 255, 255');
                 document.documentElement.dataset.mode = t.mode === 'light' ? 'light' : 'dark';
                 document.documentElement.dataset.fx = t.fx || '';
+                if (t.fx) document.documentElement.dataset.anim = t.fx; else delete document.documentElement.dataset.anim;
                 if (window.XFilesFX) { if (t.fx === 'xfiles') window.XFilesFX.start(); else window.XFilesFX.stop(); }
+                if (window.SDAnimFX) { if (t.fx && t.fx !== 'xfiles') window.SDAnimFX.start(t.fx); else window.SDAnimFX.stop(); }
             }
             layoutTop();
         }

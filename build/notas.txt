@@ -1,4 +1,8 @@
-Novedades de la 2.0.0 (versión de prueba 2):
+Novedades de la 2.0.0 (versión de prueba 3):
+- Temas animados: el tema OVNI ahora es "Animados" y abre una ventana con Navidad, Año Nuevo, Halloween, Argentina, 4 de Julio, San Valentín, Primavera, Lluvia de plata y OVNI. Se ven en vivo antes de elegir.
+- Tema personalizado: también se puede elegir el color de las letras (panel y OBS).
+- Sombra de las letras en OBS: negra si las letras son claras y blanca si son oscuras.
+- Donaciones de prueba: ahora se puede probar dar rangos y bloquear desde el nick. No toca tus rangos ni bloqueos de verdad y se borra junto con las pruebas.
 - Voz argentina "Daniela" sin internet (opcional): Opciones → Sonido y voz → Bajar voz Daniela (unos 130 MB, una sola vez). Trae un botón para probar si tu PC la aguanta.
 - Si la PC tarda en armar la voz, la app vuelve sola a la voz de Windows de siempre.
 - StreamDonations ahora es un programa propio: ya no necesita Google Chrome.

@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     delete state.settings.platforms;
     if (!Array.isArray(state.settings.seChannels)) state.settings.seChannels = [];
     // Los colores guardados tienen que ser colores (#RRGGBB): se usan dentro de estilos
-    ['customAccent', 'obsCustomAccent'].forEach(k => {
+    ['customAccent', 'obsCustomAccent', 'customText', 'obsCustomText'].forEach(k => {
         if (state.settings[k] !== undefined && !/^#[0-9a-fA-F]{6}$/.test(state.settings[k] || '')) delete state.settings[k];
     });
     // Simulador: ahora por defecto una donación cada 5 segundos
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Partes con efecto para esta donación: primero las del estilo del rango; la donación grande pisa las que también tenga
     function mergedStyle(d, where, rank) {
         const out = {};
-        if (rank === undefined) rank = d && !d.blocked ? rankFor(d.nick, where) : null;
+        if (rank === undefined) rank = d && !d.blocked ? rankFor(d.nick, where, d.isTest) : null;
         const rs = rank && rank.style ? styleById(rank.style) : null;
         if (rs) Object.assign(out, rs.parts);
         const big = fxFor(d, where);
@@ -546,34 +546,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---- Rangos de donadores: lo donado por cada nombre en los últimos N días (en pesos) ----
-    let rankCache = { key: '', totals: new Map() };
-    function donorTotals() {
+    let rankCache = { key: '', totals: new Map() }, testRankCache = { key: '', totals: new Map() };
+    // test = true: solo las donaciones de prueba (cuentan aparte y se borran con ellas)
+    function donorTotals(test) {
         const st = state.settings;
         const days = Math.min(3650, Math.max(1, parseInt(st.ranksDays) || 30));
         const dayKey = Math.floor(Date.now() / 3600000); // se recalcula al menos cada hora
         const last = state.donations[0];
         const key = [state.donations.length, last && last.id, days, dayKey, st.usdRate, st.kickUsd].join('|');
-        if (rankCache.key === key) return rankCache.totals;
+        const cache = test ? testRankCache : rankCache;
+        if (cache.key === key) return cache.totals;
         const since = Date.now() - days * 86400000;
         const totals = new Map();
         state.donations.forEach(d => {
-            if (d.isTest || (d.timestamp || 0) < since) return;
+            if (!!d.isTest !== !!test || (d.timestamp || 0) < since) return;
             const v = toARS(d);
             if (!v || v <= 0) return;
             const k = nickKey(d.nick);
             if (k) totals.set(k, (totals.get(k) || 0) + v);
         });
-        rankCache = { key, totals };
+        if (test) testRankCache = { key, totals }; else rankCache = { key, totals };
         return totals;
     }
-    function rankFor(nick, where) {
+    // ---- Pruebas: bloqueos y rangos dados a nicks de prueba. No tocan los de verdad y se borran con las pruebas ----
+    const testBox = { blocked: new Set(), ranks: new Map() };
+    try {
+        const tb = JSON.parse(localStorage.getItem('sd_test_box') || 'null');
+        if (tb && Array.isArray(tb.blocked)) tb.blocked.forEach(k => typeof k === 'string' && testBox.blocked.add(k.slice(0, 60)));
+        if (tb && Array.isArray(tb.ranks)) tb.ranks.forEach(x => Array.isArray(x) && typeof x[0] === 'string' && Number.isInteger(x[1]) && testBox.ranks.set(x[0].slice(0, 60), x[1]));
+    } catch (e) {}
+    function saveTestBox() {
+        try {
+            if (!testBox.blocked.size && !testBox.ranks.size) localStorage.removeItem('sd_test_box');
+            else localStorage.setItem('sd_test_box', JSON.stringify({ blocked: [...testBox.blocked], ranks: [...testBox.ranks] }));
+        } catch (e) {}
+    }
+    function clearTestBox() { testBox.blocked.clear(); testBox.ranks.clear(); saveTestBox(); testRankCache.key = ''; }
+    function rankFor(nick, where, test) {
         const st = state.settings;
         if (!st.ranksEnabled || (where === 'obs' ? st.ranksObs === false : st.ranksPanel === false)) return null;
         const key = nickKey(nick);
         if (!key) return null;
-        const total = donorTotals().get(key) || 0;
+        const total = donorTotals(test).get(key) || 0;
         // Un rango dado a mano gana sobre el que se ganó por monto
-        let best = (st.ranks || []).find(r => r.mode === 'manual' && manualUsers(r).has(key)) || null;
+        let best;
+        if (test) { const ri = testBox.ranks.get(key); best = ri != null && (st.ranks || [])[ri] && st.ranks[ri].mode === 'manual' ? st.ranks[ri] : null; }
+        else best = (st.ranks || []).find(r => r.mode === 'manual' && manualUsers(r).has(key)) || null;
         if (!best && total > 0) {
             (st.ranks || []).forEach(r => { if (r.mode !== 'manual' && total >= r.min && r.min > 0 && (!best || r.min > best.min)) best = r; });
         }
@@ -587,9 +605,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return c.set;
     }
     // Dar o quitar un rango "a mano" a una persona
-    function setManualRank(nick, rankIdx) {
+    function setManualRank(nick, rankIdx, test) {
         const key = nickKey(nick), name = String(nick || '').trim().replace(/^@+/, '');
         if (!key) return;
+        if (test) {
+            if ((state.settings.ranks || [])[rankIdx]) testBox.ranks.set(key, rankIdx); else testBox.ranks.delete(key);
+            saveTestBox(); testRankCache.key = '';
+            return;
+        }
         (state.settings.ranks || []).forEach((r, i) => {
             if (r.mode !== 'manual') return;
             const lines = String(r.users || '').split(/\n+/).map(x => x.trim()).filter(x => x && nickKey(x) !== key);
@@ -1421,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function blockedSet() {
         return new Set(String(state.settings.blockedUsers || '').split(/\n+/).map(nickKey).filter(Boolean));
     }
-    function isBlocked(nick) { const k = nickKey(nick); return !!k && blockedSet().has(k); }
+    function isBlocked(nick, test) { const k = nickKey(nick); return !!k && (test ? testBox.blocked.has(k) : blockedSet().has(k)); }
     function setBlocked(nick, on) {
         const k = nickKey(nick);
         if (!k) return;
@@ -1439,7 +1462,7 @@ document.addEventListener('DOMContentLoaded', () => {
             message: obsMessage(censorText(d.message, 'obs')),
             sty: mergedStyle(d, 'obs'),
             amtColor: amountColor(d, 'obs'),
-            rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null)(rankFor(d.nick, 'obs')),
+            rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null)(rankFor(d.nick, 'obs', d.isTest)),
             obsHideMessage: !!state.settings.obsHideMessage,
             obsDuration: state.settings.obsDuration || 0
         };
@@ -1470,7 +1493,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.assign(donation, safeDonation(donation));
         if (typeof syncPendingRead === 'function' && syncPendingRead(donation.id)) donation.isRead = true;
         // Usuario bloqueado: se guarda (suma a los totales) pero va directo a "Leídos", sin sonido, voz ni OBS
-        if (!donation.isTest && isBlocked(donation.nick)) { donation.isRead = true; donation.blocked = true; }
+        if (isBlocked(donation.nick, donation.isTest)) { donation.isRead = true; donation.blocked = true; }
         state.donations.unshift(donation);
         saveDonationsToStorage();
 
@@ -1658,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                </button>`;
 
         // Estilo (rango y/o donación grande): los bordes animados solo mientras está pendiente
-        const rk = item.blocked ? null : rankFor(item.nick, 'panel');
+        const rk = item.blocked ? null : rankFor(item.nick, 'panel', item.isTest);
         const sty = mergedStyle(item, 'panel', rk) || {};
         const nickFx = tfxAttr(sty.nick), amtFx = tfxAttr(sty.amount);
         const amtCol = amountColor(item, 'panel');
@@ -2262,25 +2285,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         els.focusNick.textContent = panelNick(item.nick);
         { const old = document.getElementById('focus-rank'); if (old) old.remove();
-          const rb = rankBadgeHTML(rankFor(item.nick, 'panel'));
+          const rb = rankBadgeHTML(rankFor(item.nick, 'panel', item.isTest));
           if (rb) { els.focusNick.insertAdjacentHTML('afterend', rb); els.focusNick.nextElementSibling.id = 'focus-rank'; } }
         // Rango dado a mano (si hay rangos "a mano" creados)
         const rs = $('focus-rank-select');
         if (rs) {
             const manual = (state.settings.ranks || []).map((r, i) => ({ r, i })).filter(x => x.r.mode === 'manual');
-            const show = !!state.settings.ranksEnabled && manual.length > 0 && !item.isTest;
+            const show = !!state.settings.ranksEnabled && manual.length > 0;
             rs.classList.toggle('hidden', !show);
             if (show) {
                 const key = nickKey(item.nick);
-                const cur = manual.find(x => manualUsers(x.r).has(key));
+                const cur = item.isTest ? manual.find(x => x.i === testBox.ranks.get(key)) : manual.find(x => manualUsers(x.r).has(key));
                 rs.innerHTML = '<option value="-1">Sin rango a mano</option>' + manual.map(x => `<option value="${x.i}">${escapeHTML(x.r.name)}</option>`).join('');
                 rs.value = cur ? String(cur.i) : '-1';
             }
         }
         const bb = $('btn-focus-block');
         if (bb) {
-            const blk = isBlocked(item.nick);
-            bb.classList.toggle('hidden', !!item.isTest);
+            const blk = isBlocked(item.nick, item.isTest);
             bb.querySelector('span').textContent = blk ? 'Desbloquear' : 'Bloquear';
             bb.classList.toggle('is-blocked', blk);
         }
@@ -2315,13 +2337,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = state.donations.find(d => d.id === state.activeFocusId);
         if (!item) return;
         const idx = parseInt(e.target.value);
-        setManualRank(item.nick, idx);
+        setManualRank(item.nick, idx, item.isTest);
         rankCache.key = '';
         render();
         refreshOverlayMessages();
         const r = (state.settings.ranks || [])[idx];
         showToast(r ? `${escapeHTML(item.nick)} ahora es ${escapeHTML(r.name)}` : `${escapeHTML(item.nick)} ya no tiene rango a mano`, 'success');
-        const rb = rankBadgeHTML(rankFor(item.nick, 'panel'));
+        const rb = rankBadgeHTML(rankFor(item.nick, 'panel', item.isTest));
         const old = document.getElementById('focus-rank'); if (old) old.remove();
         if (rb) { els.focusNick.insertAdjacentHTML('afterend', rb); els.focusNick.nextElementSibling.id = 'focus-rank'; }
     });
@@ -2329,18 +2351,19 @@ document.addEventListener('DOMContentLoaded', () => {
     $('btn-focus-block').addEventListener('click', () => {
         const item = state.donations.find(d => d.id === state.activeFocusId);
         if (!item) return;
-        toggleBlockUser(item.nick);
+        toggleBlockUser(item.nick, item.isTest);
         window.closeFocusModal();
     });
     // Bloquear o desbloquear a alguien (desde la donación en grande o desde el menú del nombre)
-    function toggleBlockUser(nick) {
+    function toggleBlockUser(nick, test) {
         const item = { nick };
-        const on = !isBlocked(item.nick);
-        setBlocked(item.nick, on);
+        const on = !isBlocked(item.nick, test);
         const k = nickKey(item.nick);
+        if (test) { if (on) testBox.blocked.add(k); else testBox.blocked.delete(k); saveTestBox(); }
+        else setBlocked(item.nick, on);
         let hidden = 0;
         state.donations.forEach(d => {
-            if (d.isTest || nickKey(d.nick) !== k) return;
+            if (!!d.isTest !== !!test || nickKey(d.nick) !== k) return;
             if (on) {
                 d.blocked = true;
                 if (!d.isRead) { d.isRead = true; dismissOverlayAlert(d.id); hidden++; }
@@ -2348,7 +2371,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         saveDonationsToStorage();
         render();
-        showToast(on ? `${escapeHTML(item.nick)} bloqueado${hidden ? ` (${hidden} pendiente${hidden > 1 ? 's' : ''} pasaron a Leídos)` : ''}. Se desbloquea en Opciones → Filtros.`
+        if (test) showToast(on ? `${escapeHTML(item.nick)} bloqueado solo en la prueba (se borra con las pruebas)` : `${escapeHTML(item.nick)} desbloqueado (prueba)`, 'info');
+        else showToast(on ? `${escapeHTML(item.nick)} bloqueado${hidden ? ` (${hidden} pendiente${hidden > 1 ? 's' : ''} pasaron a Leídos)` : ''}. Se desbloquea en Opciones → Filtros.`
                      : `${escapeHTML(item.nick)} desbloqueado`, 'info');
     }
 
@@ -2358,21 +2382,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const menu = $('user-menu');
         if (!item || !menu) return;
         const key = nickKey(item.nick);
-        const mine = state.donations.filter(d => !d.isTest && nickKey(d.nick) === key);
+        const test = !!item.isTest;
+        const mine = state.donations.filter(d => !!d.isTest === test && nickKey(d.nick) === key);
         const total = mine.reduce((a, d) => a + (toARS(d) || 0), 0);
-        const blk = isBlocked(item.nick);
+        const blk = isBlocked(item.nick, test);
         const manual = (state.settings.ranks || []).map((r, i) => ({ r, i })).filter(x => x.r.mode === 'manual');
-        const cur = manual.find(x => manualUsers(x.r).has(key));
-        const rk = rankFor(item.nick, 'panel');
+        const cur = test ? manual.find(x => x.i === testBox.ranks.get(key)) : manual.find(x => manualUsers(x.r).has(key));
+        const rk = rankFor(item.nick, 'panel', item.isTest);
         menu.innerHTML = `
             <div class="um-head"><strong>${escapeHTML(item.nick)}</strong>${rankBadgeHTML(rk)}</div>
-            <div class="um-stats">${mine.length} donaci${mine.length === 1 ? 'ón' : 'ones'} · ${formatMoney(Math.round(total), 'ARS')} en total</div>
-            ${item.isTest ? '<p class="pane-note">Es una donación de prueba.</p>' : `
+            <div class="um-stats">${mine.length} donaci${mine.length === 1 ? 'ón' : 'ones'}${test ? ' de prueba' : ''} · ${formatMoney(Math.round(total), 'ARS')} en total</div>
+            ${test ? '<p class="um-test-note"><i class="fa-solid fa-flask"></i> Prueba: lo que hagas acá no toca tus rangos ni bloqueos de verdad y se borra junto con las donaciones de prueba.</p>' : ''}
             <label class="um-row"><span><i class="fa-solid fa-crown"></i> Rango a mano</span>
                 <select id="um-rank">${manual.length ? '<option value="-1">Ninguno</option>' + manual.map(x => `<option value="${x.i}"${cur && cur.i === x.i ? ' selected' : ''}>${escapeHTML(x.r.name)}</option>`).join('') : '<option value="-1">Creá uno en Opciones → Destacar</option>'}</select></label>
             ${!state.settings.ranksEnabled && manual.length ? '<small class="pane-note">Los rangos están apagados en Opciones → Destacar.</small>' : ''}
             <button type="button" class="um-btn" id="um-filter"><i class="fa-solid fa-magnifying-glass"></i> Ver sus donaciones</button>
-            <button type="button" class="um-btn${blk ? '' : ' danger'}" id="um-block"><i class="fa-solid fa-user-slash"></i> ${blk ? 'Desbloquear' : 'Bloquear'}</button>`}`;
+            <button type="button" class="um-btn${blk ? '' : ' danger'}" id="um-block"><i class="fa-solid fa-user-slash"></i> ${blk ? 'Desbloquear' : 'Bloquear'}</button>`;
         if (menu.parentElement !== document.body) document.body.appendChild(menu);
         menu.classList.remove('hidden');
         const r = anchor.getBoundingClientRect(), w = menu.offsetWidth, h = menu.offsetHeight;
@@ -2383,17 +2408,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (rs) rs.addEventListener('change', () => {
             const idx = parseInt(rs.value);
             if (!manual.length) return;
-            setManualRank(item.nick, idx);
+            setManualRank(item.nick, idx, test);
             rankCache.key = '';
             render(); refreshOverlayMessages();
             const rr = (state.settings.ranks || [])[idx];
-            showToast(rr ? `${escapeHTML(item.nick)} ahora es ${escapeHTML(rr.name)}` : `${escapeHTML(item.nick)} ya no tiene rango a mano`, 'success');
+            showToast((rr ? `${escapeHTML(item.nick)} ahora es ${escapeHTML(rr.name)}` : `${escapeHTML(item.nick)} ya no tiene rango a mano`) + (test ? ' (prueba)' : ''), 'success');
             closeUserMenu();
         });
         const fb = $('um-filter');
         if (fb) fb.addEventListener('click', () => { els.inputSearch.value = item.nick; state.filter.search = item.nick; render(); closeUserMenu(); els.inputSearch.focus(); });
         const bb = $('um-block');
-        if (bb) bb.addEventListener('click', () => { toggleBlockUser(item.nick); closeUserMenu(); });
+        if (bb) bb.addEventListener('click', () => { toggleBlockUser(item.nick, test); closeUserMenu(); });
     }
     function closeUserMenu() { const m = $('user-menu'); if (m) m.classList.add('hidden'); }
     document.addEventListener('click', (e) => { if (!e.target.closest('#user-menu') && !e.target.closest('[data-act="user"]')) closeUserMenu(); });
@@ -2583,6 +2608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearTestDonations() {
         stopAllSpeech(); // corta cualquier lectura pendiente
         const tests = state.donations.filter(d => d.isTest);
+        clearTestBox(); // bloqueos y rangos de prueba
         if (!tests.length) return 0;
         tests.forEach(d => dismissOverlayAlert(d.id));
         state.donations = state.donations.filter(d => !d.isTest);
@@ -4470,6 +4496,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-kick-usd').value = st.kickUsd ?? 0.01;
         themeDraft = st.theme || 'oscuro';
         $('cfg-custom-accent').value = st.customAccent || '#00E676';
+        $('cfg-custom-text-auto').checked = !/^#[0-9a-fA-F]{6}$/.test(st.customText || '');
+        $('cfg-custom-text').value = /^#[0-9a-fA-F]{6}$/.test(st.customText || '') ? st.customText : '#F3F4F6';
+        $('cfg-custom-text').disabled = $('cfg-custom-text-auto').checked;
         $('lbl-custom-accent').textContent = $('cfg-custom-accent').value.toUpperCase();
         $('custom-accent-row').classList.toggle('hidden', themeDraft !== 'custom');
         renderThemePicker(themeDraft);
@@ -4640,6 +4669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.kickUsd = Math.max(0, parseFloat($('cfg-kick-usd').value) || 0);
         st.theme = THEMES[themeDraft] ? themeDraft : 'oscuro';
         st.customAccent = $('cfg-custom-accent').value || '#00E676';
+        st.customText = customTextValue();
         st.panelTextScale = clampNum($('cfg-panel-text').value, 0.7, 2.5, 1);
         st.obsTextScale = clampNum($('cfg-obs-text').value, 0.7, 2.5, 1);
         st.obsAmountScale = clampNum($('cfg-obs-amount').value, 0.5, 1.6, 0.8);
@@ -5164,9 +5194,24 @@ document.addEventListener('DOMContentLoaded', () => {
         violeta: { label: 'Violeta',       mode: 'dark',  accent: '#B14CFF', accent2: '#FF3CAC' },
         fuego:   { label: 'Rojo / Naranja', mode: 'dark', accent: '#FF5A1F', accent2: '#FFB300' },
         cyan:    { label: 'Cyan / Azul',   mode: 'dark',  accent: '#00C2FF', accent2: '#00FFC8' },
-        xfiles:  { label: 'OVNI',          mode: 'dark',  accent: '#00FF41', accent2: '#39FF14', fx: 'xfiles' },
-        custom:  { label: 'Personalizado', mode: 'dark',  accent: null,      accent2: null }
+        custom:  { label: 'Personalizado', mode: 'dark',  accent: null,      accent2: null },
+        // Animados: se eligen en su propia ventana (tocando "Animados")
+        xfiles:     { label: 'OVNI',            mode: 'dark', accent: '#00FF41', accent2: '#39FF14', fx: 'xfiles',      anim: true, emoji: '🛸', desc: 'Estrellas, cometas y un ovni que pasa' },
+        navidad:    { label: 'Navidad',         mode: 'dark', accent: '#E53935', accent2: '#2ECC71', fx: 'navidad',     anim: true, emoji: '🎄', desc: 'Nieve y guirnalda de luces' },
+        anionuevo:  { label: 'Año Nuevo',       mode: 'dark', accent: '#F6C744', accent2: '#FF5DA2', fx: 'anionuevo',   anim: true, emoji: '🥂', desc: 'Fuegos artificiales y papelitos dorados' },
+        halloween:  { label: 'Halloween',       mode: 'dark', accent: '#FF7518', accent2: '#A55EEA', fx: 'halloween',   anim: true, emoji: '🎃', desc: 'Murciélagos, fantasmas y niebla' },
+        argentina:  { label: 'Argentina',       mode: 'dark', accent: '#74ACDF', accent2: '#F6B40E', fx: 'argentina',   anim: true, emoji: '☀️', desc: 'Papelitos celeste y blanco con el Sol de Mayo' },
+        julio4:     { label: '4 de Julio',      mode: 'dark', accent: '#3C6EF0', accent2: '#E63946', fx: 'julio4',      anim: true, emoji: '🎆', desc: 'Fuegos artificiales rojos, blancos y azules' },
+        sanvalentin:{ label: 'San Valentín',    mode: 'dark', accent: '#FF4D8D', accent2: '#FF99C2', fx: 'sanvalentin', anim: true, emoji: '💘', desc: 'Corazones que suben' },
+        primavera:  { label: 'Primavera',       mode: 'dark', accent: '#FF8FB1', accent2: '#8BD17C', fx: 'primavera',   anim: true, emoji: '🌸', desc: 'Flores y hojitas que caen' },
+        plata:      { label: 'Lluvia de plata', mode: 'dark', accent: '#2ECC71', accent2: '#F1C40F', fx: 'plata',       anim: true, emoji: '💸', desc: 'Billetes y monedas que caen' }
     };
+    const ANIM_KEYS = Object.keys(THEMES).filter(k => THEMES[k].anim);
+    // Luminancia (0 oscuro … 1 claro) para elegir sombra y textos que se lean
+    function lumOf(hex) {
+        const [r, g, b] = hexToRgb(hex).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
 
     function hexToRgb(hex) {
         let h = String(hex || '').replace('#', '').trim();
@@ -5187,7 +5232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Arma todos los colores del tema a partir del color de acento
-    function resolveTheme(key, customAccent) {
+    function resolveTheme(key, customAccent, customText) {
         const t = THEMES[key] || THEMES.oscuro;
         const accent = key === 'custom' ? (/^#[0-9a-fA-F]{6}$/.test(customAccent || '') ? customAccent : '#00E676') : t.accent;
         const accent2 = key === 'custom' ? mix(accent, '#FFFFFF', 0.35) : t.accent2;
@@ -5196,6 +5241,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (t.fx === 'xfiles') {
             // Negro puro para que se vean las estrellas
             bg = '#000000'; card = '#03120A'; header = '#000000'; toolbar = '#010805'; modal = '#04110A'; obsBg = '#010A05';
+        } else if (t.fx) {
+            // Temas animados: casi negro con un toque del color, para que se vea la animación
+            bg = mix('#000000', accent, 0.03); card = mix('#05070B', accent, 0.12); header = mix('#000000', accent, 0.05);
+            toolbar = mix('#020305', accent, 0.06); modal = mix('#06080D', accent, 0.10); obsBg = mix('#020305', accent, 0.10);
         } else if (t.classic) {
             bg = '#0B0E14'; card = '#161B26'; header = '#0F141E'; toolbar = '#121823'; modal = '#121722'; obsBg = '#0E121C';
         } else if (light) {
@@ -5204,8 +5253,15 @@ document.addEventListener('DOMContentLoaded', () => {
             bg = mix('#07090D', accent, 0.06); card = mix('#141922', accent, 0.07); header = mix('#0D1118', accent, 0.06);
             toolbar = mix('#10141C', accent, 0.06); modal = mix('#11151F', accent, 0.06); obsBg = mix('#0B0F17', accent, 0.08);
         }
+        // Color de las letras: el elegido en "Personalizado", o el normal del tema
+        const text = key === 'custom' && /^#[0-9a-fA-F]{6}$/.test(customText || '') ? customText : (light ? '#111827' : '#F3F4F6');
+        const textBg = light ? '#FFFFFF' : card;
         return {
             key, mode: t.mode, accent, accent2, fx: t.fx || '',
+            text, customText: text !== (light ? '#111827' : '#F3F4F6'),
+            textSecondary: mix(text, textBg, 0.38), textMuted: mix(text, textBg, 0.55),
+            // Sombra de las letras en OBS: oscura si el texto es claro, blanca si el texto es oscuro
+            shadowRgb: lumOf(text) > 0.35 ? '0, 0, 0' : '255, 255, 255',
             onAccent: onAccentColor(accent),
             accentRgb: rgbStr(accent),
             accentSoft: light ? mix(accent, '#000000', 0.15) : mix(accent, '#FFFFFF', 0.45),
@@ -5215,12 +5271,19 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function applyTheme(key, customAccent) {
-        const th = resolveTheme(key ?? state.settings.theme, customAccent ?? state.settings.customAccent);
+    function applyTheme(key, customAccent, customText) {
+        const th = resolveTheme(key ?? state.settings.theme, customAccent ?? state.settings.customAccent, customText ?? state.settings.customText);
         const r = document.documentElement;
         r.dataset.theme = th.mode;
         r.dataset.fx = th.fx;
+        if (th.fx) r.dataset.anim = th.fx; else delete r.dataset.anim;
         if (window.XFilesFX) { if (th.fx === 'xfiles') window.XFilesFX.start(); else window.XFilesFX.stop(); }
+        if (window.SDAnimFX) { if (th.fx && th.fx !== 'xfiles') window.SDAnimFX.start(th.fx); else window.SDAnimFX.stop(); }
+        if (th.customText) {
+            r.style.setProperty('--text-primary', th.text);
+            r.style.setProperty('--text-secondary', th.textSecondary);
+            r.style.setProperty('--text-muted', th.textMuted);
+        } else ['--text-primary', '--text-secondary', '--text-muted'].forEach(k => r.style.removeProperty(k));
         const set = (k, v) => r.style.setProperty(k, v);
         set('--accent', th.accent);
         set('--accent-rgb', th.accentRgb);
@@ -5254,7 +5317,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderThemePicker(selected) {
         const wrap = $('theme-picker');
         if (!wrap) return;
-        wrap.innerHTML = Object.keys(THEMES).map(k => {
+        const animSel = THEMES[selected] && THEMES[selected].anim ? selected : '';
+        const animTile = `<button type="button" class="theme-swatch anim-swatch ${animSel ? 'active' : ''}" data-anim-open="1" title="Temas con animaciones">
+                <span class="swatch-preview anim-preview"><span class="anim-emojis">${animSel ? THEMES[animSel].emoji : '🎄🎃🛸'}</span></span>
+                <span class="swatch-label"><i class="fa-solid fa-wand-magic-sparkles"></i> ${animSel ? 'Animado: ' + THEMES[animSel].label : 'Animados'}</span>
+            </button>`;
+        wrap.innerHTML = Object.keys(THEMES).filter(k => !THEMES[k].anim).map(k => {
             const t = THEMES[k];
             const acc = k === 'custom' ? ($('cfg-custom-accent') ? $('cfg-custom-accent').value : state.settings.customAccent) : t.accent;
             const th = resolveTheme(k, acc);
@@ -5266,8 +5334,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 </span>
                 <span class="swatch-label">${k === 'custom' ? '<i class="fa-solid fa-palette"></i> ' : ''}${t.label}</span>
             </button>`;
+        }).join('').replace('<button type="button" class="theme-swatch ' + (selected === 'custom' ? 'active' : '') + '" data-theme-key="custom"', animTile + '<button type="button" class="theme-swatch ' + (selected === 'custom' ? 'active' : '') + '" data-theme-key="custom"');
+    }
+
+    // ---- Ventana de temas animados: se esconde Opciones para ver la animación en el panel de verdad ----
+    function renderAnimGrid() {
+        const g = $('anim-grid');
+        if (!g) return;
+        g.innerHTML = ANIM_KEYS.map(k => {
+            const t = THEMES[k];
+            return `<button type="button" class="anim-tile ${themeDraft === k ? 'active' : ''}" data-theme-key="${k}" style="--c1:${t.accent};--c2:${t.accent2}">
+                <span class="anim-tile-emoji">${t.emoji}</span><strong>${escapeHTML(t.label)}</strong><small>${escapeHTML(t.desc)}</small></button>`;
         }).join('');
     }
+    var animPrevTheme = null;
+    function openAnimPicker() {
+        animPrevTheme = themeDraft || state.settings.theme;
+        renderAnimGrid();
+        $('modal-settings').classList.add('anim-peek');
+        $('anim-picker').classList.remove('hidden');
+    }
+    function closeAnimPicker(keep) {
+        if (!keep && animPrevTheme) { themeDraft = animPrevTheme; applyTheme(themeDraft, $('cfg-custom-accent').value, customTextValue()); }
+        $('anim-picker').classList.add('hidden');
+        $('modal-settings').classList.remove('anim-peek');
+        renderThemePicker(themeDraft || state.settings.theme);
+    }
+    function customTextValue() { return $('cfg-custom-text-auto') && $('cfg-custom-text-auto').checked ? '' : ($('cfg-custom-text') ? $('cfg-custom-text').value : ''); }
 
     // ==========================================================================
     // APARIENCIA: colores por plataforma, fondo del panel, tema y fondo de OBS
@@ -5292,6 +5385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             panelBg: Object.assign({ type: 'theme', color: '#0B0E14', dim: 0.5, ver: 0, name: '' }, st.panelBg || {}),
             obsTheme: st.obsTheme || 'same',
             obsCustomAccent: cleanColor(st.obsCustomAccent, '#00E676'),
+            obsCustomText: cleanColor(st.obsCustomText, ''),
             obsBg: Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '' }, st.obsBg || {})
         };
         return Object.assign(base, lookDraft || {});
@@ -5351,9 +5445,13 @@ document.addEventListener('DOMContentLoaded', () => {
         $('panel-bg-name').dataset.ver = lk.panelBg.ver || 0;
         const sel = $('cfg-obs-theme');
         sel.innerHTML = '<option value="same">Igual que el panel</option>' +
-            Object.keys(THEMES).map(k => `<option value="${k}">${THEMES[k].label}</option>`).join('');
+            Object.keys(THEMES).filter(k => !THEMES[k].anim).map(k => `<option value="${k}">${THEMES[k].label}</option>`).join('') +
+            '<optgroup label="Animados">' + ANIM_KEYS.map(k => `<option value="${k}">${THEMES[k].emoji} ${THEMES[k].label}</option>`).join('') + '</optgroup>';
         sel.value = THEMES[lk.obsTheme] ? lk.obsTheme : 'same';
         $('cfg-obs-custom-accent').value = lk.obsCustomAccent;
+        $('cfg-obs-custom-text-auto').checked = !lk.obsCustomText;
+        $('cfg-obs-custom-text').value = lk.obsCustomText || '#FFFFFF';
+        $('cfg-obs-custom-text').disabled = !lk.obsCustomText;
         $('cfg-obs-bg-type').value = lk.obsBg.type;
         $('cfg-obs-bg-color').value = cleanColor(lk.obsBg.color, '#000000');
         $('cfg-obs-bg-fit').value = lk.obsBg.fit || 'cover';
@@ -5377,6 +5475,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             obsTheme: $('cfg-obs-theme').value || 'same',
             obsCustomAccent: cleanColor($('cfg-obs-custom-accent').value, '#00E676'),
+            obsCustomText: $('cfg-obs-custom-text-auto').checked ? '' : cleanColor($('cfg-obs-custom-text').value, ''),
             obsBg: {
                 type: $('cfg-obs-bg-type').value, color: $('cfg-obs-bg-color').value,
                 fit: $('cfg-obs-bg-fit').value || 'cover',
@@ -5400,6 +5499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('obs-chroma-row').classList.toggle('hidden', ot !== 'chroma');
         $('obs-chroma-help').classList.toggle('hidden', ot !== 'chroma');
         $('obs-custom-accent-row').classList.toggle('hidden', $('cfg-obs-theme').value !== 'custom');
+        $('cfg-obs-custom-text').disabled = $('cfg-obs-custom-text-auto').checked;
         $('lbl-panel-bg-dim').textContent = Math.round($('cfg-panel-bg-dim').value * 100) + '%';
         $('lbl-obs-bg-dim').textContent = Math.round($('cfg-obs-bg-dim').value * 100) + '%';
     }
@@ -5479,7 +5579,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLook();
         const ids = ['cfg-color-ceneka', 'cfg-color-youtube', 'cfg-color-twitch', 'cfg-color-kick',
             'cfg-panel-bg-type', 'cfg-panel-bg-color', 'cfg-panel-bg-dim',
-            'cfg-obs-theme', 'cfg-obs-custom-accent', 'cfg-obs-bg-type', 'cfg-obs-bg-color', 'cfg-obs-bg-fit', 'cfg-obs-bg-dim', 'cfg-obs-chroma'];
+            'cfg-obs-theme', 'cfg-obs-custom-accent', 'cfg-obs-custom-text', 'cfg-obs-custom-text-auto', 'cfg-obs-bg-type', 'cfg-obs-bg-color', 'cfg-obs-bg-fit', 'cfg-obs-bg-dim', 'cfg-obs-chroma'];
         ids.forEach(id => { const el = $(id); if (el) { el.addEventListener('input', previewLook); el.addEventListener('change', previewLook); } });
         $('btn-reset-platform-colors').addEventListener('click', () => {
             PLATFORM_KEYS.forEach(k => { $('cfg-color-' + k).value = PLATFORM_COLOR_DEFAULTS[k]; });
@@ -5495,21 +5595,38 @@ document.addEventListener('DOMContentLoaded', () => {
     var themeDraft = null;
     function initThemePicker() {
         $('theme-picker').addEventListener('click', (e) => {
+            if (e.target.closest('[data-anim-open]')) { openAnimPicker(); return; }
             const b = e.target.closest('[data-theme-key]');
             if (!b) return;
             themeDraft = b.dataset.themeKey;
             renderThemePicker(themeDraft);
             $('custom-accent-row').classList.toggle('hidden', themeDraft !== 'custom');
             setSettingsDirty(true);
-            applyTheme(themeDraft, $('cfg-custom-accent').value); // vista previa
+            applyTheme(themeDraft, $('cfg-custom-accent').value, customTextValue()); // vista previa
         });
-        $('cfg-custom-accent').addEventListener('input', () => {
+        $('anim-grid').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-theme-key]');
+            if (!b) return;
+            themeDraft = b.dataset.themeKey;
+            $('custom-accent-row').classList.add('hidden');
+            setSettingsDirty(true);
+            applyTheme(themeDraft); // se ve en vivo en el panel
+            renderAnimGrid();
+        });
+        $('btn-anim-ok').addEventListener('click', () => closeAnimPicker(true));
+        $('btn-anim-cancel').addEventListener('click', () => closeAnimPicker(false));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('anim-picker').classList.contains('hidden')) { e.stopPropagation(); closeAnimPicker(false); } }, true);
+        const previewCustom = () => {
             $('lbl-custom-accent').textContent = $('cfg-custom-accent').value.toUpperCase();
-            if (themeDraft === 'custom') {
+            $('cfg-custom-text').disabled = $('cfg-custom-text-auto').checked;
+            if (themeDraft === 'custom' || (!themeDraft && state.settings.theme === 'custom')) {
+                setSettingsDirty(true);
                 renderThemePicker('custom');
-                applyTheme('custom', $('cfg-custom-accent').value);
+                applyTheme('custom', $('cfg-custom-accent').value, customTextValue());
             }
-        });
+        };
+        ['cfg-custom-accent', 'cfg-custom-text'].forEach(id => $(id).addEventListener('input', previewCustom));
+        $('cfg-custom-text-auto').addEventListener('change', previewCustom);
     }
 
     // ==========================================================================
@@ -5549,7 +5666,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { lk = look(); } catch (e) {}
         const payload = {
             scale: lastObsScale, amountScale: lastObsAmount, headScale: lastObsHead,
-            theme: (!lk.obsTheme || lk.obsTheme === 'same' || !THEMES[lk.obsTheme]) ? currentThemeForObs : resolveTheme(lk.obsTheme, lk.obsCustomAccent),
+            theme: (!lk.obsTheme || lk.obsTheme === 'same' || !THEMES[lk.obsTheme]) ? currentThemeForObs : resolveTheme(lk.obsTheme, lk.obsCustomAccent, lk.obsCustomText),
             platformColors: lk.platformColors,
             obsBg: lk.obsBg,
             filterBar: state.settings.obsFilterBar !== false,

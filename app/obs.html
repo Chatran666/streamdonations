@@ -408,30 +408,30 @@
         :root[data-mode="light"] .obs-amount { color: #047857 !important; }
         :root[data-mode="light"] .obs-avatar { color: #111827 !important; }
 
-        /* ===== Tema OVNI: fondo negro con estrellas y luz recorriendo los bordes ===== */
+        /* ===== Temas animados: fondo oscuro con la animación y luz recorriendo los bordes ===== */
         @property --xf-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
         @keyframes xfSpin { to { --xf-ang: 360deg; } }
-        :root[data-fx="xfiles"] { background: #000 !important; }
-        :root[data-fx="xfiles"] body { background: transparent !important; }
-        :root[data-fx="xfiles"] #obs-scroll-area { z-index: 1; }
-        :root[data-fx="xfiles"] .obs-alert {
-            border-color: rgba(0, 255, 65, 0.35) !important;
+        :root[data-anim] { background: #000 !important; }
+        :root[data-anim] body { background: transparent !important; }
+        :root[data-anim] #obs-scroll-area { z-index: 1; }
+        :root[data-anim] .obs-alert {
+            border-color: rgba(var(--obs-accent-rgb), 0.35) !important;
             background: rgba(var(--obs-bg-rgb), 0.66);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 22px rgba(0, 255, 65, 0.3) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 22px rgba(var(--obs-accent-rgb), 0.3) !important;
         }
-        :root[data-fx="xfiles"] .obs-alert::after {
+        :root[data-anim] .obs-alert::after {
             content: ''; position: absolute; inset: 0; border-radius: 12px; padding: 2px; pointer-events: none;
-            background: conic-gradient(from var(--xf-ang), transparent 0deg 250deg, rgba(0,255,65,0.15) 280deg,
-                #00FF41 320deg, #E8FFE8 340deg, #00FF41 350deg, transparent 360deg);
+            background: conic-gradient(from var(--xf-ang), transparent 0deg 250deg, rgba(var(--obs-accent-rgb),0.15) 280deg,
+                var(--obs-accent) 320deg, #FFFFFF 340deg, var(--obs-accent) 350deg, transparent 360deg);
             -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
             -webkit-mask-composite: xor;
             mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
             animation: xfSpin 4.5s linear infinite;
         }
-        :root[data-fx="xfiles"] .obs-alert:nth-child(3n+2)::after { animation-delay: -1.5s; }
-        :root[data-fx="xfiles"] .obs-alert:nth-child(3n)::after { animation-delay: -3s; }
-        :root[data-fx="xfiles"] .obs-amount { font-family: 'Consolas', 'Courier New', monospace; text-shadow: 0 0 6px rgba(0,255,65,0.7); }
-        :root[data-fx="xfiles"] .obs-nick span:first-child { text-shadow: 0 0 6px rgba(0,255,65,0.45); }
+        :root[data-anim] .obs-alert:nth-child(3n+2)::after { animation-delay: -1.5s; }
+        :root[data-anim] .obs-alert:nth-child(3n)::after { animation-delay: -3s; }
+        :root[data-anim] .obs-amount { font-family: 'Consolas', 'Courier New', monospace; text-shadow: 0 0 6px rgba(var(--obs-accent-rgb),0.7); }
+        :root[data-anim] .obs-nick span:first-child { text-shadow: 0 0 6px rgba(var(--obs-accent-rgb),0.45); }
 
         /* Aviso de nuevas mientras leés (pausa de scroll) */
         /* Aviso compacto de nuevas (dentro de la barra superior) */
@@ -577,8 +577,8 @@
         :root.obs-ws #obs-bg, :root.obs-ws .obs-btn-dismiss, :root.obs-ws .obs-status-box, :root.obs-ws #xfiles-fx, :root.obs-ws canvas { display: none !important; }
         :root.obs-ws #obs-scroll-area { scrollbar-width: none; }
         /* Sombra suave en las letras claras para que se lean sobre cualquier escena (los efectos propios del texto la reemplazan) */
-        :root.obs-ws.text-shadow:not([data-mode="light"]) .obs-alert,
-        :root.obs-ws.text-shadow:not([data-mode="light"]) #obs-goal { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.55); }
+        :root.obs-ws.text-shadow .obs-alert,
+        :root.obs-ws.text-shadow #obs-goal { text-shadow: 0 1px 2px rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.9), 0 0 6px rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.55); }
         :root.obs-ws #obs-scroll-area::-webkit-scrollbar { display: none !important; }
 
         :root.obs-chroma, :root.obs-chroma body { background: var(--obs-chroma) !important; }
@@ -636,6 +636,7 @@
     <script src="i18n-en.js"></script>
     <script src="i18n.js"></script>
     <script src="xfiles-fx.js"></script>
+    <script src="anim-fx.js"></script>
     <script src="sd-store.js"></script>
     <script src="obs.js"></script>
 </body>

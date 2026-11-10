@@ -399,6 +399,19 @@
     </div>
 
     <!-- MODAL DE CONFIGURACIÓN (por secciones) -->
+    <!-- Temas animados: se elige acá abajo y se ve en vivo en el panel -->
+    <div class="anim-picker hidden" id="anim-picker" role="dialog" aria-labelledby="anim-title">
+        <div class="anim-head">
+            <h3 id="anim-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Temas animados</h3>
+            <small>Tocá uno y miralo en vivo en el panel. Se confirma con "Guardar cambios".</small>
+        </div>
+        <div class="anim-grid" id="anim-grid"></div>
+        <div class="anim-actions">
+            <button type="button" class="btn btn-outline btn-sm" id="btn-anim-cancel">Volver sin cambiar</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-anim-ok"><i class="fa-solid fa-check"></i> Usar este</button>
+        </div>
+    </div>
+
     <div class="modal-overlay hidden" id="modal-settings">
         <div class="modal-card settings-card">
             <div class="modal-header">
@@ -851,6 +864,11 @@
                             <label for="cfg-custom-accent"><strong>Tu color</strong> <small>(el de tu setup)</small></label>
                             <input type="color" id="cfg-custom-accent" value="#00E676">
                             <span class="range-value" id="lbl-custom-accent">#00E676</span>
+                            <span class="custom-text-group">
+                                <label for="cfg-custom-text"><strong>Color de las letras</strong></label>
+                                <input type="color" id="cfg-custom-text" value="#F3F4F6">
+                                <label class="inline-check"><input type="checkbox" id="cfg-custom-text-auto" checked> Automático</label>
+                            </span>
                         </div>
                         <small class="pane-note" style="margin-top:-6px">Se ve en vivo; se confirma con "Guardar cambios". La ventana OBS usa este mismo tema, salvo que le elijas otro en la sección <strong>OBS</strong>.</small>
 
@@ -1017,7 +1035,7 @@
                         </div>
 
                         <label class="setting-row toggle-row">
-                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra negra suave en el texto claro, para que se lea bien sobre cualquier escena.</small></div>
+                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra suave detrás del texto para que se lea sobre cualquier escena: negra si las letras son claras y blanca si son oscuras.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-textshadow"><span class="toggle-slider"></span></span>
                         </label>
 
@@ -1027,6 +1045,11 @@
                             <div class="custom-accent-row hidden" id="obs-custom-accent-row" style="margin-top:8px">
                                 <label for="cfg-obs-custom-accent"><strong>Color de OBS</strong></label>
                                 <input type="color" id="cfg-obs-custom-accent" value="#00E676">
+                                <span class="custom-text-group">
+                                    <label for="cfg-obs-custom-text"><strong>Color de las letras</strong></label>
+                                    <input type="color" id="cfg-obs-custom-text" value="#FFFFFF">
+                                    <label class="inline-check"><input type="checkbox" id="cfg-obs-custom-text-auto" checked> Automático</label>
+                                </span>
                             </div>
                         </div>
 
@@ -1531,6 +1554,7 @@
     <script src="i18n.js"></script>
     <script src="socket.io.js"></script>
     <script src="xfiles-fx.js"></script>
+    <script src="anim-fx.js"></script>
     <script src="sd-store.js"></script>
     <script src="icons.js"></script>
     <script src="app.js"></script>

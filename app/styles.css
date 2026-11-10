@@ -2267,7 +2267,7 @@ kbd {
 
 
 /* ==========================================================================
-   TEMA OVNI: negro, estrellas, cometas y luces que recorren los bordes
+   TEMAS ANIMADOS (OVNI, Navidad, Halloween…): fondo oscuro, animación detrás y luz que recorre los bordes
    ========================================================================== */
 @property --xf-ang {
     syntax: '<angle>';
@@ -2276,26 +2276,26 @@ kbd {
 }
 @keyframes xfSpin { to { --xf-ang: 360deg; } }
 @keyframes xfPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(0, 255, 65, 0.15), inset 0 0 12px rgba(0, 255, 65, 0.04); }
-    50%      { box-shadow: 0 0 18px rgba(0, 255, 65, 0.35), inset 0 0 18px rgba(0, 255, 65, 0.08); }
+    0%, 100% { box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.15), inset 0 0 12px rgba(var(--accent-rgb), 0.04); }
+    50%      { box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.35), inset 0 0 18px rgba(var(--accent-rgb), 0.08); }
 }
 
-:root[data-fx="xfiles"],
-:root[data-fx="xfiles"] body { background-color: #000 !important; }
-:root[data-fx="xfiles"] body { background-image: none !important; background-color: transparent !important; }
+:root[data-anim],
+:root[data-anim] body { background-color: #000 !important; }
+:root[data-anim] body { background-image: none !important; background-color: transparent !important; }
 
-:root[data-fx="xfiles"] .app-header h1,
-:root[data-fx="xfiles"] .column-title,
-:root[data-fx="xfiles"] .pane-title {
-    text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+:root[data-anim] .app-header h1,
+:root[data-anim] .column-title,
+:root[data-anim] .pane-title {
+    text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
 }
 
-:root[data-fx="xfiles"] .donation-card {
-    border-color: rgba(0, 255, 65, 0.25);
+:root[data-anim] .donation-card {
+    border-color: rgba(var(--accent-rgb), 0.25);
     animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1), xfPulse 4s ease-in-out infinite;
 }
 /* Luz que recorre el borde de cada donación */
-:root[data-fx="xfiles"] .donation-card::after {
+:root[data-anim] .donation-card::after {
     content: '';
     position: absolute;
     inset: -1px;
@@ -2304,26 +2304,26 @@ kbd {
     pointer-events: none;
     background: conic-gradient(from var(--xf-ang),
         transparent 0deg 250deg,
-        rgba(0, 255, 65, 0.15) 280deg,
-        #00FF41 320deg,
-        #E8FFE8 340deg,
-        #00FF41 350deg,
+        rgba(var(--accent-rgb), 0.15) 280deg,
+        var(--accent) 320deg,
+        #FFFFFF 340deg,
+        var(--accent) 350deg,
         transparent 360deg);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
     animation: xfSpin 4.5s linear infinite;
-    filter: drop-shadow(0 0 4px #00FF41);
+    filter: drop-shadow(0 0 4px var(--accent));
 }
 /* Cada tarjeta arranca en un punto distinto para que no se muevan todas juntas */
-:root[data-fx="xfiles"] .donation-card:nth-child(3n+2)::after { animation-delay: -1.5s; }
-:root[data-fx="xfiles"] .donation-card:nth-child(3n)::after { animation-delay: -3s; }
-:root[data-fx="xfiles"] .donation-card.is-read::after { opacity: 0.25; animation-duration: 9s; }
-:root[data-fx="xfiles"] .donation-card.is-read { animation: none; }
+:root[data-anim] .donation-card:nth-child(3n+2)::after { animation-delay: -1.5s; }
+:root[data-anim] .donation-card:nth-child(3n)::after { animation-delay: -3s; }
+:root[data-anim] .donation-card.is-read::after { opacity: 0.25; animation-duration: 9s; }
+:root[data-anim] .donation-card.is-read { animation: none; }
 
-:root[data-fx="xfiles"] .amount-badge {
+:root[data-anim] .amount-badge {
     font-family: 'Consolas', 'Courier New', monospace;
-    text-shadow: 0 0 6px rgba(0, 255, 65, 0.7);
+    text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.7);
 }
 
 /* Logo de la app (imagen) */
@@ -2768,3 +2768,32 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .voz-bar { height: 8px; border-radius: 4px; background: var(--bg-tertiary, rgba(255,255,255,0.08)); overflow: hidden; }
 .voz-bar.hidden { display: none; }
 .voz-bar span { display: block; height: 100%; width: 0; background: var(--accent-color, #00E676); transition: width 0.25s; }
+.um-test-note { margin: 2px 0 4px; padding: 6px 8px; border-radius: 6px; font-size: 0.74rem; line-height: 1.35; color: #F5B700; background: rgba(245, 183, 0, 0.08); border: 1px dashed rgba(245, 183, 0, 0.45); }
+
+/* Color de las letras del tema personalizado */
+.custom-text-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: 12px; }
+.inline-check { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; }
+.custom-accent-row input[type="color"]:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Temas animados: botón del selector y ventana de abajo */
+.anim-preview { align-items: center; justify-content: center; background: linear-gradient(135deg, #12081f, #04121a 55%, #1a0606); }
+.anim-emojis { font-size: 1.15rem; letter-spacing: 2px; }
+#modal-settings.anim-peek { visibility: hidden; }
+.anim-picker { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 3000; width: min(960px, calc(100vw - 32px));
+    background: rgba(var(--shade-rgb, 0, 0, 0), 0.82); background: color-mix(in srgb, var(--modal-bg, #121722) 88%, transparent);
+    border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); padding: 14px 16px; backdrop-filter: blur(6px); }
+.anim-picker.hidden { display: none; }
+.anim-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.anim-head h3 { margin: 0; font-size: 1rem; }
+.anim-head small { color: var(--text-secondary); }
+.anim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 44vh; overflow-y: auto; }
+.anim-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 10px; border-radius: 10px; cursor: pointer; color: var(--text-primary);
+    background: linear-gradient(140deg, color-mix(in srgb, var(--c1) 22%, #05070b), color-mix(in srgb, var(--c2) 14%, #05070b)); border: 2px solid transparent; }
+.anim-tile:hover { border-color: color-mix(in srgb, var(--c1) 55%, transparent); }
+.anim-tile.active { border-color: var(--c1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c1) 30%, transparent), 0 0 18px color-mix(in srgb, var(--c1) 40%, transparent); }
+.anim-tile-emoji { font-size: 1.5rem; line-height: 1.2; }
+.anim-tile strong { font-size: 0.86rem; }
+.anim-tile small { font-size: 0.72rem; color: rgba(255, 255, 255, 0.72); line-height: 1.3; }
+.anim-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+/* En los temas animados el vidrio esmerilado no desenfoca la animación (se ve nítida detrás) */
+:root[data-anim] { --glass-backdrop: none; }
