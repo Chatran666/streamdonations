@@ -5209,6 +5209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Animados: se eligen en su propia ventana (tocando "Animados")
         xfiles:     { label: 'OVNI',            mode: 'dark', accent: '#00FF41', accent2: '#39FF14', fx: 'xfiles',      anim: true, emoji: '🛸', desc: 'Estrellas, cometas y un ovni que pasa' },
         navidad:    { label: 'Navidad',         mode: 'dark', accent: '#E53935', accent2: '#2ECC71', fx: 'navidad',     anim: true, emoji: '🎄', desc: 'Nieve y guirnalda de luces' },
+        nieve:      { label: 'Nieve',           mode: 'dark', accent: '#7FD6FF', accent2: '#E6F6FF', fx: 'nieve',       anim: true, emoji: '❄️', desc: 'Nevada tranquila con ráfagas de viento' },
         anionuevo:  { label: 'Año Nuevo',       mode: 'dark', accent: '#F6C744', accent2: '#FF5DA2', fx: 'anionuevo',   anim: true, emoji: '🥂', desc: 'Fuegos artificiales y papelitos dorados' },
         halloween:  { label: 'Halloween',       mode: 'dark', accent: '#FF7518', accent2: '#A55EEA', fx: 'halloween',   anim: true, emoji: '🎃', desc: 'Murciélagos, fantasmas y niebla' },
         argentina:  { label: 'Argentina',       mode: 'dark', accent: '#74ACDF', accent2: '#F6B40E', fx: 'argentina',   anim: true, emoji: '☀️', desc: 'Papelitos celeste y blanco con el Sol de Mayo' },

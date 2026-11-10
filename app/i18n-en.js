@@ -997,6 +997,7 @@ window.SD_I18N_EN = {
     'Corazones que suben': 'Rising hearts',
     'Flores y hojitas que caen': 'Falling flowers and leaves',
     'Billetes y monedas que caen': 'Falling bills and coins',
+    'Nieve': 'Snow', '❄️ Nieve': '❄️ Snow', 'Nevada tranquila con ráfagas de viento': 'Gentle snowfall with gusts of wind',
     '🛸 OVNI': '🛸 UFO', '🎄 Navidad': '🎄 Christmas', '🥂 Año Nuevo': '🥂 New Year', '🎃 Halloween': '🎃 Halloween', '☀️ Argentina': '☀️ Argentina',
     '🎆 4 de Julio': '🎆 4th of July', '💘 San Valentín': "💘 Valentine's Day", '🌸 Primavera': '🌸 Spring', '💸 Lluvia de plata': '💸 Money rain'
 };

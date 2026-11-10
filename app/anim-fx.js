@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Temas animados (panel y ventana de OBS): Navidad, Halloween, Argentina, 4 de Julio,
-   Año Nuevo, San Valentín, Primavera y Lluvia de plata. (El OVNI está en xfiles-fx.js.)
+   Temas animados (panel y ventana de OBS): Navidad, Nieve, Halloween, Argentina, 4 de Julio,
+   Año Nuevo, San Valentín, Primavera y Lluvia de plata. Nieve. (El OVNI está en xfiles-fx.js.)
    Un solo lienzo de fondo, liviano: pocas partículas, ~30 cuadros por segundo y se frena
    solo cuando la ventana está minimizada.
    ========================================================================== */
@@ -26,6 +26,7 @@
     // ---- Qué tiene cada tema ----
     var KINDS = {
         navidad: { fall: { n: 70, type: 'snow' }, bulbs: true, emoji: { set: ['🎄', '🎁', '⭐'], n: 4, mode: 'fall', size: [18, 28], alpha: 0.5 } },
+        nieve: { fall: { n: 150, type: 'snow' }, emoji: { set: ['❄️'], n: 7, mode: 'fall', size: [16, 30], alpha: 0.55 }, ground: true, wind: true },
         halloween: { emoji: { set: ['🦇', '🦇', '🦇', '👻', '🎃'], n: 9, mode: 'fly', size: [18, 34], alpha: 0.75 }, fog: '#6b2fa0' },
         argentina: { fall: { n: 60, type: 'confetti', colors: ['#74ACDF', '#FFFFFF', '#74ACDF', '#F6B40E'] }, sun: true },
         julio4: { fireworks: ['#E63946', '#FFFFFF', '#3C6EF0'], stars: 50 },
@@ -116,6 +117,13 @@
             ctx.fillStyle = g; ctx.fillRect(0, H * 0.65, W, H * 0.35);
         }
         if (k.sun) drawSun(T);
+        if (k.ground) {
+            // Nieve juntada abajo, suave
+            var gg = ctx.createLinearGradient(0, H - 46, 0, H);
+            gg.addColorStop(0, 'rgba(235,245,255,0)'); gg.addColorStop(1, 'rgba(235,245,255,0.22)');
+            ctx.fillStyle = gg; ctx.fillRect(0, H - 46, W, 46);
+        }
+        var wind = k.wind ? Math.sin(T * 0.25) * 28 + 10 : 0; // ráfagas lentas de un lado al otro
         for (var i = 0; i < parts.length; i++) {
             var p = parts[i];
             if (p.star) {
@@ -137,7 +145,8 @@
                 continue;
             }
             // nieve y papelitos
-            p.y += p.vy * dt; p.x += Math.sin(T * 1.3 + p.ph) * p.sway * dt; p.rot += p.vr * dt;
+            p.y += p.vy * dt; p.x += (Math.sin(T * 1.3 + p.ph) * p.sway + wind * (p.r / 2)) * dt; p.rot += p.vr * dt;
+            if (p.x > W + 10) p.x = -10; else if (p.x < -10) p.x = W + 10;
             if (p.y > H + 10) { parts[i] = newFall(k.fall, false); continue; }
             ctx.globalAlpha = p.a; ctx.fillStyle = p.color;
             if (p.kind === 'snow') { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill(); }

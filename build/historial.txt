@@ -1,4 +1,5 @@
 Novedades de la 2.0.0:
+- Tema animado nuevo: Nieve.
 - Al avisar de una versión nueva se muestran todas las novedades que te faltan desde tu versión (y solo esas).
 - Temas animados: el tema OVNI ahora es "Animados" y abre una ventana con Navidad, Año Nuevo, Halloween, Argentina, 4 de Julio, San Valentín, Primavera, Lluvia de plata y OVNI. Se ven en vivo antes de elegir.
 - Tema personalizado: también se puede elegir el color de las letras (panel y OBS).
