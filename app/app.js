@@ -2041,7 +2041,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function compareVersions(a, b) {
         const x = versionParts(a), y = versionParts(b);
         for (let i = 0; i < 3; i++) { if (x[i] !== y[i]) return x[i] > y[i] ? 1 : -1; }
-        return 0;
+        // Una versión de prueba (2.0.0-beta.3) es anterior a la final (2.0.0)
+        const pa = /-/.test(String(a)), pb = /-/.test(String(b));
+        return pa === pb ? 0 : (pa ? -1 : 1);
+    }
+    // De todas las novedades publicadas, solo las de las versiones que te faltan (más nueva que la tuya, hasta la nueva)
+    function notesSince(notes, from, to) {
+        const re = /^Novedades de la (\d+\.\d+\.\d+)[^\n]*:/gm;
+        const heads = [...String(notes).matchAll(re)];
+        if (!heads.length) return String(notes).slice(0, 1500);
+        const parts = heads.map((m, i) => ({ v: m[1], text: String(notes).slice(m.index, i + 1 < heads.length ? heads[i + 1].index : undefined).trim() }));
+        return parts.filter(p => compareVersions(p.v, from) > 0 && compareVersions(p.v, to) <= 0).map(p => p.text).join('\n\n');
     }
 
     function showUpdateModal(info) {
@@ -2050,8 +2060,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('update-text').innerHTML = `Está disponible la versión <strong>${escapeHTML(info.version)}</strong>. Vos tenés la <strong>${escapeHTML(APP_VERSION)}</strong>.` +
             (mandatory ? '<br>Esta versión ya no funciona bien: actualizá para seguir usándola.' : '');
         const notes = $('update-notes');
-        notes.textContent = info.notes || '';
-        notes.classList.toggle('hidden', !info.notes);
+        const mine = info.notes ? notesSince(info.notes, APP_VERSION, info.version) : '';
+        notes.textContent = mine;
+        notes.classList.toggle('hidden', !mine);
         $('btn-update-later').classList.toggle('hidden', !!mandatory);
         const direct = /\.exe(\?|$)/i.test(info.url || '');
         $('btn-update-go').innerHTML = direct ? '<i class="fa-solid fa-download"></i> Descargar e instalar' : '<i class="fa-solid fa-download"></i> Descargar actualización';
@@ -2112,13 +2123,13 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(txt => {
                 let info;
                 try { info = JSON.parse(txt); } catch (e) { info = { version: txt.trim().split(/\s+/)[0] }; }
-                if (!info || !/^v?\d+(\.\d+){0,2}$/.test(String(info.version || '').trim())) return;
+                if (!info || !/^v?\d+(\.\d+){0,2}(-[0-9A-Za-z.]+)?$/.test(String(info.version || '').trim())) return;
                 info.version = String(info.version).trim().replace(/^v/i, '');
                 // Solo se descarga desde las publicaciones oficiales del proyecto en GitHub
                 if (info.url && !/^https:\/\/github\.com\/Chatran666\/streamdonations\//i.test(String(info.url))) info.url = '';
                 info.linkUrl = /^https:\/\//i.test(info.linkUrl || '') ? String(info.linkUrl) : '';
                 info.linkText = info.linkText ? String(info.linkText).slice(0, 80) : '';
-                info.notes = info.notes ? String(info.notes).slice(0, 600) : '';
+                info.notes = info.notes ? String(info.notes).slice(0, 40000) : '';
                 if (compareVersions(info.version, APP_VERSION) <= 0) return;
                 const mandatory = info.minVersion && compareVersions(APP_VERSION, info.minVersion) < 0;
                 let later = '';
