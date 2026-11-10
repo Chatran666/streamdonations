@@ -24,6 +24,8 @@ use tauri::webview::{NewWindowFeatures, NewWindowResponse};
 use tauri::{AppHandle, Manager, Url, WebviewUrl, WebviewWindowBuilder, Wry};
 use tauri_plugin_opener::OpenerExt;
 
+mod voz;
+
 /// Igual para todas las ventanas (WebView2 exige los mismos argumentos en las que comparten datos).
 /// Los tres primeros son los que Tauri pone de fábrica; el último deja sonar los avisos sin tocar nada antes.
 #[cfg(windows)]
@@ -102,6 +104,33 @@ fn show_main(app: &AppHandle) {
         let _ = w.show();
         let _ = w.unminimize();
         let _ = w.set_focus();
+    }
+}
+
+/// Solo para pruebas en desarrollo: SD_EVAL_DIR=carpeta → ejecuta en el panel los .js que aparezcan ahí
+#[cfg(debug_assertions)]
+fn debug_eval_loop(win: tauri::WebviewWindow) {
+    let Some(d) = std::env::var_os("SD_EVAL_DIR") else { return };
+    std::thread::spawn(move || loop {
+        std::thread::sleep(std::time::Duration::from_millis(400));
+        if let Ok(rd) = std::fs::read_dir(&d) {
+            for e in rd.flatten() {
+                let p = e.path();
+                if p.extension().map(|x| x == "js").unwrap_or(false) {
+                    if let Ok(code) = std::fs::read_to_string(&p) {
+                        let _ = std::fs::remove_file(&p);
+                        let _ = win.eval(&code);
+                    }
+                }
+            }
+        }
+    });
+}
+
+#[tauri::command]
+fn debug_log(msg: String) {
+    if cfg!(debug_assertions) {
+        println!("[panel] {msg}");
     }
 }
 
@@ -362,7 +391,18 @@ pub fn run() {
             Some(vec!["--autostart"]),
         ))
         .manage(RelayState(Mutex::new(None)))
-        .invoke_handler(tauri::generate_handler![relay_info, legacy_info, legacy_migrate, set_close_to_tray])
+        .manage(voz::VozState::new())
+        .invoke_handler(tauri::generate_handler![
+            relay_info,
+            legacy_info,
+            legacy_migrate,
+            set_close_to_tray,
+            debug_log,
+            voz::voz_status,
+            voz::voz_install,
+            voz::voz_remove,
+            voz::voz_synth
+        ])
         .setup(|app| {
             let handle = app.handle().clone();
             let info = start_server(&handle);
@@ -376,6 +416,8 @@ pub fn run() {
             #[cfg(windows)]
             let b = b.additional_browser_args(BROWSER_ARGS);
             let main = with_handlers(b, &handle).build()?;
+            #[cfg(debug_assertions)]
+            debug_eval_loop(main.clone());
             let win = main.clone();
             main.on_window_event(move |e| {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = e {

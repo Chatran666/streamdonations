@@ -15,6 +15,7 @@ La app se conecta solo a estos servicios, y solo para lo que se indica:
 | **ntfy.sh** | Solo si activás "Sincronizar con otra PC" | El código de sincronización y los **códigos internos** de las donaciones marcadas como leídas o restauradas. **Nunca** nombres, montos, mensajes ni tokens. Se apaga con "Dejar de sincronizar". |
 | **GitHub** (raw.githubusercontent.com, gist.githubusercontent.com, github.com) | Al abrir la app y cada algunas horas | Una consulta para saber si hay una versión nueva, y la descarga del instalador si tocás "Descargar". No se envían datos tuyos (GitHub ve tu dirección IP, como cualquier sitio). |
 | **Servidor interno de la app** (127.0.0.1, solo tu PC) | Siempre en la versión 2, mientras la app está abierta | Le pasa a la fuente de navegador de OBS/Streamlabs las donaciones que se muestran. Solo acepta conexiones de tu propia PC y con una clave aleatoria. |
+| **GitHub y Hugging Face** | Solo si tocás "Bajar voz Daniela" | Se baja el programa Piper y la voz. No se manda ningún dato tuyo; después la voz funciona sin internet y los mensajes nunca salen de tu PC. |
 | **OBS Studio en tu misma PC** (127.0.0.1) | Solo si activás "Modo transparente real" | Las donaciones que se muestran en OBS, tu contraseña del servidor WebSocket de OBS. Nunca sale de tu PC. |
 | **Google** (voces "Google …" de Chrome, solo versión 1) | Solo si elegís una voz de Google para leer en voz alta | Chrome manda a Google el texto a leer (nombre, monto y mensaje de la donación). Las voces de Windows y las incluidas funcionan sin internet. |
 | **Sitios de los links** | Solo si abrís un link de un mensaje | Se abre en el navegador, como cualquier link. |
@@ -38,6 +39,7 @@ The app only connects to these services, and only for the stated purpose:
 | **ntfy.sh** | Only if you turn on "Sync with another PC" | The sync code and the **internal IDs** of donations marked as read or restored. **Never** names, amounts, messages or tokens. |
 | **GitHub** | When the app opens and every few hours | A request to check for a new version, and the installer download if you click "Download". No personal data is sent (GitHub sees your IP address, like any website). |
 | **The app's internal server** (127.0.0.1, your PC only) | Always in version 2, while the app is open | Passes the donations shown to the OBS/Streamlabs browser source. Only accepts connections from your own PC, with a random key. |
+| **GitHub and Hugging Face** | Only if you click "Download Daniela voice" | The Piper program and the voice are downloaded. None of your data is sent; afterwards the voice works offline and messages never leave your PC. |
 | **OBS Studio on your own PC** (127.0.0.1) | Only if you turn on "Real transparent mode" | The donations shown in OBS and your OBS WebSocket password. Never leaves your PC. |
 | **Google** (Chrome "Google …" voices, version 1 only) | Only if you choose a Google voice for read-aloud | Chrome sends Google the text to be read (donor name, amount and message). Windows and built-in voices work offline. |
 | **Link websites** | Only if you open a link from a message | It opens in the browser like any link. |

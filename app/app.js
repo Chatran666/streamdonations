@@ -719,8 +719,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // force = leer aunque la voz automática esté apagada o el monto sea menor al mínimo
     // interrupt = cortar lo que se esté leyendo (lecturas manuales). Las automáticas se encolan.
+    const HAS_WEB_TTS = 'speechSynthesis' in window;
     function speakDonation(donation, force = false, interrupt = false) {
-        if (!('speechSynthesis' in window)) return;
+        if (!HAS_WEB_TTS && !DESKTOP_TTS) return;
         if (!force) {
             if (!state.ttsEnabled) return;
             if (belowMin(donation, state.settings.minTts)) return;
@@ -775,16 +776,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Voces incluidas en el programa de escritorio (Piper, funcionan sin internet) ---
-    var DESKTOP_TTS = window.desktopTTS || null;
+    // Versión 2: la voz argentina Daniela (Piper) se baja una vez desde Opciones → Voz y corre en la PC
+    let vozReady = false;
+    try { vozReady = localStorage.getItem('sd_voz_ok') === '1'; } catch (e) {}
+    const DANIELA = { id: 'daniela', label: 'Daniela — Argentina (sin internet)' };
+    var DESKTOP_TTS = window.desktopTTS || (TAURI ? {
+        voices: () => vozReady ? [DANIELA] : [],
+        synth: (id, text, lengthScale) => TAURI.core.invoke('voz_synth', { text, lengthScale })
+    } : null);
     var LOCAL_VOICES = DESKTOP_TTS ? (DESKTOP_TTS.voices() || []) : [];
-    var localQueue = [], localPlaying = null, localGen = 0, localBroken = false;
+    var localQueue = [], localPlaying = null, localGen = 0, localBroken = false, localSlow = 0;
+    function refreshLocalVoices() { LOCAL_VOICES = DESKTOP_TTS ? (DESKTOP_TTS.voices() || []) : []; }
 
     function isLocalVoice(name) { return !!DESKTOP_TTS && /^local:/.test(name || ''); }
     // Voz a usar: la elegida, o en el programa de escritorio la primera incluida (Daniela)
     function currentVoiceName() {
         const n = state.settings.voiceName || '';
         if (n && isLocalVoice(n) && !LOCAL_VOICES.some(v => 'local:' + v.id === n)) return LOCAL_VOICES.length ? 'local:' + LOCAL_VOICES[0].id : '';
-        if (!n && LOCAL_VOICES.length) return 'local:' + LOCAL_VOICES[0].id;
+        if (!n && LOCAL_VOICES.length && !TAURI) return 'local:' + LOCAL_VOICES[0].id; // en la versión 2 Daniela se elige a mano
         return n;
     }
 
@@ -796,10 +805,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const lengthScale = Math.min(2.5, Math.max(0.4, pitch / rate));
         splitForSpeech(text, 260).forEach(chunk => {
             speechPending++;
-            localQueue.push({
-                gen: localGen, pitch, volume, text: chunk,
-                audioPromise: DESKTOP_TTS.synth(voiceId, chunk, lengthScale)
-            });
+            const t0 = performance.now();
+            const item = { gen: localGen, pitch, volume, text: chunk, t0 };
+            item.audioPromise = Promise.resolve(DESKTOP_TTS.synth(voiceId, chunk, lengthScale)).then(buf => { item.ms = performance.now() - t0; return buf; });
+            localQueue.push(item);
         });
         pumpLocalSpeech();
     }
@@ -815,8 +824,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (localPlaying === item) localPlaying = null;
             pumpLocalSpeech();
         };
-        item.audioPromise.then(buf => {
+        // Si la PC tarda demasiado en armar la frase, esa se lee con la voz de Windows
+        const waitLimit = Math.max(6000, item.text.length * 90);
+        const timeout = new Promise((res, rej) => setTimeout(() => rej(Object.assign(new Error('lenta'), { slow: true })), Math.max(1500, waitLimit - (performance.now() - item.t0))));
+        Promise.race([item.audioPromise, timeout]).then(buf => {
             if (item.gen !== localGen || !buf) return done();
+            if (TAURI && buf.byteLength > 44) {
+                // Cuánto tarda en armar la voz comparado con lo que dura: si tarda más de lo que habla, la PC no da abasto
+                const secs = (buf.byteLength - 44) / (22050 * 2);
+                if (item.ms > 2500 && item.ms / 1000 > secs * 1.15) noteSlowVoice(); else localSlow = Math.max(0, localSlow - 1);
+            }
             const url = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
             const a = new Audio(url);
             a.volume = item.volume;
@@ -826,6 +843,18 @@ document.addEventListener('DOMContentLoaded', () => {
             a.onended = a.onerror = () => { URL.revokeObjectURL(url); done(); };
             a.play().catch(done);
         }).catch(err => {
+            if (err && err.slow) {
+                // Se lee esta frase y lo que queda con la voz de Windows, sin esperar más
+                noteSlowVoice();
+                if (item.gen === localGen) {
+                    const pend = localQueue.splice(0).map(q => q.text);
+                    speechPending = Math.max(0, speechPending - pend.length);
+                    speakWeb([item.text].concat(pend).join(' '));
+                }
+                done();
+                localGen++; // lo que Piper termine después ya no se lee
+                return;
+            }
             console.warn('Voz incluida: error', err);
             // Si la voz incluida falla, se avisa una vez y se sigue con una voz de Windows
             if (!localBroken && item.gen === localGen) {
@@ -842,6 +871,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Dos lecturas lentas seguidas: se vuelve a la voz de Windows (se puede volver a elegir Daniela en Opciones → Voz)
+    function noteSlowVoice() {
+        localSlow++;
+        if (localSlow < 2 || localBroken) return;
+        localBroken = true;
+        if (TAURI && isLocalVoice(state.settings.voiceName)) { state.settings.voiceName = ''; persistSettings(); }
+        showToast('Tu PC tarda en armar la voz Daniela, así que sigo con la voz de Windows. Si querés, volvé a elegirla en Opciones → Voz.', 'warning');
+    }
+
     function stopLocalSpeech() {
         localGen++;
         localQueue = [];
@@ -854,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lee un texto cualquiera con la voz y los ajustes elegidos
     function speakText(text, interrupt = true) {
-        if (!('speechSynthesis' in window)) return;
+        if (!HAS_WEB_TTS && !DESKTOP_TTS) return;
         try {
             if (interrupt) stopAllSpeech();
             const vname = currentVoiceName();
@@ -4306,13 +4344,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function populateVoices(selectedName) {
         const select = $('cfg-voice');
-        if (!select || !('speechSynthesis' in window)) return;
-        const voices = window.speechSynthesis.getVoices();
+        if (!select || (!HAS_WEB_TTS && !LOCAL_VOICES.length)) return;
+        const voices = HAS_WEB_TTS ? window.speechSynthesis.getVoices() : [];
         const spanish = rankSpanishVoices(voices);
         const others = voices.filter(v => !spanish.includes(v));
         const opt = v => `<option value="${escapeHTML(v.name)}">${escapeHTML(v.name)} (${escapeHTML(v.lang)})</option>`;
         const auto = spanish[0];
-        const autoLabel = LOCAL_VOICES.length ? LOCAL_VOICES[0].label : (auto ? auto.name : '');
+        const autoLabel = LOCAL_VOICES.length && !TAURI ? LOCAL_VOICES[0].label : (auto ? auto.name : '');
         const localOpts = LOCAL_VOICES.map(v => `<option value="local:${escapeHTML(v.id)}">${escapeHTML(v.label)}</option>`).join('');
         select.innerHTML = `<option value="">Automática${autoLabel ? ' — ' + escapeHTML(autoLabel) : ' (primera voz en español)'}</option>` +
             (localOpts ? `<optgroup label="Voces incluidas (sin internet)">${localOpts}</optgroup>` : '') +
@@ -4512,7 +4550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-hotkeys').checked = !!st.hotkeys;
         $('cfg-global-hotkeys').checked = !!st.globalHotkeys;
         $('cfg-close-tray').checked = !!st.closeToTray;
-        if (TAURI) TAURI.autostart.isEnabled().then(on => { $('cfg-autostart').checked = !!on; }).catch(() => {});
+        if (TAURI) { TAURI.autostart.isEnabled().then(on => { $('cfg-autostart').checked = !!on; }).catch(() => {}); refreshVoz(); }
         $('cfg-banned-words').value = st.bannedWords || '';
         $('cfg-censor-obs').checked = st.censorObs !== false;
         $('cfg-censor-tts').checked = st.censorTts !== false;
@@ -4672,6 +4710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.ttsEnabled = st.ttsEnabled = $('cfg-tts-enabled').checked;
         st.donationToasts = $('cfg-donation-toasts').checked;
         st.voiceName = $('cfg-voice').value || '';
+        if (isLocalVoice(st.voiceName)) { localBroken = false; localSlow = 0; }
         st.minTts = Math.max(0, parseFloat($('cfg-min-tts').value) || 0);
 
         state.showAmounts = st.showAmounts = $('cfg-toggle-amounts').checked;
@@ -4804,6 +4843,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const st = state.settings;
             const prev = { voiceName: st.voiceName, voiceRate: st.voiceRate, voicePitch: st.voicePitch, voiceVolume: st.voiceVolume, ttsLinkMode: st.ttsLinkMode };
             st.voiceName = $('cfg-voice').value || '';
+        if (isLocalVoice(st.voiceName)) { localBroken = false; localSlow = 0; }
             st.voiceRate = $('cfg-voice-rate').value;
             st.voicePitch = $('cfg-voice-pitch').value;
             st.voiceVolume = $('cfg-voice-volume').value / 100;
@@ -6357,6 +6397,91 @@ document.addEventListener('DOMContentLoaded', () => {
         }).catch(() => {});
     }
 
+    // ---- Voz Daniela (Piper): bajar, probar y quitar ----
+    function vozUi(text, kind) {
+        const el = $('voz-status');
+        el.className = 'conn-status obsws-status ' + kind;
+        el.innerHTML = `<span class="status-dot"></span> ${escapeHTML(text)}`;
+    }
+    function vozSetReady(on) {
+        vozReady = !!on;
+        try { localStorage.setItem('sd_voz_ok', on ? '1' : '0'); } catch (e) {}
+        refreshLocalVoices();
+        const sel = $('cfg-voice'), cur = sel && sel.value ? sel.value : (state.settings.voiceName || '');
+        populateVoices(cur);
+    }
+    function refreshVoz() {
+        return TAURI.core.invoke('voz_status').then(st => {
+            if (!st || !st.supported) return;
+            $('voz-box').classList.remove('hidden');
+            vozSetReady(st.installed);
+            $('btn-voz-install').classList.toggle('hidden', st.installed);
+            $('btn-voz-install').disabled = !!st.installing;
+            $('btn-voz-test').classList.toggle('hidden', !st.installed);
+            $('btn-voz-remove').classList.toggle('hidden', !st.installed);
+            if (st.installing) vozUi('Bajando…', 'wait');
+            else vozUi(st.installed ? 'Lista para usar' : 'No está bajada', st.installed ? 'ok' : 'off');
+        }).catch(() => {});
+    }
+    // Arma una frase de unos 5 segundos y compara cuánto tardó con lo que dura
+    function vozSpeedTest() {
+        const btn = $('btn-voz-test');
+        btn.disabled = true;
+        vozUi('Probando…', 'wait');
+        const text = 'Juan ha enviado cinco mil pesos. Aguante el stream, sos un genio, saludos desde Córdoba.';
+        const once = () => { const t0 = performance.now(); return TAURI.core.invoke('voz_synth', { text, lengthScale: 1 }).then(buf => ({ ms: performance.now() - t0, secs: (buf.byteLength - 44) / 44100, buf })); };
+        return once().then(() => once()).then(r => {
+            const ratio = r.ms / 1000 / r.secs;
+            const a = new Audio(URL.createObjectURL(new Blob([r.buf], { type: 'audio/wav' })));
+            a.volume = clampNum(state.settings.voiceVolume, 0, 1, 1);
+            a.play().catch(() => {});
+            if (ratio < 0.6) { vozUi('Tu PC la maneja muy bien', 'ok'); showToast('La voz Daniela anda muy bien en esta PC. Elegila en "Voz" y tocá Guardar cambios.', 'success'); }
+            else if (ratio < 1) { vozUi('Tu PC la maneja, justo', 'ok'); showToast('La voz Daniela anda, aunque justa. Si en vivo notás demora, usá la voz de Windows.', 'info'); }
+            else { vozUi('Tu PC es lenta para esta voz', 'err'); showToast('Esta PC tarda más en armar la voz de lo que dura: te conviene seguir con la voz de Windows.', 'warning'); }
+        }).catch(err => { vozUi('No arrancó', 'err'); showToast('La voz Daniela no arrancó: ' + escapeHTML(String(err)).slice(0, 200), 'warning'); })
+            .finally(() => { btn.disabled = false; });
+    }
+    function initVoz() {
+        const bar = $('voz-bar'), fill = $('voz-bar-fill');
+        TAURI.event.listen('voz-progress', ev => {
+            const p = ev.payload || {};
+            bar.classList.remove('hidden');
+            const pct = p.total ? Math.min(100, Math.round(p.done / p.total * 100)) : 0;
+            fill.style.width = pct + '%';
+            vozUi(`Bajando… ${pct}% (${Math.round((p.done || 0) / 1048576)} de ${Math.round((p.total || 0) / 1048576)} MB)`, 'wait');
+        });
+        TAURI.event.listen('voz-installed', ev => {
+            bar.classList.add('hidden');
+            if (ev.payload) { showToast('No se pudo bajar la voz: ' + escapeHTML(String(ev.payload)).slice(0, 200), 'warning'); refreshVoz(); return; }
+            refreshVoz().then(() => {
+                const sel = $('cfg-voice'); if (sel) sel.value = 'local:daniela';
+                showToast('Voz Daniela lista. Ahora pruebo si tu PC la aguanta…', 'success');
+                vozSpeedTest();
+            });
+        });
+        $('btn-voz-install').addEventListener('click', () => {
+            $('btn-voz-install').disabled = true;
+            vozUi('Empezando la descarga…', 'wait');
+            TAURI.core.invoke('voz_install').catch(err => { $('btn-voz-install').disabled = false; showToast('No se pudo bajar la voz: ' + escapeHTML(String(err)), 'warning'); });
+        });
+        $('btn-voz-test').addEventListener('click', vozSpeedTest);
+        $('btn-voz-remove').addEventListener('click', () => {
+            if (!confirm('¿Quitar la voz Daniela de esta PC? Se libera el espacio y se vuelve a la voz de Windows. La podés volver a bajar cuando quieras.')) return;
+            stopAllSpeech();
+            TAURI.core.invoke('voz_remove').then(() => {
+                if (isLocalVoice(state.settings.voiceName)) { state.settings.voiceName = ''; persistSettings(); }
+                refreshVoz();
+                showToast('Voz Daniela quitada', 'success');
+            }, err => showToast('No se pudo quitar: ' + escapeHTML(String(err)), 'warning'));
+        });
+        refreshVoz().then(() => {
+            // Con Daniela elegida, Piper se abre apenas arranca la app: así la primera donación no espera
+            if (!vozReady || !isLocalVoice(state.settings.voiceName)) return;
+            const rate = clampNum(state.settings.voiceRate, 0.5, 2, 1), pitch = clampNum(state.settings.voicePitch, 0.5, 1.5, 1);
+            setTimeout(() => TAURI.core.invoke('voz_synth', { text: 'Hola.', lengthScale: Math.min(2.5, Math.max(0.4, pitch / rate)) }).catch(() => {}), 2500);
+        });
+    }
+
     function initTauri() {
         if (!TAURI) return;
         const copyRelay = () => {
@@ -6376,6 +6501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('btn-legacy-import').addEventListener('click', () => {
             if (confirm('¿Traer los datos de la versión anterior (la que usaba Google Chrome)?\n\nReemplaza la configuración y el historial de ahora.')) startMigration();
         });
+        initVoz();
         relayStatus('wait', 'Arrancando…');
         relayConnect();
         applyTauriSettings();

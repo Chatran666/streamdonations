@@ -43,4 +43,6 @@ This program will not transfer any information to other networked systems unless
 
 Íconos Font Awesome Free (CC BY 4.0) · Tipografías Plus Jakarta Sans y JetBrains Mono (SIL OFL 1.1) · Socket.IO (MIT).
 Algunos efectos de borde están inspirados en [OverlayGO!](https://github.com/techconchris/OverlayGO) de TechConChris (MIT).
+
+La voz opcional "Daniela" (se baja aparte, desde la app) usa [Piper](https://github.com/rhasspy/piper) (MIT, con eSpeak NG bajo GPL 3) y la voz [es_AR-daniela](https://huggingface.co/rhasspy/piper-voices/tree/main/es/es_AR/daniela) de piper-voices, entrenada por larcanio con el corpus [OpenSLR 61](https://www.openslr.org/61/) (CC BY-SA 4.0).
 StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; este proyecto no está afiliado a ellos.

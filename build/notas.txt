@@ -1,4 +1,6 @@
-Novedades de la 2.0.0 (versión de prueba):
+Novedades de la 2.0.0 (versión de prueba 2):
+- Voz argentina "Daniela" sin internet (opcional): Opciones → Sonido y voz → Bajar voz Daniela (unos 130 MB, una sola vez). Trae un botón para probar si tu PC la aguanta.
+- Si la PC tarda en armar la voz, la app vuelve sola a la voz de Windows de siempre.
 - StreamDonations ahora es un programa propio: ya no necesita Google Chrome.
 - Los links y las descargas se abren en tu navegador de siempre.
 - Fuente de navegador para OBS Studio y Streamlabs sin configurar nada: Opciones → OBS → Copiar link.

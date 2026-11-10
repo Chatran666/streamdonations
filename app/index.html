@@ -758,6 +758,18 @@
                         </label>
 
 
+                        <div class="obsws-box relay-box tauri-only hidden" id="voz-box">
+                            <p class="relay-intro"><strong>Voz argentina "Daniela" (sin internet)</strong> Suena mucho más natural que las voces de Windows y funciona dentro de tu PC: los mensajes no salen a internet. Se baja una sola vez (unos 130 MB).</p>
+                            <div class="obsws-actions">
+                                <span class="conn-status obsws-status off" id="voz-status"><span class="status-dot"></span> No está bajada</span>
+                                <button type="button" class="btn btn-primary btn-sm" id="btn-voz-install"><i class="fa-solid fa-download"></i> Bajar voz Daniela</button>
+                                <button type="button" class="btn btn-outline btn-sm hidden" id="btn-voz-test"><i class="fa-solid fa-gauge-high"></i> Probar si mi PC la aguanta</button>
+                                <button type="button" class="btn btn-outline btn-sm hidden" id="btn-voz-remove"><i class="fa-solid fa-trash"></i> Quitar</button>
+                            </div>
+                            <div class="voz-bar hidden" id="voz-bar"><span id="voz-bar-fill"></span></div>
+                            <small class="pane-note">Después elegila en "Voz", acá abajo. Si tu PC es lenta y la voz tarda, la app vuelve sola a la voz de Windows (la de siempre), que sigue disponible.</small>
+                        </div>
+
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="cfg-voice">Voz</label>
@@ -796,7 +808,7 @@
                             <button type="button" class="btn btn-outline" id="btn-test-voice"><i class="fa-solid fa-play"></i> Probar voz</button>
                         </div>
 
-                        <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> En Chrome, las voces que empiezan con <strong>"Google"</strong> (ej. "Google español de Estados Unidos") suenan más naturales que las de Windows. "Automática" ya elige la mejor que encuentre.</p>
+                        <p class="pane-note chrome-only"><i class="fa-solid fa-lightbulb"></i> En Chrome, las voces que empiezan con <strong>"Google"</strong> (ej. "Google español de Estados Unidos") suenan más naturales que las de Windows. "Automática" ya elige la mejor que encuentre.</p>
 
                         <label class="setting-row toggle-row">
                             <div><strong>Aviso emergente en el panel</strong><small>Muestra un cartelito abajo cuando llega una donación nueva. Desactivalo si ya la ves en la lista o en OBS.</small></div>
@@ -1317,7 +1329,7 @@
                             </div>
                             <button type="button" class="btn btn-outline btn-sm" id="btn-replay-tour"><i class="fa-solid fa-route"></i> Ver el tutorial de nuevo</button>
                             <p class="pane-note">¿Encontraste un error o tenés una idea? Escribime al mail de contacto e indicá la versión.</p>
-                            <p class="pane-note about-credits">Usa íconos de <strong>Font Awesome Free</strong> (licencia CC BY 4.0), las tipografías <strong>Plus Jakarta Sans</strong> y <strong>JetBrains Mono</strong> (licencia SIL OFL 1.1) y la librería <strong>Socket.IO</strong> (licencia MIT). Algunos efectos están inspirados en OverlayGO! de TechConChris (licencia MIT). StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; esta app no está afiliada a ellos.</p>
+                            <p class="pane-note about-credits">Usa íconos de <strong>Font Awesome Free</strong> (licencia CC BY 4.0), las tipografías <strong>Plus Jakarta Sans</strong> y <strong>JetBrains Mono</strong> (licencia SIL OFL 1.1) y la librería <strong>Socket.IO</strong> (licencia MIT). Algunos efectos están inspirados en OverlayGO! de TechConChris (licencia MIT). La voz Daniela (opcional, se baja aparte) usa <strong>Piper</strong> (licencia MIT, con eSpeak NG, GPL 3) y la voz es_AR-daniela de piper-voices, entrenada por larcanio con el corpus OpenSLR 61 (licencia CC BY-SA 4.0). StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; esta app no está afiliada a ellos.</p>
                         </div>
                     </section>
 

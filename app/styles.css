@@ -2765,3 +2765,6 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 :root.is-tauri .chrome-only { display: none !important; }
 .relay-box { border-color: var(--accent-color, #00E676); }
 .relay-intro { margin: 0; font-size: 0.86rem; line-height: 1.5; color: var(--text-primary); }
+.voz-bar { height: 8px; border-radius: 4px; background: var(--bg-tertiary, rgba(255,255,255,0.08)); overflow: hidden; }
+.voz-bar.hidden { display: none; }
+.voz-bar span { display: block; height: 100%; width: 0; background: var(--accent-color, #00E676); transition: width 0.25s; }
