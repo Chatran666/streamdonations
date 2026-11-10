@@ -1,5 +1,5 @@
 {
-  "version": "1.11.1",
-  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.11.1/StreamDonations-Setup-1.11.1.exe",
-  "notes": "Novedades de la 1.11.1:\n- La \"copia completa\" ahora también guarda tus imágenes y sonidos (fondos, sonidos propios e íconos propios), y al importarla se recupera todo. Se puede destildar si querés una copia liviana.\n\nNovedades de la 1.11.0:\n- Estilos con efectos, todos los íconos con buscador, emojis e imágenes propias, y menú rápido al tocar un nombre."
+  "version": "1.12.0",
+  "url": "https://github.com/Chatran666/streamdonations/releases/download/v1.12.0/StreamDonations-Setup-1.12.0.exe",
+  "notes": "Novedades de la 1.12.0:\n- Modo transparente real para OBS Studio (28 o más nuevo): las donaciones aparecen en una fuente de navegador dentro de OBS, sin fondo y con brillos y sombras perfectos sobre tu escena. Sin internet, todo queda en tu PC.\n- Se activa en Opciones → OBS: activás el servidor WebSocket en OBS, pegás la contraseña, tocás \"Conectar\" y \"Agregar a mi escena\" (la app crea la fuente sola).\n- La captura de ventana de siempre sigue funcionando igual.\n\nNovedades de la 1.11.1:\n- La copia completa incluye imágenes y sonidos."
 }
