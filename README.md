@@ -5,7 +5,7 @@ Todas las donaciones de **Ceneka, YouTube (Super Chats), Twitch (Bits) y Kick (K
 ## Descargar
 
 Bajá el instalador de la última versión en **[Releases](../../releases/latest)** (`StreamDonations-Setup-X.Y.Z.exe`).
-Necesita **Google Chrome** instalado. La app avisa sola cuando hay una versión nueva.
+Desde la versión 2 es un programa propio (hecho con [Tauri](https://tauri.app)): **ya no necesita Google Chrome**. Usa WebView2, que viene con Windows 10 y 11 (si falta, el instalador lo baja solo). La app avisa sola cuando hay una versión nueva.
 
 > Si Windows muestra "Windows protegió su PC", tocá **Más información → Ejecutar de todas formas**. El aviso desaparece a medida que más gente instala la app.
 

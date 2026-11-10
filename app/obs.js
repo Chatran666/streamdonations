@@ -4,7 +4,9 @@
 
         // ---- Modo transparente real: esta página está dentro de OBS (fuente de navegador) y recibe todo por obs-websocket ----
         const WS_PARAMS = new URLSearchParams(location.hash.slice(1));
-        const WS_MODE = /^\d{1,5}$/.test(WS_PARAMS.get('ws') || '');
+        // Versión 2: la fuente la sirve la propia app y los mensajes pasan por su servidor interno (#relay=PUERTO&k=CLAVE)
+        const RELAY_MODE = /^\d{1,5}$/.test(WS_PARAMS.get('relay') || '') && /^[0-9a-f]{24,64}$/.test(WS_PARAMS.get('k') || '');
+        const WS_MODE = RELAY_MODE || /^\d{1,5}$/.test(WS_PARAMS.get('ws') || '');
         if (WS_MODE) document.documentElement.classList.add('obs-ws');
         const obsLink = { sock: null, ready: false, n: 0 };
         async function sha256b64(text) {
@@ -13,9 +15,24 @@
         }
         function wsToPanel(msg) {
             if (!obsLink.ready) return;
+            if (RELAY_MODE) { obsLink.sock.send(JSON.stringify({ sd: 1, from: 'obs', msg })); return; }
             obsLink.sock.send(JSON.stringify({ op: 6, d: { requestType: 'BroadcastCustomEvent', requestId: 'o' + (++obsLink.n), requestData: { eventData: { sd: 1, from: 'obs', msg } } } }));
         }
+        function relayConnect() {
+            let sock;
+            try { sock = new WebSocket('ws://127.0.0.1:' + WS_PARAMS.get('relay') + '/ws?k=' + WS_PARAMS.get('k')); } catch (e) { setTimeout(relayConnect, 3000); return; }
+            obsLink.sock = sock;
+            sock.onopen = () => { obsLink.ready = true; wsToPanel({ type: 'HELLO' }); };
+            sock.onmessage = (ev) => {
+                let e; try { e = JSON.parse(ev.data); } catch (x) { return; }
+                if (!e || e.sd !== 1 || e.from !== 'panel' || !e.msg || typeof e.msg.type !== 'string') return;
+                handleWsMsg(e.msg);
+            };
+            sock.onclose = () => { obsLink.ready = false; setTimeout(relayConnect, 3000); };
+            sock.onerror = () => {};
+        }
         function wsConnect() {
+            if (RELAY_MODE) { relayConnect(); return; }
             const port = WS_PARAMS.get('ws'), pw = WS_PARAMS.get('k') || '';
             let sock;
             try { sock = new WebSocket('ws://127.0.0.1:' + port); } catch (e) { setTimeout(wsConnect, 3000); return; }
@@ -552,6 +569,7 @@
             }
             applyObsBg(st.obsBg);
             setLayout(st.layout);
+            document.documentElement.classList.toggle('text-shadow', st.textShadow !== false);
             const ps = ['tag', 'color', 'both'].includes(st.platformStyle) ? st.platformStyle : 'tag';
             document.documentElement.classList.toggle('pstyle-color', ps === 'color');
             document.documentElement.classList.toggle('pstyle-both', ps === 'both');

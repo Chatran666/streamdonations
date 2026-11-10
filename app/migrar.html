@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>StreamDonations - pasando tus datos</title>
+<style>
+    html, body { margin: 0; height: 100%; background: #0f1115; color: #e8e8e8; font: 15px/1.5 system-ui, "Segoe UI", sans-serif; }
+    body { display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; box-sizing: border-box; }
+    #t { max-width: 420px; }
+    #t strong { color: #00E676; }
+</style>
+</head>
+<body>
+<div id="t">Pasando tus datos a la versión nueva de StreamDonations…</div>
+<script>
+// La abre StreamDonations 2 una sola vez, con el perfil de la versión anterior (la que usaba Google Chrome):
+// junta la configuración, el historial y las imágenes/sonidos guardados y se los manda a la app nueva
+// por su servidor interno (127.0.0.1, no sale de la PC). Después se cierra.
+(async function () {
+    'use strict';
+    var box = document.getElementById('t');
+    function say(html) { box.innerHTML = html; }
+    var p = new URLSearchParams(location.hash.slice(1));
+    var port = p.get('port') || '', key = p.get('k') || '';
+    if (!/^\d{1,5}$/.test(port) || !/^[0-9a-f]{24,64}$/.test(key)) { say('Link inválido.'); return; }
+
+    function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function json(k, def) { try { var v = JSON.parse(ls(k) || 'null'); return v == null ? def : v; } catch (e) { return def; } }
+    var settings = json('streamdonations_settings', null);
+    var donations = json('streamdonations_chats_db', []);
+
+    function blobToBase64(blob) {
+        return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(',')[1] || ''); }; r.onerror = rej; r.readAsDataURL(blob); });
+    }
+    var MEDIA_KEY_RE = /^(panelBg|obsBg|alertSound|alertSoundBig|icon:[a-z0-9]{6,24})$/;
+    var media = {};
+    try {
+        var db = await new Promise(function (res, rej) {
+            var q = indexedDB.open('streamdonations_files');
+            q.onupgradeneeded = function () { try { q.result.createObjectStore('files'); } catch (e) {} };
+            q.onsuccess = function () { res(q.result); };
+            q.onerror = function () { rej(q.error); };
+        });
+        if (db.objectStoreNames.contains('files')) {
+            var keys = await new Promise(function (res) {
+                var r = db.transaction('files', 'readonly').objectStore('files').getAllKeys();
+                r.onsuccess = function () { res(r.result || []); }; r.onerror = function () { res([]); };
+            });
+            for (var i = 0; i < keys.length && i < 60; i++) {
+                var k = keys[i];
+                if (typeof k !== 'string' || !MEDIA_KEY_RE.test(k)) continue;
+                var blob = await new Promise(function (res) {
+                    var r = db.transaction('files', 'readonly').objectStore('files').get(k);
+                    r.onsuccess = function () { res(r.result); }; r.onerror = function () { res(null); };
+                });
+                if (blob && blob.size) media[k] = { type: blob.type || '', data: await blobToBase64(blob) };
+            }
+        }
+        db.close();
+    } catch (e) {}
+
+    var data = settings && typeof settings === 'object' ? {
+        app: 'StreamDonations', type: 'full-backup', version: 'chrome', date: new Date().toISOString(),
+        settings: settings, donations: Array.isArray(donations) ? donations : [],
+        toolbarVisible: ls('streamdonations_toolbar_visible'), media: media
+    } : null;
+
+    var done = false;
+    function connect(tries) {
+        var sock;
+        try { sock = new WebSocket('ws://127.0.0.1:' + port + '/ws?k=' + key); } catch (e) { return retry(tries); }
+        sock.onopen = function () { sock.send(JSON.stringify({ sd: 1, from: 'migrar', msg: { type: 'MIGRATION', data: data } })); };
+        sock.onmessage = function (ev) {
+            var e; try { e = JSON.parse(ev.data); } catch (x) { return; }
+            if (!e || e.sd !== 1 || e.from !== 'panel' || !e.msg || e.msg.type !== 'MIGRATION_OK') return;
+            done = true;
+            say(e.msg.empty ? 'La versión anterior no tenía datos guardados. Ya podés cerrar esta ventana.' : '<strong>¡Listo!</strong> Tus datos ya están en la versión nueva. Esta ventana se cierra sola.');
+            setTimeout(function () { window.close(); }, 1800);
+        };
+        sock.onclose = function () { if (!done) retry(tries); };
+    }
+    function retry(tries) {
+        if (tries >= 10) { say('No pude hablar con StreamDonations. Abrila y tocá <strong>Opciones → Historial → Traer datos</strong>. Ya podés cerrar esta ventana.'); return; }
+        setTimeout(function () { connect(tries + 1); }, 1500);
+    }
+    connect(0);
+})();
+</script>
+</body>
+</html>

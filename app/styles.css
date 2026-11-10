@@ -2759,3 +2759,9 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .obsws-help ol { margin: 6px 0 6px; padding-left: 20px; color: var(--text-secondary); }
 .obsws-help ol strong { color: var(--text-primary); }
 .obsws-help small { color: var(--text-secondary); font-size: 0.74rem; }
+
+/* Versión 2 (ventana propia): opciones que solo existen ahí */
+:root:not(.is-tauri) .tauri-only { display: none !important; }
+:root.is-tauri .chrome-only { display: none !important; }
+.relay-box { border-color: var(--accent-color, #00E676); }
+.relay-intro { margin: 0; font-size: 0.86rem; line-height: 1.5; color: var(--text-primary); }

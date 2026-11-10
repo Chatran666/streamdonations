@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "StreamDonations",
+  "version": "../package.json",
+  "identifier": "net.streamdonations.app",
+  "build": {
+    "frontendDist": "../dist/app",
+    "beforeBuildCommand": "node build/preparar-app.js",
+    "beforeDevCommand": "node build/preparar-app.js"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": null,
+      "capabilities": ["panel"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "Mariano (Chatran666)",
+    "copyright": "(c) 2026 Mariano (Chatran666) - MIT License",
+    "category": "Utility",
+    "shortDescription": "Donaciones en vivo en un panel y en OBS",
+    "longDescription": "Muestra las donaciones de Ceneka, YouTube, Twitch y Kick en un panel y en OBS.",
+    "homepage": "https://github.com/Chatran666/streamdonations",
+    "license": "MIT",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.png", "icons/icon.ico"],
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["Spanish", "English"],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "./instalador-hooks.nsh"
+      }
+    }
+  },
+  "plugins": {}
+}

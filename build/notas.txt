@@ -1,5 +1,7 @@
-Novedades de la 1.12.1:
-- Modo transparente real: botón (?) al lado de la contraseña que explica paso a paso de dónde sacarla en OBS. Si la contraseña está mal, la ayuda se abre sola.
-
-Novedades de la 1.12.0:
-- Modo transparente real para OBS Studio (28 o más nuevo) con fuente de navegador.
+Novedades de la 2.0.0 (versión de prueba):
+- StreamDonations ahora es un programa propio: ya no necesita Google Chrome.
+- Los links y las descargas se abren en tu navegador de siempre.
+- Fuente de navegador para OBS Studio y Streamlabs sin configurar nada: Opciones → OBS → Copiar link.
+- Sombra suave en las letras en la fuente de navegador, para que se lean sobre cualquier escena.
+- Ícono en la bandeja, opción de abrirse al prender la PC y atajos globales con Ctrl + Alt (opcionales).
+- La primera vez trae sola tus datos de la versión anterior (conexiones, opciones, rangos, historial, imágenes y sonidos).

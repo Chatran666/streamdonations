@@ -4,6 +4,11 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const APP_VERSION = '1.5.3';
+    // Versión 2 (ventana propia, sin Chrome): la app corre dentro de Tauri
+    const TAURI = window.__TAURI__ && window.__TAURI__.core ? window.__TAURI__ : null;
+    if (TAURI) document.documentElement.classList.add('is-tauri');
+    let HAD_SETTINGS = false;
+    try { HAD_SETTINGS = localStorage.getItem('streamdonations_settings') !== null; } catch (e) {}
     // Limpia una donación que viene de afuera (archivos importados, editor JSON, historial guardado)
     // para que ningún campo pueda meter código en la página.
     function safeDonation(d) {
@@ -86,6 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
             soundEnabled: false,
             ttsEnabled: false,
             hotkeys: false, // Atajos de teclado (apagados de fábrica)
+            globalHotkeys: false, // Versión 2: atajos Ctrl+Alt que andan aunque estés en otra ventana
+            closeToTray: false, // Versión 2: al cerrar queda en la bandeja
             soundMaxSecs: 3, // El sonido de la PC se corta a los X segundos (0 = completo)
             bigSoundEnabled: false, // Sonido especial para donaciones grandes
             bigSoundMin: 10000, // Desde cuántos pesos suena el especial
@@ -104,7 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
             obsLayout: { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' },
             // Cómo se muestra la red: 'tag' etiqueta con el nombre, 'color' nombre y foto pintados con el color de la red, 'both' las dos
             obsPlatformStyle: 'tag', panelPlatformStyle: 'tag',
-            obsWsEnabled: false, obsWsPort: 4455, obsWsPassword: '', // modo transparente real (obs-websocket)
+            obsWsEnabled: false, obsWsPort: 4455, obsWsPassword: '',
+            obsTextShadow: true, // sombra suave en las letras en modo transparente real
             customIcons: [], // imágenes propias para los rangos: [{ id, name }] (el archivo queda guardado en esta PC)
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
@@ -1721,6 +1729,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const n = Array.isArray(data.donations) ? data.donations.length : 0;
             const nm = data.media && typeof data.media === 'object' ? Object.keys(data.media).length : 0;
             if (!confirm(`¿Reemplazar la configuración y el historial actuales con esta copia?\n\nIncluye ${n} donaciones y tus conexiones${nm ? ` y ${nm} imágenes o sonidos` : ''}.`)) return;
+            applyFullBackup(data);
+        };
+        reader.readAsText(file);
+    }
+    // Guarda una copia completa (archivo importado o datos traídos de la versión anterior) y recarga
+    function applyFullBackup(data) {
             try {
                 localStorage.setItem('streamdonations_settings', JSON.stringify(data.settings));
                 localStorage.setItem('streamdonations_chats_db', JSON.stringify(Array.isArray(data.donations) ? data.donations : []));
@@ -1728,8 +1742,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('streamdonations_welcome_done', '1');
             } catch (e) { showToast('No se pudo guardar la copia', 'warning'); return; }
             restoreMedia(data.media).then(() => location.reload(), () => location.reload());
-        };
-        reader.readAsText(file);
     }
     function initBackupAndDonate() {
         const ex = document.getElementById('btn-full-export');
@@ -1988,6 +2000,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const dlUrl = info.url || DOWNLOAD_PAGE;
         $('btn-update-go').onclick = () => {
             window.open(dlUrl, '_blank', 'noopener');
+            if (TAURI) {
+                // Versión 2: la descarga se abre en el navegador que usás siempre
+                $('update-how').innerHTML = '<strong>Se abrió tu navegador para descargar el instalador.</strong> Cuando termine, abrilo: se instala encima, la app se cierra sola y no perdés nada.<br>' +
+                    '¿No se abrió? <button type="button" class="btn btn-outline btn-sm" id="btn-update-copy"><i class="fa-solid fa-copy"></i> Copiar link de descarga</button>';
+                $('btn-update-copy').addEventListener('click', () => {
+                    navigator.clipboard.writeText(dlUrl).then(() => showToast('Link copiado: pegalo en tu navegador', 'success'))
+                        .catch(() => { window.prompt('Copiá el link:', dlUrl); });
+                });
+                return;
+            }
             // La app corre en su propio Chrome: la descarga se abre ahí, no en tu navegador de siempre
             $('update-how').innerHTML = '<strong>Se abrió una ventana de Chrome para descargar.</strong> La descarga está en la flecha <i class="fa-solid fa-download"></i> de arriba a la derecha de esa ventana. ' +
                 'Si Chrome avisa que el archivo "no se descarga habitualmente", tocá los tres puntitos y elegí <strong>Conservar</strong>. ' +
@@ -3215,6 +3237,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     els.btnOpenOverlay.addEventListener('click', () => {
+        // Si ya está abierta, se trae al frente (no se abre otra)
+        if (state.overlayWindow && !state.overlayWindow.closed) { try { state.overlayWindow.focus(); } catch (e) {} return; }
         syncUnreadToOverlay();
         state.overlayWindow = window.open('obs.html', 'StreamDonations_Overlay', 'width=560,height=760,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
         if (!state.overlayWindow) {
@@ -4437,6 +4461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-fx-obs').checked = st.fxObs !== false;
         $('cfg-obs-pstyle').value = st.obsPlatformStyle || 'tag';
         $('cfg-obsws-enabled').checked = !!st.obsWsEnabled;
+        $('cfg-obs-textshadow').checked = st.obsTextShadow !== false;
         $('obsws-box').classList.toggle('hidden', !st.obsWsEnabled);
         $('cfg-obsws-port').value = st.obsWsPort || 4455;
         $('cfg-obsws-pw').value = st.obsWsPassword || '';
@@ -4485,6 +4510,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-recover-missed').checked = st.recoverMissed !== false;
         $('cfg-language').value = window.SD_LANG === 'en' ? 'en' : 'es';
         $('cfg-hotkeys').checked = !!st.hotkeys;
+        $('cfg-global-hotkeys').checked = !!st.globalHotkeys;
+        $('cfg-close-tray').checked = !!st.closeToTray;
+        if (TAURI) TAURI.autostart.isEnabled().then(on => { $('cfg-autostart').checked = !!on; }).catch(() => {});
         $('cfg-banned-words').value = st.bannedWords || '';
         $('cfg-censor-obs').checked = st.censorObs !== false;
         $('cfg-censor-tts').checked = st.censorTts !== false;
@@ -4585,6 +4613,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const langBefore = window.SD_LANG || 'es';
         st.language = $('cfg-language').value === 'en' ? 'en' : 'es';
         st.hotkeys = $('cfg-hotkeys').checked;
+        st.globalHotkeys = $('cfg-global-hotkeys').checked;
+        st.closeToTray = $('cfg-close-tray').checked;
+        applyTauriSettings();
         document.documentElement.classList.toggle('hotkeys-off', !st.hotkeys);
         st.bannedWords = $('cfg-banned-words').value.slice(0, 20000);
         st.censorObs = $('cfg-censor-obs').checked;
@@ -4609,6 +4640,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
         st.obsLayout = readObsLayoutForm();
+        st.obsTextShadow = $('cfg-obs-textshadow').checked;
         const wsBefore = JSON.stringify([st.obsWsEnabled, st.obsWsPort, st.obsWsPassword]);
         st.obsWsEnabled = $('cfg-obsws-enabled').checked;
         st.obsWsPort = Math.min(65535, Math.max(1, parseInt($('cfg-obsws-port').value) || 4455));
@@ -4858,24 +4890,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (e.code === 'Space' || e.key === ' ') {
                 e.preventDefault(); // evita que la barra "aprete" el último botón tocado
-                readNext();
-            } else if (e.key === 'r' || e.key === 'R') {
-                repeatLast();
-            } else if (e.key === 'm' || e.key === 'M') {
-                const id = state.activeFocusId;
-                if (id) { window.toggleReadState(id); window.closeFocusModal(); }
-                else showToast('Abrí una donación (o usá Espacio) para marcarla con M', 'info');
-            } else if (e.key === 's' || e.key === 'S') {
-                stopAllSpeech(); if (typeof stopLocalSpeech === 'function') stopLocalSpeech();
-                showToast('Voz callada', 'info');
-            } else if (e.key === 'v' || e.key === 'V') {
-                els.btnToggleTts.click();
-            } else if (e.key === 'b' || e.key === 'B') {
-                els.btnToggleSound.click();
+                hotkeyAction('next');
+            } else {
+                const k = { r: 'repeat', m: 'mark', s: 'stop', v: 'voice', b: 'sound' }[String(e.key).toLowerCase()];
+                if (k) hotkeyAction(k);
             }
         });
 
         forceGoalSync();
+    }
+
+    // Lo que hace cada atajo (teclas en la ventana, o Ctrl+Alt desde cualquier lado en la versión 2)
+    function hotkeyAction(k) {
+        if (k === 'next') readNext();
+        else if (k === 'repeat') repeatLast();
+        else if (k === 'mark') {
+            const id = state.activeFocusId;
+            if (id) { window.toggleReadState(id); window.closeFocusModal(); }
+            else showToast('Abrí una donación (o usá Espacio) para marcarla con M', 'info');
+        } else if (k === 'stop') {
+            stopAllSpeech(); if (typeof stopLocalSpeech === 'function') stopLocalSpeech();
+            showToast('Voz callada', 'info');
+        } else if (k === 'voice') els.btnToggleTts.click();
+        else if (k === 'sound') els.btnToggleSound.click();
     }
 
     function fallbackCopy(text, done) {
@@ -5480,6 +5517,7 @@ document.addEventListener('DOMContentLoaded', () => {
             layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),
             platformStyle: obsPStyleDraft || state.settings.obsPlatformStyle || 'tag',
             lang: window.SD_LANG === 'en' ? 'en' : 'es',
+            textShadow: state.settings.obsTextShadow !== false,
             ts: Date.now()
         };
         lastObsStylePayload = payload;
@@ -6051,6 +6089,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     var lastObsStylePayload = null, wsGoal = null;
     var obsWs = { sock: null, ready: false, reqId: 0, pending: {}, retry: null, sentIcons: new Set(), authFailed: false };
+    var sdRelay = { sock: null, ready: false, info: null, retry: null, sentIcons: new Set() };
     function obsWsCfg() {
         const st = state.settings;
         return { on: !!st.obsWsEnabled, port: Math.min(65535, Math.max(1, parseInt(st.obsWsPort) || 4455)), pw: String(st.obsWsPassword || '') };
@@ -6072,30 +6111,41 @@ document.addEventListener('DOMContentLoaded', () => {
             obsWs.sock.send(JSON.stringify({ op: 6, d: { requestType: type, requestId: id, requestData: data || {} } }));
         });
     }
+    // A dónde va lo de la fuente de navegador: OBS por obs-websocket y/o el servidor interno de la app (versión 2)
+    function linkTargets(only) {
+        const t = [];
+        if (obsWs && obsWs.ready && only !== 'relay') t.push({ sent: obsWs.sentIcons, send: env => obsWsRequest('BroadcastCustomEvent', { eventData: env }).catch(() => {}) });
+        if (typeof sdRelay !== 'undefined' && sdRelay && sdRelay.ready && only !== 'obs') t.push({ sent: sdRelay.sentIcons, send: env => { try { sdRelay.sock.send(JSON.stringify(env)); } catch (e) {} return Promise.resolve(); } });
+        return t;
+    }
     // Lo que va para la fuente de navegador (se ignora si no hay conexión)
-    function obsWsSend(msg) {
-        if (!obsWs || !obsWs.ready || !msg) return;
-        // Las imágenes propias de los rangos viajan una vez por conexión (la fuente de OBS no ve los archivos de la app)
-        const sendIcon = (icon) => {
-            const m = /^img:([a-z0-9]{6,24})$/.exec(icon || '');
-            if (!m || obsWs.sentIcons.has(m[1]) || !window.SDStore) return Promise.resolve();
-            obsWs.sentIcons.add(m[1]);
-            return SDStore.get('icon:' + m[1]).then(b => b && blobToBase64(b).then(data =>
-                obsWsRequest('BroadcastCustomEvent', { eventData: { sd: 1, from: 'panel', msg: { type: 'ICON', id: m[1], mime: b.type, data } } }).catch(() => {}))).catch(() => {});
-        };
+    function obsWsSend(msg, only) {
+        if (!msg) return;
+        const targets = linkTargets(only);
+        if (!targets.length) return;
         const icons = [];
         if (msg.type === 'NEW_DONATION' && msg.data && msg.data.rank) icons.push(msg.data.rank.icon);
         if (msg.type === 'UPDATE_ALERTS' && msg.data && Array.isArray(msg.data.items)) msg.data.items.forEach(it => it.rank && icons.push(it.rank.icon));
-        Promise.all(icons.map(sendIcon)).then(() => obsWsRequest('BroadcastCustomEvent', { eventData: { sd: 1, from: 'panel', msg } }).catch(() => {}));
+        targets.forEach(tp => {
+            // Las imágenes propias de los rangos viajan una vez por conexión (la fuente no ve los archivos de la app)
+            const sendIcon = (icon) => {
+                const m = /^img:([a-z0-9]{6,24})$/.exec(icon || '');
+                if (!m || tp.sent.has(m[1]) || !window.SDStore) return Promise.resolve();
+                tp.sent.add(m[1]);
+                return SDStore.get('icon:' + m[1]).then(b => b && blobToBase64(b).then(data =>
+                    tp.send({ sd: 1, from: 'panel', msg: { type: 'ICON', id: m[1], mime: b.type, data } }))).catch(() => {});
+            };
+            Promise.all(icons.map(sendIcon)).then(() => tp.send({ sd: 1, from: 'panel', msg }));
+        });
     }
     // Manda a la fuente todo lo que tiene que mostrar ahora (al conectar o cuando la fuente recién arranca)
-    function obsWsSyncAll() {
-        if (!obsWs.ready) return;
-        obsWsSend({ type: 'RESET' });
-        if (lastObsStylePayload) obsWsSend({ type: 'STYLE_UPDATE', data: lastObsStylePayload });
-        if (wsGoal) obsWsSend({ type: 'GOAL_UPDATE', data: wsGoal });
+    function obsWsSyncAll(only) {
+        if (!linkTargets(only).length) return;
+        obsWsSend({ type: 'RESET' }, only);
+        if (lastObsStylePayload) obsWsSend({ type: 'STYLE_UPDATE', data: lastObsStylePayload }, only);
+        if (wsGoal) obsWsSend({ type: 'GOAL_UPDATE', data: wsGoal }, only);
         state.donations.filter(d => !d.isRead && !belowMin(d, state.settings.obsMinAmount)).reverse()
-            .forEach(d => obsWsSend({ type: 'NEW_DONATION', data: overlayPayload(d) }));
+            .forEach(d => obsWsSend({ type: 'NEW_DONATION', data: overlayPayload(d) }, only));
     }
     function obsWsClose() {
         clearTimeout(obsWs.retry); obsWs.retry = null;
@@ -6125,12 +6175,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 let ver = '';
                 try { const r = await obsWsRequest('GetVersion'); ver = r && r.obsVersion ? ' (OBS ' + r.obsVersion + ')' : ''; } catch (e) {}
                 obsWsStatus('ok', 'Conectado' + ver);
-                obsWsSyncAll();
+                obsWsSyncAll('obs');
             } else if (m.op === 5 && m.d && m.d.eventType === 'CustomEvent') {
                 const e = m.d.eventData || {};
                 if (e.sd !== 1 || e.from !== 'obs' || !e.msg) return;
-                if (e.msg.type === 'HELLO') { obsWs.sentIcons = new Set(); obsWsSyncAll(); }
-                else if (e.msg.type === 'MARK_READ' && typeof e.msg.id === 'string') markReadFromObs(e.msg.id.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) || 'x');
+                handleFromSource(e.msg, 'obs');
             } else if (m.op === 7 && m.d) { // respuesta a un pedido
                 const p = obsWs.pending[m.d.requestId];
                 if (!p) return;
@@ -6148,7 +6197,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         sock.onerror = () => {};
     }
+    // Lo que manda la fuente de navegador (por OBS o por el servidor interno)
+    function handleFromSource(msg, via) {
+        if (msg.type === 'HELLO') {
+            if (via === 'obs') obsWs.sentIcons = new Set(); else sdRelay.sentIcons = new Set();
+            obsWsSyncAll(via);
+        } else if (msg.type === 'MARK_READ' && typeof msg.id === 'string') markReadFromObs(msg.id.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) || 'x');
+    }
     function obsSourceUrl() {
+        // Versión 2: la fuente la sirve la propia app (no lleva la contraseña de OBS)
+        if (sdRelay.info) return 'http://127.0.0.1:' + sdRelay.info.port + '/obs.html#relay=' + sdRelay.info.port + '&k=' + sdRelay.info.token;
         const c = obsWsCfg();
         const base = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'obs.html';
         return base + '#ws=' + c.port + (c.pw ? '&k=' + encodeURIComponent(c.pw) : '');
@@ -6201,6 +6259,129 @@ document.addEventListener('DOMContentLoaded', () => {
         if (obsWsCfg().on) obsWsConnect(); else obsWsStatus('off', 'Apagado');
     }
     initObsWs();
+
+    // ==========================================================================
+    // VERSIÓN 2 (Tauri): servidor interno para la fuente de OBS/Streamlabs, bandeja, atajos globales,
+    // arranque con Windows y traer los datos de la versión anterior (la que abría Chrome)
+    // ==========================================================================
+    function relayStatus(kind, text) {
+        const el = $('relay-status');
+        if (el) { el.className = 'conn-status obsws-status ' + kind; el.innerHTML = `<span class="status-dot"></span> ${escapeHTML(text)}`; }
+    }
+    function relayConnect() {
+        if (!TAURI) return;
+        clearTimeout(sdRelay.retry);
+        const go = (info) => {
+            if (!info || !info.port || !/^[0-9a-f]{24,64}$/.test(info.token || '')) { relayStatus('err', 'No arrancó el servidor interno: reiniciá la app'); return; }
+            sdRelay.info = info;
+            let sock;
+            try { sock = new WebSocket('ws://127.0.0.1:' + info.port + '/ws?k=' + info.token); } catch (e) { sdRelay.retry = setTimeout(relayConnect, 4000); return; }
+            sdRelay.sock = sock;
+            sock.onopen = () => { sdRelay.ready = true; sdRelay.sentIcons = new Set(); relayStatus('ok', 'Listo: la fuente se actualiza sola'); obsWsSyncAll('relay'); };
+            sock.onmessage = (ev) => {
+                let e; try { e = JSON.parse(ev.data); } catch (x) { return; }
+                if (!e || e.sd !== 1 || !e.msg || typeof e.msg.type !== 'string') return;
+                if (e.from === 'obs') handleFromSource(e.msg, 'relay');
+                else if (e.from === 'migrar') handleMigration(e.msg);
+            };
+            sock.onclose = () => { sdRelay.ready = false; sdRelay.sock = null; relayStatus('wait', 'Reconectando…'); sdRelay.retry = setTimeout(relayConnect, 3000); };
+            sock.onerror = () => {};
+        };
+        if (sdRelay.info) go(sdRelay.info);
+        else TAURI.core.invoke('relay_info').then(go).catch(() => relayStatus('err', 'No arrancó el servidor interno: reiniciá la app'));
+    }
+    function relaySend(env) { if (sdRelay.ready) try { sdRelay.sock.send(JSON.stringify(env)); } catch (e) {} }
+
+    // Atajos globales: Ctrl+Alt + la misma letra (y Ctrl+Alt+N para leer la siguiente)
+    const GLOBAL_KEYS = { 'CommandOrControl+Alt+N': 'next', 'CommandOrControl+Alt+R': 'repeat', 'CommandOrControl+Alt+M': 'mark',
+        'CommandOrControl+Alt+S': 'stop', 'CommandOrControl+Alt+V': 'voice', 'CommandOrControl+Alt+B': 'sound' };
+    let globalKeysOn = false;
+    function applyGlobalHotkeys() {
+        if (!TAURI || !TAURI.globalShortcut) return;
+        const want = !!state.settings.globalHotkeys;
+        if (want === globalKeysOn) return;
+        globalKeysOn = want;
+        const gs = TAURI.globalShortcut;
+        if (!want) { gs.unregisterAll().catch(() => {}); return; }
+        gs.register(Object.keys(GLOBAL_KEYS), (ev) => {
+            if (ev && ev.state && ev.state !== 'Pressed') return;
+            const k = GLOBAL_KEYS[ev && ev.shortcut] || GLOBAL_KEYS[Object.keys(GLOBAL_KEYS).find(x => x.toLowerCase().replace('commandorcontrol', 'control') === String(ev && ev.shortcut).toLowerCase())];
+            if (k) hotkeyAction(k);
+        }).catch(() => { globalKeysOn = false; showToast('Algún atajo Ctrl+Alt ya lo usa otro programa: no se pudieron activar todos', 'warning'); });
+    }
+    function applyTauriSettings() {
+        if (!TAURI) return;
+        TAURI.core.invoke('set_close_to_tray', { on: !!state.settings.closeToTray }).catch(() => {});
+        applyGlobalHotkeys();
+    }
+
+    // ---- Traer los datos de la versión anterior ----
+    let migrationWaiting = false, migrationTimer = null;
+    function startMigration() {
+        if (!TAURI) return;
+        migrationWaiting = true;
+        clearTimeout(migrationTimer);
+        migrationTimer = setTimeout(() => {
+            if (!migrationWaiting) return;
+            migrationWaiting = false;
+            showToast('No llegaron los datos. Probá otra vez desde Opciones → Historial, o abrí la versión anterior y usá "Exportar copia completa".', 'warning');
+        }, 45000);
+        const go = () => TAURI.core.invoke('legacy_migrate').then(
+            () => showToast('Trayendo tus datos de la versión anterior… (se abre una ventanita un momento)', 'info'),
+            (err) => { migrationWaiting = false; showToast('No se pudieron traer los datos: ' + escapeHTML(String(err)), 'warning'); });
+        if (sdRelay.ready) go(); else { relayConnect(); setTimeout(go, 1200); }
+    }
+    function handleMigration(msg) {
+        if (msg.type !== 'MIGRATION' || !migrationWaiting) return;
+        migrationWaiting = false; clearTimeout(migrationTimer);
+        const data = msg.data;
+        try { localStorage.setItem('sd_legacy_done', '1'); } catch (e) {}
+        if (!data || data.type !== 'full-backup' || !data.settings || typeof data.settings !== 'object') {
+            relaySend({ sd: 1, from: 'panel', msg: { type: 'MIGRATION_OK', empty: true } });
+            showToast('La versión anterior no tenía datos guardados para traer.', 'info');
+            return;
+        }
+        relaySend({ sd: 1, from: 'panel', msg: { type: 'MIGRATION_OK' } });
+        applyFullBackup(data);
+    }
+    function maybeOfferMigration() {
+        if (!TAURI) return;
+        let done = false; try { done = localStorage.getItem('sd_legacy_done') === '1'; } catch (e) {}
+        TAURI.core.invoke('legacy_info').then(info => {
+            if (!info || !info.found) return;
+            const row = $('legacy-row'); if (row) row.classList.remove('hidden');
+            if (done || HAD_SETTINGS) return;
+            if (!info.chrome) { showToast('Encontré datos de la versión anterior, pero no encontré Google Chrome para abrirlos. Abrí la versión vieja y usá "Exportar copia completa".', 'warning'); return; }
+            if (confirm('Encontré tus datos de la versión anterior de StreamDonations (la que usaba Google Chrome): tus conexiones, opciones, rangos e historial.\n\n¿Los traigo a esta versión? Se abre una ventanita un momento y se cierra sola.')) startMigration();
+            else { try { localStorage.setItem('sd_legacy_done', '1'); } catch (e) {} }
+        }).catch(() => {});
+    }
+
+    function initTauri() {
+        if (!TAURI) return;
+        const copyRelay = () => {
+            const url = obsSourceUrl();
+            if (!sdRelay.info) { showToast('El servidor interno todavía no arrancó', 'warning'); return; }
+            (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+                () => showToast('Link copiado. En OBS: Fuentes → + → Navegador → pegalo en URL (ancho 600, alto 1000).', 'success'),
+                () => prompt('Copiá el link:', url));
+        };
+        $('btn-relay-copy').addEventListener('click', copyRelay);
+        $('cfg-autostart').addEventListener('change', (e) => {
+            const on = e.target.checked;
+            (on ? TAURI.autostart.enable() : TAURI.autostart.disable()).then(
+                () => showToast(on ? 'StreamDonations se va a abrir sola al prender la PC' : 'Ya no se abre sola al prender la PC', 'success'),
+                () => { e.target.checked = !on; showToast('No se pudo cambiar el arranque con Windows', 'warning'); });
+        });
+        $('btn-legacy-import').addEventListener('click', () => {
+            if (confirm('¿Traer los datos de la versión anterior (la que usaba Google Chrome)?\n\nReemplaza la configuración y el historial de ahora.')) startMigration();
+        });
+        relayStatus('wait', 'Arrancando…');
+        relayConnect();
+        applyTauriSettings();
+        setTimeout(maybeOfferMigration, 1500);
+    }
+    initTauri();
 
     // Clics en tarjetas y en la base de datos (sin código dentro del HTML, así la página puede prohibir scripts sueltos)
     document.addEventListener('click', (e) => {

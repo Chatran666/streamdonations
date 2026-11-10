@@ -4,7 +4,7 @@
 
 ## Español
 
-StreamDonations es una app que corre en tu PC. **No tiene servidor propio, no crea cuentas y no junta estadísticas de uso.** Todo lo que guarda (configuración, tokens, historial de donaciones, imágenes y sonidos elegidos) queda **solo en tu PC**, dentro del perfil de Chrome que usa la app (`%LOCALAPPDATA%\StreamDonations\perfil`).
+StreamDonations es una app que corre en tu PC. **No tiene servidor propio, no crea cuentas y no junta estadísticas de uso.** Todo lo que guarda (configuración, tokens, historial de donaciones, imágenes y sonidos elegidos) queda **solo en tu PC**, dentro de la carpeta de datos de la app (`%LOCALAPPDATA%\net.streamdonations.app`; la versión 1, que usaba Chrome, los guardaba en `%LOCALAPPDATA%\StreamDonations\perfil`).
 
 La app se conecta solo a estos servicios, y solo para lo que se indica:
 
@@ -14,8 +14,9 @@ La app se conecta solo a estos servicios, y solo para lo que se indica:
 | **Streamlabs** (sockets.streamlabs.com) | Si cargás un token de Streamlabs | Tu token, para recibir tus donaciones en vivo. |
 | **ntfy.sh** | Solo si activás "Sincronizar con otra PC" | El código de sincronización y los **códigos internos** de las donaciones marcadas como leídas o restauradas. **Nunca** nombres, montos, mensajes ni tokens. Se apaga con "Dejar de sincronizar". |
 | **GitHub** (raw.githubusercontent.com, gist.githubusercontent.com, github.com) | Al abrir la app y cada algunas horas | Una consulta para saber si hay una versión nueva, y la descarga del instalador si tocás "Descargar". No se envían datos tuyos (GitHub ve tu dirección IP, como cualquier sitio). |
+| **Servidor interno de la app** (127.0.0.1, solo tu PC) | Siempre en la versión 2, mientras la app está abierta | Le pasa a la fuente de navegador de OBS/Streamlabs las donaciones que se muestran. Solo acepta conexiones de tu propia PC y con una clave aleatoria. |
 | **OBS Studio en tu misma PC** (127.0.0.1) | Solo si activás "Modo transparente real" | Las donaciones que se muestran en OBS, tu contraseña del servidor WebSocket de OBS. Nunca sale de tu PC. |
-| **Google** (voces "Google …" de Chrome) | Solo si elegís una voz de Google para leer en voz alta | Chrome manda a Google el texto a leer (nombre, monto y mensaje de la donación). Las voces de Windows y las incluidas funcionan sin internet. |
+| **Google** (voces "Google …" de Chrome, solo versión 1) | Solo si elegís una voz de Google para leer en voz alta | Chrome manda a Google el texto a leer (nombre, monto y mensaje de la donación). Las voces de Windows y las incluidas funcionan sin internet. |
 | **Sitios de los links** | Solo si abrís un link de un mensaje | Se abre en el navegador, como cualquier link. |
 
 Las fotos de perfil de los donadores se cargan desde las direcciones que manda StreamElements/Streamlabs.
@@ -26,7 +27,7 @@ Consultas: mrlasheras@gmail.com
 
 ## English
 
-StreamDonations runs on your PC. **It has no server of its own, creates no accounts and collects no usage statistics.** Everything it stores (settings, tokens, donation history, chosen images and sounds) stays **only on your PC**, inside the Chrome profile the app uses (`%LOCALAPPDATA%\StreamDonations\perfil`).
+StreamDonations runs on your PC. **It has no server of its own, creates no accounts and collects no usage statistics.** Everything it stores (settings, tokens, donation history, chosen images and sounds) stays **only on your PC**, inside the app's data folder (`%LOCALAPPDATA%\net.streamdonations.app`; version 1, which used Chrome, kept it in `%LOCALAPPDATA%\StreamDonations\perfil`).
 
 The app only connects to these services, and only for the stated purpose:
 
@@ -36,8 +37,9 @@ The app only connects to these services, and only for the stated purpose:
 | **Streamlabs** | If you enter a Streamlabs token | Your token, to receive your donations live. |
 | **ntfy.sh** | Only if you turn on "Sync with another PC" | The sync code and the **internal IDs** of donations marked as read or restored. **Never** names, amounts, messages or tokens. |
 | **GitHub** | When the app opens and every few hours | A request to check for a new version, and the installer download if you click "Download". No personal data is sent (GitHub sees your IP address, like any website). |
+| **The app's internal server** (127.0.0.1, your PC only) | Always in version 2, while the app is open | Passes the donations shown to the OBS/Streamlabs browser source. Only accepts connections from your own PC, with a random key. |
 | **OBS Studio on your own PC** (127.0.0.1) | Only if you turn on "Real transparent mode" | The donations shown in OBS and your OBS WebSocket password. Never leaves your PC. |
-| **Google** (Chrome "Google …" voices) | Only if you choose a Google voice for read-aloud | Chrome sends Google the text to be read (donor name, amount and message). Windows and built-in voices work offline. |
+| **Google** (Chrome "Google …" voices, version 1 only) | Only if you choose a Google voice for read-aloud | Chrome sends Google the text to be read (donor name, amount and message). Windows and built-in voices work offline. |
 | **Link websites** | Only if you open a link from a message | It opens in the browser like any link. |
 
 **To delete everything:** Settings → Reset → "Factory reset", or uninstall the app.

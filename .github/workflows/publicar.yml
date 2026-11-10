@@ -1,18 +1,22 @@
-# Cuando cambia la versión en package.json (rama main), GitHub arma el instalador,
+# Cuando cambia la versión en package.json (rama main), GitHub arma el instalador (Tauri, en Windows),
 # lo publica en Releases y actualiza latest.json en la rama "actualizaciones"
 # (el archivo que la app consulta para saber si hay versión nueva).
+# Una versión de prueba (con guion, ej. 2.0.0-beta.1) sale como "pre-release" y NO avisa a las apps instaladas.
 name: Publicar versión
 on:
   push:
     branches: [main]
-    paths: ['package.json', 'app/**', 'build/**', '.github/workflows/publicar.yml']
+    paths: ['package.json', 'app/**', 'build/**', 'src-tauri/**', '.github/workflows/publicar.yml']
   workflow_dispatch:
 permissions:
   contents: write
   actions: read
 jobs:
   instalador:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     env:
       FIRMAR: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
     steps:
@@ -27,12 +31,26 @@ jobs:
             echo "YA_EXISTE=1" >> $GITHUB_ENV
             echo "La versión v$V ya está publicada: subí el número en package.json para publicar otra."
           fi
-      - name: Instalar NSIS
+      - name: Node
         if: env.YA_EXISTE != '1'
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq nsis
-      - name: Armar el instalador
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Caché de Rust
         if: env.YA_EXISTE != '1'
-        run: bash build/armar.sh
+        uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+        with:
+          workspaces: src-tauri
+      - name: Armar el instalador (Tauri)
+        if: env.YA_EXISTE != '1'
+        run: |
+          npm ci
+          npx tauri build
+          mkdir -p dist
+          F=$(ls src-tauri/target/release/bundle/nsis/*-setup.exe | head -1)
+          cp "$F" "dist/StreamDonations-Setup-${VERSION}.exe"
+          ls -la dist
+          case "$VERSION" in *-*) echo "PRUEBA=1" >> $GITHUB_ENV ;; esac
       # ---- Firma digital con SignPath (se activa sola cuando cargás el secreto SIGNPATH_API_TOKEN
       #      y las variables SIGNPATH_ORGANIZATION_ID / SIGNPATH_PROJECT_SLUG en el repo) ----
       - name: Subir instalador sin firmar (para SignPath)
@@ -85,11 +103,12 @@ jobs:
           target_commitish: ${{ github.sha }}
           name: StreamDonations ${{ env.VERSION }}
           body_path: build/notas.txt
+          prerelease: ${{ env.PRUEBA == '1' }}
           files: |
             dist/StreamDonations-Setup-${{ env.VERSION }}.exe
             dist/latest.json
       - name: Avisar a las apps instaladas (rama "actualizaciones")
-        if: env.YA_EXISTE != '1'
+        if: env.YA_EXISTE != '1' && env.PRUEBA != '1'
         run: |
           cp dist/latest.json /tmp/latest.json
           git config user.name "github-actions"

@@ -1,8 +1,11 @@
 {
   "name": "streamdonations",
   "productName": "StreamDonations",
-  "version": "1.12.1",
+  "version": "2.0.0-beta.1",
   "private": true,
   "description": "Donaciones de Ceneka, YouTube, Twitch y Kick en un panel y en OBS",
-  "author": "Mariano <mrlasheras@gmail.com>"
+  "author": "Mariano <mrlasheras@gmail.com>",
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4"
+  }
 }
