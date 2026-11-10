@@ -1656,17 +1656,57 @@ document.addEventListener('DOMContentLoaded', () => {
             toolbarVisible: localStorage.getItem('streamdonations_toolbar_visible')
         };
     }
-    function exportFullBackup() {
+    // Imágenes y sonidos que se guardan aparte (fondos, sonidos propios e íconos propios)
+    const MEDIA_KEY_RE = /^(panelBg|obsBg|alertSound|alertSoundBig|icon:[a-z0-9]{6,24})$/;
+    const MEDIA_TYPE_RE = /^(image\/(png|gif|webp|jpeg|svg\+xml)|audio\/[a-z0-9.+-]{1,30})$/;
+    function mediaKeys() {
+        return ['panelBg', 'obsBg', 'alertSound', 'alertSoundBig', ...(state.settings.customIcons || []).map(ic => 'icon:' + ic.id)];
+    }
+    function blobToBase64(blob) {
+        return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(blob); });
+    }
+    function base64ToBlob(b64, type) {
+        const bin = atob(b64), arr = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        return new Blob([arr], { type });
+    }
+    function collectMedia() {
+        if (!window.SDStore) return Promise.resolve({});
+        const out = {};
+        return Promise.all(mediaKeys().map(k => SDStore.get(k).then(b => {
+            if (!b || !b.size) return;
+            return blobToBase64(b).then(data => { out[k] = { type: b.type || '', data }; });
+        }).catch(() => {}))).then(() => out);
+    }
+    function exportFullBackup(withMedia) {
         const d = new Date();
         const name = 'StreamDonations-copia-' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + '.json';
-        const blob = new Blob([JSON.stringify(fullBackupData(), null, 2)], { type: 'application/json' });
+        return (withMedia ? collectMedia() : Promise.resolve(null)).then(media => {
+        const data = fullBackupData();
+        if (media && Object.keys(media).length) data.media = media;
+        const blob = new Blob([JSON.stringify(data, null, media ? 0 : 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = name;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
-        return name;
+        return { name, mb: blob.size / 1048576, files: media ? Object.keys(media).length : 0 };
+        });
+    }
+    // Guarda en esta PC las imágenes y sonidos que trae una copia (solo los tipos y tamaños permitidos)
+    function restoreMedia(media) {
+        if (!media || typeof media !== 'object' || !window.SDStore) return Promise.resolve(0);
+        let total = 0, n = 0;
+        const jobs = Object.keys(media).slice(0, 60).map(k => {
+            const m = media[k];
+            if (!MEDIA_KEY_RE.test(k) || !m || typeof m.data !== 'string' || !MEDIA_TYPE_RE.test(m.type || '')) return null;
+            const size = Math.floor(m.data.length * 0.75);
+            const max = k.startsWith('icon:') ? 220 * 1024 : (/Bg$/.test(k) ? 8.5 * 1048576 : 3.2 * 1048576);
+            if (size > max || (total += size) > 64 * 1048576) return null;
+            try { const blob = base64ToBlob(m.data, m.type); n++; return SDStore.put(k, blob).catch(() => { n--; }); } catch (e) { return null; }
+        });
+        return Promise.all(jobs).then(() => n);
     }
     function importFullBackup(file) {
         const reader = new FileReader();
@@ -1678,14 +1718,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const n = Array.isArray(data.donations) ? data.donations.length : 0;
-            if (!confirm(`¿Reemplazar la configuración y el historial actuales con esta copia?\n\nIncluye ${n} donaciones y tus conexiones.`)) return;
+            const nm = data.media && typeof data.media === 'object' ? Object.keys(data.media).length : 0;
+            if (!confirm(`¿Reemplazar la configuración y el historial actuales con esta copia?\n\nIncluye ${n} donaciones y tus conexiones${nm ? ` y ${nm} imágenes o sonidos` : ''}.`)) return;
             try {
                 localStorage.setItem('streamdonations_settings', JSON.stringify(data.settings));
                 localStorage.setItem('streamdonations_chats_db', JSON.stringify(Array.isArray(data.donations) ? data.donations : []));
                 if (data.toolbarVisible !== null && data.toolbarVisible !== undefined) localStorage.setItem('streamdonations_toolbar_visible', data.toolbarVisible);
                 localStorage.setItem('streamdonations_welcome_done', '1');
             } catch (e) { showToast('No se pudo guardar la copia', 'warning'); return; }
-            location.reload();
+            restoreMedia(data.media).then(() => location.reload(), () => location.reload());
         };
         reader.readAsText(file);
     }
@@ -1693,7 +1734,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const ex = document.getElementById('btn-full-export');
         const im = document.getElementById('btn-full-import');
         const fi = document.getElementById('full-import-file');
-        if (ex) ex.addEventListener('click', () => { const n = exportFullBackup(); showToast('Copia guardada en Descargas: ' + escapeHTML(n), 'success'); });
+        if (ex) ex.addEventListener('click', () => {
+            const withMedia = !$('cfg-backup-media') || $('cfg-backup-media').checked;
+            ex.disabled = true;
+            exportFullBackup(withMedia).then(r => {
+                showToast('Copia guardada en Descargas: ' + escapeHTML(r.name) + (r.files ? ` (con ${r.files} imágenes o sonidos, ${r.mb.toFixed(1)} MB)` : ''), 'success');
+            }).catch(() => showToast('No se pudo guardar la copia', 'warning')).finally(() => { ex.disabled = false; });
+        });
         if (im && fi) {
             im.addEventListener('click', () => fi.click());
             fi.addEventListener('change', () => { if (fi.files && fi.files[0]) importFullBackup(fi.files[0]); fi.value = ''; });

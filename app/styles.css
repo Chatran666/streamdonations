@@ -2734,3 +2734,4 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .um-btn:hover { background: rgba(var(--ink-rgb), 0.06); }
 .um-btn.danger { color: #F87171; border-color: rgba(239, 68, 68, 0.4); }
 .user-menu .pane-note { margin: 0; }
+.backup-media-check { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.78rem; color: var(--text-secondary); }

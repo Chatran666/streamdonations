@@ -1,9 +1,5 @@
-Novedades de la 1.11.0:
-- Estilos: "looks" con nombre que le ponen efectos a la tarjeta, al mensaje, al nick, al rango y al monto, cada parte por separado. Vienen 6 listos (Dorado brillante, Neón rosa, Serpiente, Arcoíris, Fuego, Suave) y podés crear los tuyos en una ventana aparte con vista previa en vivo.
-- Efectos nuevos: serpiente (para los dos lados), serpiente doble, guiones que corren, reloj, neón, respiración, degradado de dos colores, borde doble y más. Con intensidad y velocidad.
-- Cada rango y las donaciones grandes usan un estilo (Opciones → Destacar).
-- Íconos de rangos: ahora están todos (más de 1.800, con marcas como YouTube, Twitch o Discord), con buscador en español, emojis e imágenes propias (PNG, GIF animado, SVG…).
-- Tocá el nombre de alguien en el panel para darle un rango, ver sus donaciones o bloquearlo, sin ir a Opciones.
+Novedades de la 1.11.1:
+- La "copia completa" ahora también guarda tus imágenes y sonidos (fondos, sonidos propios e íconos propios), y al importarla se recupera todo. Se puede destildar si querés una copia liviana.
 
-Novedades de la 1.10.4:
-- Actualizar es más claro y hay un botón para copiar el link de descarga.
+Novedades de la 1.11.0:
+- Estilos con efectos, todos los íconos con buscador, emojis e imágenes propias, y menú rápido al tocar un nombre.

@@ -811,6 +811,10 @@ window.SD_I18N_EN = {
     'Máximo 10 colores': 'Maximum 10 colors',
 
     // ---- 1.11: styles, icons, user menu ----
+    'Incluir imágenes y sonidos (fondos, sonidos propios e íconos propios)': 'Include images and sounds (backgrounds, own sounds and own icons)',
+    'Copia guardada en Descargas: {} (con {} imágenes o sonidos, {} MB)': 'Backup saved in Downloads: {} (with {} images or sounds, {} MB)',
+    'Copia guardada en Descargas: {}': 'Backup saved in Downloads: {}',
+    'Incluye {} donaciones y tus conexiones y {} imágenes o sonidos.': 'It has {} donations, your connections and {} images or sounds.',
     '(licencia MIT). Algunos efectos están inspirados en OverlayGO! de TechConChris (licencia MIT). StreamElements, Streamlabs, Ceneka, YouTube, Twitch y Kick son marcas de sus respectivos dueños; esta app no está afiliada a ellos.': 'library (MIT license). Some effects are inspired by OverlayGO! by TechConChris (MIT license). StreamElements, Streamlabs, Ceneka, YouTube, Twitch and Kick are trademarks of their respective owners; this app is not affiliated with them.',
     'Estilos': 'Styles',
     'Un estilo es un "look" con nombre (por ejemplo': 'A style is a named "look" (for example',
