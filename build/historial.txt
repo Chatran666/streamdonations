@@ -1,3 +1,7 @@
+Novedades de la 2.0.3:
+- Opciones → OBS más simple: "Cómo llevar las donaciones a OBS" muestra las tres formas (Link, Captura de ventana y Automático con OBS) y cada una abre una ventanita con sus pasos.
+- Captura de ventana: botones para abrir el Modo OBS y poner el fondo para recortar en un toque.
+
 Novedades de la 2.0.2:
 - El diseño de las donaciones se elige desde un menú desplegable, con la vista previa abajo (ocupa mucho menos lugar).
 - Nuevo: "Fondo detrás de cada donación" para regular qué tan tapado queda lo de atrás (sirve sobre todo en Subtítulo, Cristal y con fondos claros).

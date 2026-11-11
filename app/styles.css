@@ -2807,3 +2807,22 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .range-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 240px; }
 .range-row input[type="range"] { flex: 1; min-width: 120px; }
 .range-row input[type="range"]:disabled { opacity: 0.4; }
+
+/* Cómo llevar las donaciones a OBS: tres opciones y la ventanita de pasos */
+.obs-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 8px 0 14px; }
+.obs-way { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; padding: 14px; border-radius: 12px; cursor: pointer;
+    background: var(--bg-tertiary, rgba(255, 255, 255, 0.04)); border: 2px solid var(--border-color); color: var(--text-primary); }
+.obs-way i { font-size: 1.3rem; color: var(--accent); margin-bottom: 2px; }
+.obs-way strong { font-size: 0.95rem; }
+.obs-way small { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.35; }
+.obs-way:hover { border-color: var(--accent); }
+.obs-way[data-way="link"] { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.obs-way-badge { position: absolute; top: 10px; right: 10px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+#modal-obsway { z-index: 1600; }
+.obsway-card { width: min(640px, calc(100vw - 24px)); max-width: 640px; max-height: calc(100vh - 24px); display: flex; flex-direction: column; padding: 0; }
+.obsway-body { padding: 14px 18px; overflow-y: auto; }
+.obsway-body .obsws-box { margin: 0; }
+.obsway-pane.hidden { display: none; }
+.obsway-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--border-color); }
+.obsway-foot small { color: var(--text-secondary); }

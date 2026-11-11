@@ -5636,6 +5636,35 @@ document.addEventListener('DOMContentLoaded', () => {
         $('obs-bg-file').addEventListener('change', () => pickBackground($('obs-bg-file'), 'obsBg', $('obs-bg-name'), $('cfg-obs-bg-type')));
     }
 
+    // ---- Cómo llevar las donaciones a OBS: tres tarjetas y una ventanita con los pasos de cada una ----
+    const OBS_WAY_TITLES = { link: 'Link (recomendado)', window: 'Captura de ventana', auto: 'Automático con OBS' };
+    function openObsWay(way) {
+        if (!OBS_WAY_TITLES[way]) return;
+        $('obsway-title-text').textContent = OBS_WAY_TITLES[way];
+        document.querySelectorAll('#modal-obsway [data-way-pane]').forEach(p => p.classList.toggle('hidden', p.dataset.wayPane !== way));
+        $('modal-obsway').classList.remove('hidden');
+    }
+    function closeObsWay() { $('modal-obsway').classList.add('hidden'); }
+    function initObsWays() {
+        document.querySelector('.obs-ways').addEventListener('click', (e) => {
+            const b = e.target.closest('[data-way]');
+            if (b) openObsWay(b.dataset.way);
+        });
+        $('btn-close-obsway').addEventListener('click', closeObsWay);
+        $('btn-obsway-ok').addEventListener('click', closeObsWay);
+        $('modal-obsway').addEventListener('click', (e) => { if (e.target === $('modal-obsway')) closeObsWay(); });
+        $('modal-obsway').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeObsWay(); } });
+        $('btn-way-open-obs').addEventListener('click', () => els.btnOpenOverlay.click());
+        $('btn-way-chroma').addEventListener('click', () => {
+            const t = $('cfg-obs-bg-type');
+            t.value = 'chroma';
+            t.dispatchEvent(new Event('change', { bubbles: true }));
+            setSettingsDirty(true);
+            showToast('Listo: la ventana Modo OBS ahora tiene fondo magenta para recortar. Acordate de tocar "Guardar cambios".', 'success');
+        });
+    }
+    initObsWays();
+
     var themeDraft = null;
     function initThemePicker() {
         $('theme-picker').addEventListener('click', (e) => {

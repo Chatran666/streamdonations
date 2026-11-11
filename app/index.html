@@ -311,6 +311,91 @@
     <div class="user-menu hidden" id="user-menu" role="dialog" aria-label="Opciones del usuario"></div>
 
     <!-- EDITOR DE ESTILOS -->
+    <!-- Cómo llevar las donaciones a OBS: los pasos de cada forma -->
+    <div class="modal-overlay hidden" id="modal-obsway" role="dialog" aria-modal="true" aria-labelledby="obsway-title">
+        <div class="modal-card obsway-card">
+            <div class="modal-header">
+                <h2 id="obsway-title"><i class="fa-solid fa-plug"></i> <span id="obsway-title-text">Link</span></h2>
+                <button class="btn-close" id="btn-close-obsway" title="Listo"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="obsway-body">
+                <div class="obsway-pane" data-way-pane="link">
+                        <div class="obsws-box relay-box">
+                            <p class="relay-intro"><strong>Fuente de navegador para OBS Studio o Streamlabs.</strong> Las donaciones aparecen dentro de tu escena, sin fondo, con brillos y sombras perfectos. No hay que configurar nada en OBS.</p>
+                            <ol class="obsws-steps">
+                                <li>Tocá <strong>Copiar link</strong>.</li>
+                                <li>En OBS: en <strong>Fuentes</strong> tocá <strong>+</strong> → <strong>Navegador</strong>. En Streamlabs: <strong>Agregar fuente</strong> → <strong>Navegador web</strong>.</li>
+                                <li>Pegá el link en <strong>URL</strong>, poné ancho <strong>600</strong> y alto <strong>1000</strong> y aceptá. Acomodala y achicala como quieras.</li>
+                            </ol>
+                            <div class="obsws-actions">
+                                <span class="conn-status obsws-status wait" id="relay-status"><span class="status-dot"></span> Arrancando…</span>
+                                <button type="button" class="btn btn-primary btn-sm" id="btn-relay-copy"><i class="fa-solid fa-link"></i> Copiar link</button>
+                            </div>
+                            <small class="pane-note">StreamDonations tiene que estar abierta mientras transmitís. El link funciona solo en esta PC.</small>
+                        </div>
+                </div>
+                <div class="obsway-pane" data-way-pane="window">
+                    <div class="obsws-box">
+                        <p class="relay-intro"><strong>Captura de ventana.</strong> Sirve en cualquier programa de streaming. Los brillos y sombras pueden quedar con un borde, porque el fondo se recorta por color.</p>
+                        <ol class="obsws-steps">
+                            <li>Tocá <strong>Abrir Modo OBS</strong> y dejá esa ventana abierta (podés taparla con otras, pero no minimizarla).</li>
+                            <li>Tocá <strong>Usar fondo para recortar</strong>: la ventana se pone de un color liso (magenta).</li>
+                            <li>En OBS: <strong>Fuentes</strong> → <strong>+</strong> → <strong>Captura de ventana</strong> → elegí <strong>StreamDonations - Modo OBS</strong>.</li>
+                            <li>Clic derecho en esa fuente → <strong>Filtros</strong> → <strong>+</strong> → <strong>Clave cromática</strong> → color <strong>Magenta</strong>. Listo: el fondo desaparece.</li>
+                        </ol>
+                        <div class="obsws-actions">
+                            <button type="button" class="btn btn-primary btn-sm" id="btn-way-open-obs"><i class="fa-solid fa-display"></i> Abrir Modo OBS</button>
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-way-chroma"><i class="fa-solid fa-fill-drip"></i> Usar fondo para recortar</button>
+                        </div>
+                        <small class="pane-note">El color del fondo se cambia en Opciones → OBS → Fondo de la ventana OBS. Si mostrás donaciones de Kick (verde), no uses verde.</small>
+                    </div>
+                </div>
+                <div class="obsway-pane" data-way-pane="auto">
+                        <label class="setting-row toggle-row">
+                            <div><strong>Conectar con OBS</strong><small>La app se conecta a OBS Studio (28 o más nuevo) y agrega la fuente por vos. Todo queda en tu PC, no usa internet.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obsws-enabled"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="obsws-box hidden" id="obsws-box">
+                            <ol class="obsws-steps">
+                                <li>En OBS: <strong>Herramientas → Configuración del servidor WebSocket</strong>. Tildá <strong>Habilitar servidor WebSocket</strong> y tocá <strong>Aplicar</strong>.</li>
+                                <li>Ahí mismo tocá <strong>Mostrar información de conexión</strong>, copiá la <strong>contraseña</strong> y pegala acá abajo. Tocá <strong>Conectar</strong>.</li>
+                                <li>Tocá <strong>Agregar a mi escena</strong>: la app crea la fuente "StreamDonations" en la escena que tengas al aire. Acomodala y achicala como quieras.</li>
+                            </ol>
+                            <div class="obsws-fields">
+                                <label class="rank-field"><span>Puerto</span><input type="number" id="cfg-obsws-port" min="1" max="65535" placeholder="4455"></label>
+                                <label class="rank-field obsws-pw"><span>Contraseña</span><input type="password" id="cfg-obsws-pw" maxlength="200" autocomplete="off" spellcheck="false" placeholder="La de OBS"></label>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-obsws-eye" title="Mostrar/ocultar contraseña"><i class="fa-solid fa-eye"></i></button>
+                                <button type="button" class="help-q" id="btn-obsws-help" aria-expanded="false" aria-controls="obsws-help" title="¿De dónde saco la contraseña?">?</button>
+                                <button type="button" class="btn btn-primary btn-sm" id="btn-obsws-connect"><i class="fa-solid fa-plug"></i> Conectar</button>
+                            </div>
+                            <div class="obsws-help hidden" id="obsws-help" role="note">
+                                <strong><i class="fa-solid fa-key"></i> ¿De dónde saco la contraseña?</strong>
+                                <ol>
+                                    <li>Abrí <strong>OBS Studio</strong>.</li>
+                                    <li>En el menú de arriba: <strong>Herramientas</strong> → <strong>Configuración del servidor WebSocket</strong>.</li>
+                                    <li>Tildá <strong>Habilitar servidor WebSocket</strong> y tocá <strong>Aplicar</strong>.</li>
+                                    <li>Tocá el botón <strong>Mostrar información de conexión</strong>.</li>
+                                    <li>En <strong>Contraseña del servidor</strong> tocá <strong>Copiar</strong> y pegala acá. El <strong>Puerto</strong> que aparece ahí (casi siempre 4455) va en el casillero "Puerto".</li>
+                                </ol>
+                                <small>Si en OBS destildaste "Habilitar autenticación", dejá la contraseña vacía. Si no ves "Configuración del servidor WebSocket" en Herramientas, tu OBS es anterior a la versión 28: actualizalo desde obsproject.com.</small>
+                            </div>
+                            <div class="obsws-actions">
+                                <span class="conn-status obsws-status off" id="obsws-status"><span class="status-dot"></span> Apagado</span>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-obsws-add" disabled><i class="fa-solid fa-plus"></i> Agregar a mi escena</button>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-obsws-copy"><i class="fa-solid fa-link"></i> Copiar link de la fuente</button>
+                            </div>
+                            <small class="pane-note">Con la fuente de navegador no hace falta la ventana "Modo OBS" ni el recorte por color. <span class="chrome-only">El link de la fuente lleva tu contraseña de OBS: no lo compartas.</span> Si cambiás la contraseña en OBS, pegá la nueva acá y volvé a tocar "Agregar a mi escena" para actualizar la fuente.</small>
+                        </div>
+
+                </div>
+            </div>
+            <div class="obsway-foot">
+                <small>Los cambios se guardan con "Guardar cambios" en Opciones.</small>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-obsway-ok"><i class="fa-solid fa-check"></i> Listo</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay hidden" id="modal-styles" role="dialog" aria-modal="true" aria-labelledby="styles-title">
         <div class="modal-card styles-card">
             <div class="modal-header">
@@ -984,54 +1069,25 @@
                         <h3 class="pane-title">OBS</h3>
                         <p class="pane-desc">Lo que ve tu audiencia en la ventana "Modo OBS". Abrila para ver los cambios en vivo.</p>
 
-                        <div class="pane-subtitle"><i class="fa-solid fa-layer-group"></i> Modo transparente real</div>
-                        <div class="obsws-box relay-box tauri-only">
-                            <p class="relay-intro"><strong>Fuente de navegador para OBS Studio o Streamlabs.</strong> Las donaciones aparecen dentro de tu escena, sin fondo, con brillos y sombras perfectos. No hay que configurar nada en OBS.</p>
-                            <ol class="obsws-steps">
-                                <li>Tocá <strong>Copiar link</strong>.</li>
-                                <li>En OBS: en <strong>Fuentes</strong> tocá <strong>+</strong> → <strong>Navegador</strong>. En Streamlabs: <strong>Agregar fuente</strong> → <strong>Navegador web</strong>.</li>
-                                <li>Pegá el link en <strong>URL</strong>, poné ancho <strong>600</strong> y alto <strong>1000</strong> y aceptá. Acomodala y achicala como quieras.</li>
-                            </ol>
-                            <div class="obsws-actions">
-                                <span class="conn-status obsws-status wait" id="relay-status"><span class="status-dot"></span> Arrancando…</span>
-                                <button type="button" class="btn btn-primary btn-sm" id="btn-relay-copy"><i class="fa-solid fa-link"></i> Copiar link</button>
-                            </div>
-                            <small class="pane-note">StreamDonations tiene que estar abierta mientras transmitís. El link funciona solo en esta PC.</small>
-                        </div>
-                        <label class="setting-row toggle-row">
-                            <div><strong class="chrome-only">Mostrar las donaciones dentro de OBS, con transparencia real</strong><strong class="tauri-only">Opcional: conectar con OBS para que la app agregue la fuente sola</strong><small>En vez de capturar la ventana, las donaciones aparecen en una fuente de navegador de OBS: sin fondo, con brillos y sombras perfectos sobre tu escena. Necesita OBS Studio 28 o más nuevo. Todo queda en tu PC, no usa internet.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-obsws-enabled"><span class="toggle-slider"></span></span>
-                        </label>
-                        <div class="obsws-box hidden" id="obsws-box">
-                            <ol class="obsws-steps">
-                                <li>En OBS: <strong>Herramientas → Configuración del servidor WebSocket</strong>. Tildá <strong>Habilitar servidor WebSocket</strong> y tocá <strong>Aplicar</strong>.</li>
-                                <li>Ahí mismo tocá <strong>Mostrar información de conexión</strong>, copiá la <strong>contraseña</strong> y pegala acá abajo. Tocá <strong>Conectar</strong>.</li>
-                                <li>Tocá <strong>Agregar a mi escena</strong>: la app crea la fuente "StreamDonations" en la escena que tengas al aire. Acomodala y achicala como quieras.</li>
-                            </ol>
-                            <div class="obsws-fields">
-                                <label class="rank-field"><span>Puerto</span><input type="number" id="cfg-obsws-port" min="1" max="65535" placeholder="4455"></label>
-                                <label class="rank-field obsws-pw"><span>Contraseña</span><input type="password" id="cfg-obsws-pw" maxlength="200" autocomplete="off" spellcheck="false" placeholder="La de OBS"></label>
-                                <button type="button" class="btn btn-outline btn-sm" id="btn-obsws-eye" title="Mostrar/ocultar contraseña"><i class="fa-solid fa-eye"></i></button>
-                                <button type="button" class="help-q" id="btn-obsws-help" aria-expanded="false" aria-controls="obsws-help" title="¿De dónde saco la contraseña?">?</button>
-                                <button type="button" class="btn btn-primary btn-sm" id="btn-obsws-connect"><i class="fa-solid fa-plug"></i> Conectar</button>
-                            </div>
-                            <div class="obsws-help hidden" id="obsws-help" role="note">
-                                <strong><i class="fa-solid fa-key"></i> ¿De dónde saco la contraseña?</strong>
-                                <ol>
-                                    <li>Abrí <strong>OBS Studio</strong>.</li>
-                                    <li>En el menú de arriba: <strong>Herramientas</strong> → <strong>Configuración del servidor WebSocket</strong>.</li>
-                                    <li>Tildá <strong>Habilitar servidor WebSocket</strong> y tocá <strong>Aplicar</strong>.</li>
-                                    <li>Tocá el botón <strong>Mostrar información de conexión</strong>.</li>
-                                    <li>En <strong>Contraseña del servidor</strong> tocá <strong>Copiar</strong> y pegala acá. El <strong>Puerto</strong> que aparece ahí (casi siempre 4455) va en el casillero "Puerto".</li>
-                                </ol>
-                                <small>Si en OBS destildaste "Habilitar autenticación", dejá la contraseña vacía. Si no ves "Configuración del servidor WebSocket" en Herramientas, tu OBS es anterior a la versión 28: actualizalo desde obsproject.com.</small>
-                            </div>
-                            <div class="obsws-actions">
-                                <span class="conn-status obsws-status off" id="obsws-status"><span class="status-dot"></span> Apagado</span>
-                                <button type="button" class="btn btn-outline btn-sm" id="btn-obsws-add" disabled><i class="fa-solid fa-plus"></i> Agregar a mi escena</button>
-                                <button type="button" class="btn btn-outline btn-sm" id="btn-obsws-copy"><i class="fa-solid fa-link"></i> Copiar link de la fuente</button>
-                            </div>
-                            <small class="pane-note">Con la fuente de navegador no hace falta la ventana "Modo OBS" ni el recorte por color. <span class="chrome-only">El link de la fuente lleva tu contraseña de OBS: no lo compartas.</span> Si cambiás la contraseña en OBS, pegá la nueva acá y volvé a tocar "Agregar a mi escena" para actualizar la fuente.</small>
+                        <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Cómo llevar las donaciones a OBS</div>
+                        <p class="pane-note">Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.</p>
+                        <div class="obs-ways">
+                            <button type="button" class="obs-way tauri-only" data-way="link">
+                                <span class="obs-way-badge">Recomendado</span>
+                                <i class="fa-solid fa-link"></i>
+                                <strong>Link</strong>
+                                <small>Pegás un link en OBS o Streamlabs una sola vez. Sin fondo y se ve perfecto.</small>
+                            </button>
+                            <button type="button" class="obs-way" data-way="window">
+                                <i class="fa-solid fa-window-maximize"></i>
+                                <strong>Captura de ventana</strong>
+                                <small>Capturás la ventana "Modo OBS" y le sacás el fondo con un filtro de color.</small>
+                            </button>
+                            <button type="button" class="obs-way" data-way="auto">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <strong>Automático con OBS</strong>
+                                <small>La app agrega la fuente sola. Hay que activar el WebSocket en OBS y poner su contraseña.</small>
+                            </button>
                         </div>
 
                         <label class="setting-row toggle-row">
