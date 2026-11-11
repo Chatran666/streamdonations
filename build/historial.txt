@@ -1,3 +1,6 @@
+Novedades de la 2.0.6:
+- Actualizar desde la misma app: en el aviso de versión nueva tocás "Actualizar ahora" y se baja, se controla que sea el instalador original y se instala solo, sin el asistente. La app se cierra y se vuelve a abrir actualizada.
+
 Novedades de la 2.0.5:
 - Las preguntas de confirmación ("¿Salir sin guardar?", "¿Borrar…?") ahora tienen el estilo de la app, con botones claros.
 - La vista previa del diseño se ajusta sola al tamaño de las donaciones (sin espacio vacío) y muestra todas las plataformas.

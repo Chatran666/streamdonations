@@ -25,6 +25,7 @@ use tauri::{AppHandle, Manager, Url, WebviewUrl, WebviewWindowBuilder, Wry};
 use tauri_plugin_opener::OpenerExt;
 
 mod voz;
+mod actualizar;
 
 /// Igual para todas las ventanas (WebView2 exige los mismos argumentos en las que comparten datos).
 /// Los tres primeros son los que Tauri pone de fábrica; el último deja sonar los avisos sin tocar nada antes.
@@ -401,7 +402,8 @@ pub fn run() {
             voz::voz_status,
             voz::voz_install,
             voz::voz_remove,
-            voz::voz_synth
+            voz::voz_synth,
+            actualizar::update_install
         ])
         .setup(|app| {
             let handle = app.handle().clone();

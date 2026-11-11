@@ -444,10 +444,15 @@
                 <h3 id="update-title">Hay una versión nueva</h3>
                 <p id="update-text"></p>
                 <div class="update-notes hidden" id="update-notes"></div>
+                <div class="update-progress hidden" id="update-progress">
+                    <div class="voz-bar"><span id="update-progress-fill"></span></div>
+                    <small id="update-progress-text">Bajando…</small>
+                </div>
                 <div class="update-actions">
                     <button type="button" class="btn btn-outline" id="btn-update-later">Más tarde</button>
                     <button type="button" class="btn btn-primary" id="btn-update-go"><i class="fa-solid fa-download"></i> Descargar actualización</button>
                 </div>
+                <button type="button" class="update-browser-link hidden" id="btn-update-browser">¿Preferís bajarlo con tu navegador?</button>
                 <a href="#" class="update-extra-link hidden" id="update-extra-link" target="_blank" rel="noopener"></a>
                 <small class="pane-note" id="update-how">Descargá el instalador, cerrá StreamDonations y ejecutalo: se instala encima y no perdés nada.</small>
             </div>

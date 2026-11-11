@@ -2090,7 +2090,16 @@ document.addEventListener('DOMContentLoaded', () => {
             ? 'Se descarga el instalador. Cuando termine, cerrá StreamDonations y abrilo: se instala encima y no perdés nada.'
             : 'Descargá el instalador, cerrá StreamDonations y ejecutalo: se instala encima y no perdés nada.';
         const dlUrl = info.url || DOWNLOAD_PAGE;
-        $('btn-update-go').onclick = () => {
+        // Versión 2: se baja y se instala desde la misma app (si el aviso trae la huella del instalador)
+        const inApp = !!(TAURI && direct && /^[0-9a-f]{64}$/.test(info.sha256 || ''));
+        $('btn-update-browser').classList.toggle('hidden', !inApp);
+        $('update-progress').classList.add('hidden');
+        if (inApp) {
+            $('btn-update-go').innerHTML = '<i class="fa-solid fa-rotate"></i> Actualizar ahora';
+            $('btn-update-go').disabled = false;
+            $('update-how').textContent = 'Se baja y se instala sola en unos segundos. La app se cierra y se vuelve a abrir actualizada; no perdés nada.';
+        }
+        const browserDownload = () => {
             window.open(dlUrl, '_blank', 'noopener');
             if (TAURI) {
                 // Versión 2: la descarga se abre en el navegador que usás siempre
@@ -2110,6 +2119,38 @@ document.addEventListener('DOMContentLoaded', () => {
             $('btn-update-copy').addEventListener('click', () => {
                 navigator.clipboard.writeText(dlUrl).then(() => showToast('Link copiado: pegalo en tu navegador', 'success'))
                     .catch(() => { window.prompt('Copiá el link:', dlUrl); });
+            });
+        };
+        $('btn-update-browser').onclick = () => { $('btn-update-browser').classList.add('hidden'); browserDownload(); };
+        $('btn-update-go').onclick = () => {
+            if (!inApp) { browserDownload(); return; }
+            const go = $('btn-update-go'), later = $('btn-update-later');
+            go.disabled = true; later.disabled = true;
+            $('update-progress').classList.remove('hidden');
+            $('update-progress-fill').style.width = '0%';
+            $('update-progress-text').textContent = 'Bajando…';
+            const offs = [];
+            const cleanup = () => offs.forEach(f => { try { f(); } catch (e) {} });
+            TAURI.event.listen('update-progress', ev => {
+                const p = ev.payload || {};
+                const pct = p.total ? Math.min(100, Math.round(p.done / p.total * 100)) : 0;
+                $('update-progress-fill').style.width = pct + '%';
+                $('update-progress-text').textContent = p.total && p.done >= p.total ? 'Instalando… la app se va a cerrar y volver a abrir sola.' : `Bajando… ${pct}% (${(p.done / 1048576).toFixed(1)} MB)`;
+            }).then(f => offs.push(f));
+            TAURI.event.listen('update-ready', () => { $('update-progress-text').textContent = 'Instalando… la app se va a cerrar y volver a abrir sola.'; }).then(f => offs.push(f));
+            TAURI.event.listen('update-error', ev => {
+                cleanup();
+                go.disabled = false; later.disabled = false;
+                $('update-progress').classList.add('hidden');
+                $('update-how').textContent = 'No se pudo actualizar desde la app (' + String(ev.payload || '').slice(0, 120) + '). Probá de nuevo o bajalo con tu navegador.';
+                $('btn-update-browser').classList.remove('hidden');
+            }).then(f => offs.push(f));
+            TAURI.core.invoke('update_install', { url: dlUrl, sha256: info.sha256 }).catch(err => {
+                cleanup();
+                go.disabled = false; later.disabled = false;
+                $('update-progress').classList.add('hidden');
+                $('update-how').textContent = 'No se pudo actualizar desde la app (' + String(err).slice(0, 120) + '). Bajalo con tu navegador.';
+                $('btn-update-browser').classList.remove('hidden');
             });
         };
         const extra = $('update-extra-link');
@@ -2150,6 +2191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 info.linkUrl = /^https:\/\//i.test(info.linkUrl || '') ? String(info.linkUrl) : '';
                 info.linkText = info.linkText ? String(info.linkText).slice(0, 80) : '';
                 info.notes = info.notes ? String(info.notes).slice(0, 40000) : '';
+                info.sha256 = /^[0-9a-f]{64}$/i.test(String(info.sha256 || '')) ? String(info.sha256).toLowerCase() : '';
                 if (compareVersions(info.version, APP_VERSION) <= 0) return;
                 const mandatory = info.minVersion && compareVersions(APP_VERSION, info.minVersion) < 0;
                 let later = '';
