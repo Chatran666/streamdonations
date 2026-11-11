@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsAccum: 'off', // chip con lo que donó cada uno: off | session (este directo) | today | 30
             obsCardAlpha: -1, // fondo detrás de cada donación: -1 automático (según el diseño) o 0…100
             panelDesign: 'tarjeta', // diseño de las donaciones en el panel ('same' = igual que OBS)
+            panelCardColor: '', panelCardText: '', panelCardAlpha: -1, // colores de la tarjeta en el panel ('' / -1 = automático)
             customIcons: [], // imágenes propias para los rangos: [{ id, name }] (el archivo queda guardado en esta PC)
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
@@ -346,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     delete state.settings.platforms;
     if (!Array.isArray(state.settings.seChannels)) state.settings.seChannels = [];
     // Los colores guardados tienen que ser colores (#RRGGBB): se usan dentro de estilos
-    ['customAccent', 'obsCustomAccent', 'customText', 'obsCustomText', 'obsCardColor'].forEach(k => {
+    ['customAccent', 'obsCustomAccent', 'customText', 'obsCustomText', 'obsCardColor', 'panelCardColor', 'panelCardText'].forEach(k => {
         if (state.settings[k] !== undefined && !/^#[0-9a-fA-F]{6}$/.test(state.settings[k] || '')) delete state.settings[k];
     });
     // Simulador: ahora por defecto una donación cada 5 segundos
@@ -4664,6 +4665,8 @@ document.addEventListener('DOMContentLoaded', () => {
           $('lbl-obs-card-alpha').textContent = auto ? 'Auto' : ca + '%'; }
         renderDesignPicker();
         renderPanelDesignSelect(st.panelDesign || 'tarjeta');
+        fillPanelCardForm();
+        setTimeout(() => setDzSide(dzSide), 0);
         setTimeout(refreshDesignPreview, 200);
         $('obsws-box').classList.toggle('hidden', !st.obsWsEnabled);
         $('cfg-obsws-port').value = st.obsWsPort || 4455;
@@ -4774,6 +4777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         obsDesignDraft = null;
         cardAlphaDraft = null;
         applyPanelDesign(state.settings.panelDesign);
+        applyPanelCard();
         applyPanelPStyle(state.settings.panelPlatformStyle);
         applyTheme();      // si había una vista previa sin guardar, vuelve a lo guardado
         applyLook();
@@ -4851,6 +4855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsDesign = OBS_DESIGNS.some(d => d.k === currentDesign()) ? currentDesign() : 'tarjeta';
         st.obsAccum = $('cfg-obs-accum').value;
         st.panelDesign = $('cfg-panel-design').value || 'tarjeta';
+        { const f = panelCardForm(); st.panelCardColor = f.color; st.panelCardText = f.text; st.panelCardAlpha = f.alpha >= 0 && f.alpha <= 100 ? f.alpha : -1; }
         st.obsCardAlpha = $('cfg-obs-card-auto').checked ? -1 : Math.min(100, Math.max(0, parseInt($('cfg-obs-card-alpha').value, 10) || 0));
         cardAlphaDraft = null;
         obsDesignDraft = null;
@@ -5453,10 +5458,13 @@ document.addEventListener('DOMContentLoaded', () => {
             r.style.removeProperty('--field-bg');
         } else {
             set('--item-bg', `rgba(${rgbStr(mix(th.card, '#FFFFFF', 0.05))}, ${th.fx ? 0.62 : 0.92})`);
+            lastPanelCard = { rgb: rgbStr(mix(th.card, '#FFFFFF', 0.05)), alpha: th.fx ? 0.62 : 0.92 };
             set('--field-bg', mix(th.modal, '#000000', 0.15));
         }
         currentThemeForObs = th;
         sendObsStyle();
+        // El fondo regulable de las tarjetas del panel depende del tema
+        try { applyPanelCard(document.getElementById('modal-settings') && !document.getElementById('modal-settings').classList.contains('hidden') ? panelCardForm() : null); } catch (e) {}
     }
     var currentThemeForObs = null;
 
@@ -5516,6 +5524,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MAX_BG_BYTES = 8 * 1024 * 1024;
     const CHROMA_COLORS = ['#FF00FF', '#00FF00', '#0000FF'];
     var lookDraft = null; // vista previa sin guardar
+    var lastPanelCard; // fondo de tarjeta del tema actual (para el fondo regulable del panel)
 
     function cleanColor(c, def) { return /^#[0-9a-fA-F]{6}$/.test(c || '') ? c : def; }
     function platformColorsFrom(src) {
@@ -5861,10 +5870,97 @@ document.addEventListener('DOMContentLoaded', () => {
         $('pdesign-desc').textContent = (sel.value === 'same' ? 'Ahora: ' + d.label + '. ' : '') + d.desc;
     }
     applyPanelDesign(state.settings.panelDesign);
+
+    // ---- Colores de la tarjeta en el panel (fondo, letras y cuánto tapa) ----
+    function panelCardForm() {
+        return {
+            color: $('cfg-panel-card-color-auto').checked ? '' : $('cfg-panel-card-color').value,
+            text: $('cfg-panel-card-text-auto').checked ? '' : $('cfg-panel-card-text').value,
+            alpha: $('cfg-panel-card-auto').checked ? -1 : parseInt($('cfg-panel-card-alpha').value, 10)
+        };
+    }
+    function applyPanelCard(c) {
+        c = c || { color: state.settings.panelCardColor, text: state.settings.panelCardText, alpha: state.settings.panelCardAlpha };
+        const r = document.documentElement;
+        const hexOk = v => /^#[0-9a-fA-F]{6}$/.test(v || '');
+        const a = Number(c.alpha);
+        const custom = hexOk(c.color) || (a >= 0 && a <= 100);
+        r.classList.toggle('pcard-bg', custom);
+        if (custom) {
+            const rgb = hexOk(c.color) ? hexToRgb(c.color).join(', ') : (lastPanelCard ? lastPanelCard.rgb : '30, 36, 50');
+            const al = a >= 0 && a <= 100 ? a / 100 : (lastPanelCard ? lastPanelCard.alpha : 0.92);
+            r.style.setProperty('--pcard-bg', `rgba(${rgb}, ${al})`);
+        } else r.style.removeProperty('--pcard-bg');
+        r.classList.toggle('pcard-text', hexOk(c.text));
+        if (hexOk(c.text)) r.style.setProperty('--pcard-text', c.text); else r.style.removeProperty('--pcard-text');
+    }
+    function fillPanelCardForm() {
+        const st = state.settings, hexOk = v => /^#[0-9a-fA-F]{6}$/.test(v || '');
+        $('cfg-panel-card-color-auto').checked = !hexOk(st.panelCardColor);
+        $('cfg-panel-card-color').value = hexOk(st.panelCardColor) ? st.panelCardColor : '#14161F';
+        $('cfg-panel-card-text-auto').checked = !hexOk(st.panelCardText);
+        $('cfg-panel-card-text').value = hexOk(st.panelCardText) ? st.panelCardText : '#F3F4F6';
+        const a = Number(st.panelCardAlpha), auto = !(a >= 0 && a <= 100);
+        $('cfg-panel-card-auto').checked = auto;
+        $('cfg-panel-card-alpha').value = auto ? 90 : a;
+        syncPanelCardUi();
+    }
+    function syncPanelCardUi() {
+        $('cfg-panel-card-color').disabled = $('cfg-panel-card-color-auto').checked;
+        $('cfg-panel-card-text').disabled = $('cfg-panel-card-text-auto').checked;
+        $('cfg-panel-card-alpha').disabled = $('cfg-panel-card-auto').checked;
+        $('lbl-panel-card-alpha').textContent = $('cfg-panel-card-auto').checked ? 'Auto' : $('cfg-panel-card-alpha').value + '%';
+    }
+    ['cfg-panel-card-color', 'cfg-panel-card-color-auto', 'cfg-panel-card-text', 'cfg-panel-card-text-auto', 'cfg-panel-card-alpha', 'cfg-panel-card-auto'].forEach(id => {
+        const ev = () => { syncPanelCardUi(); setSettingsDirty(true); applyPanelCard(panelCardForm()); };
+        $(id).addEventListener('input', ev); $(id).addEventListener('change', ev);
+    });
+
+    // ---- Sección Diseño: pestañas Panel / OBS y su vista previa ----
+    let dzSide = 'panel';
+    try { if (localStorage.getItem('sd_dz_side') === 'obs') dzSide = 'obs'; } catch (e) {}
+    function renderPanelPreview() {
+        const box = $('panel-preview');
+        if (!box || dzSide !== 'panel') return;
+        const sample = { id: 'pv-panel', platform: 'youtube', nick: 'leandropaz1286', amount: 100, currency: 'ARS', formattedAmount: formatMoney(100, 'ARS'),
+            message: '¡Qué buen stream! Saludos desde Mendoza 👋', isRead: false, timestamp: Date.now() - 60000, tier: 'tier-1' };
+        const big = { id: 'pv-panel2', platform: 'kick', nick: 'Juan_Gamer', amount: 5000, currency: 'ARS', formattedAmount: formatMoney(5000, 'ARS'),
+            message: 'Para el fernet del final 🍻 aguante el canal', isRead: false, timestamp: Date.now() - 30000, tier: 'tier-3' };
+        try { box.innerHTML = createCardHTML(previewBig ? big : sample); } catch (e) { box.innerHTML = ''; }
+    }
+    function setDzSide(side) {
+        dzSide = side === 'obs' ? 'obs' : 'panel';
+        try { localStorage.setItem('sd_dz_side', dzSide); } catch (e) {}
+        document.querySelectorAll('.dz-tab').forEach(b => b.classList.toggle('active', b.dataset.side === dzSide));
+        document.querySelectorAll('.dz-side').forEach(d => d.classList.toggle('hidden', d.dataset.side !== dzSide));
+        $('panel-preview').classList.toggle('hidden', dzSide !== 'panel');
+        document.querySelector('#obs-live-preview .design-preview-wrap').classList.toggle('dz-hide', dzSide !== 'obs');
+        if (dzSide === 'panel') renderPanelPreview(); else setTimeout(refreshDesignPreview, 50);
+    }
+    document.querySelector('.dz-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-side]'); if (b) setDzSide(b.dataset.side); });
+    // La vista previa del panel no abre nada al tocarla
+    $('panel-preview').addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); }, true);
+    // "Copiar lo del panel": OBS usa el mismo tema, diseño y colores de tarjeta
+    $('btn-dz-copy').addEventListener('click', () => {
+        const pd = $('cfg-panel-design').value;
+        const k = pd === 'same' ? currentDesign() : pd;
+        $('cfg-obs-design').value = OBS_DESIGNS.some(d => d.k === k) ? k : 'tarjeta';
+        $('cfg-obs-design').dispatchEvent(new Event('change', { bubbles: true }));
+        $('cfg-obs-theme').value = 'same';
+        const f = panelCardForm();
+        $('cfg-obs-card-color-auto').checked = !f.color; if (f.color) $('cfg-obs-card-color').value = f.color;
+        $('cfg-obs-custom-text-auto').checked = !f.text; if (f.text) $('cfg-obs-custom-text').value = f.text;
+        $('cfg-obs-card-auto').checked = !(f.alpha >= 0); if (f.alpha >= 0) $('cfg-obs-card-alpha').value = f.alpha;
+        ['cfg-obs-theme', 'cfg-obs-card-color-auto', 'cfg-obs-custom-text-auto'].forEach(id => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+        $('cfg-obs-card-auto').dispatchEvent(new Event('change', { bubbles: true }));
+        showToast('Listo: OBS ahora usa el diseño, el tema y los colores del panel. Tocá "Guardar cambios".', 'success');
+    });
+
     $('cfg-panel-design').addEventListener('change', () => {
         setSettingsDirty(true);
         renderPanelDesignSelect($('cfg-panel-design').value);
         applyPanelDesign($('cfg-panel-design').value, currentDesign()); // se ve al instante en el panel
+        renderPanelPreview();
     });
     function renderDesignPicker() {
         const sel = $('cfg-obs-design');
@@ -5966,6 +6062,7 @@ document.addEventListener('DOMContentLoaded', () => {
             previewBig = !previewBig;
             sw.innerHTML = previewBig ? '<i class="fa-solid fa-arrow-down-short-wide"></i> <span>Ver común</span>' : '<i class="fa-solid fa-arrow-up-wide-short"></i> <span>Ver grande</span>';
             designPreviewSamples();
+            renderPanelPreview();
         });
     })();
     $('cfg-obs-accum').addEventListener('change', () => { setSettingsDirty(true); designPreviewSamples(); });

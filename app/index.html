@@ -348,7 +348,7 @@
                             <button type="button" class="btn btn-primary btn-sm" id="btn-way-open-obs"><i class="fa-solid fa-display"></i> Abrir Modo OBS</button>
                             <button type="button" class="btn btn-outline btn-sm" id="btn-way-chroma"><i class="fa-solid fa-fill-drip"></i> Usar fondo para recortar</button>
                         </div>
-                        <small class="pane-note">El color del fondo se cambia en Opciones → OBS → Fondo de la ventana OBS. Si mostrás donaciones de Kick (verde), no uses verde.</small>
+                        <small class="pane-note">El color del fondo se cambia en Opciones → Diseño → OBS → Fondo de la ventana. Si mostrás donaciones de Kick (verde), no uses verde.</small>
                     </div>
                 </div>
                 <div class="obsway-pane" data-way-pane="auto">
@@ -517,6 +517,7 @@
                     <button class="settings-tab" data-pane="filtros"><i class="fa-solid fa-shield-halved"></i> <span>Filtros</span></button>
                     <button class="settings-tab" data-pane="destacar"><i class="fa-solid fa-crown"></i> <span>Destacar</span></button>
                     <button class="settings-tab" data-pane="alertas"><i class="fa-solid fa-bell"></i> <span>Sonido y voz</span></button>
+                    <button class="settings-tab" data-pane="diseno"><i class="fa-solid fa-palette"></i> <span>Diseño</span></button>
                     <button class="settings-tab" data-pane="pantalla"><i class="fa-solid fa-display"></i> <span>Pantalla</span></button>
                     <button class="settings-tab" data-pane="obs"><i class="fa-solid fa-video"></i> <span>OBS</span></button>
                     <button class="settings-tab" data-pane="programa"><i class="fa-solid fa-sliders"></i> <span>Programa</span></button>
@@ -938,13 +939,7 @@
                     <!-- PANTALLA Y OBS -->
                     <section class="settings-pane" data-pane="pantalla">
                         <h3 class="pane-title">Pantalla</h3>
-                        <p class="pane-desc">Cómo se ve el panel principal. Lo de la ventana "Modo OBS" está en la sección <strong>OBS</strong>.</p>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones en el panel</div>
-                        <div class="setting-row">
-                            <div><strong>Diseño del panel</strong><small id="pdesign-desc">La de siempre: foto, nick, monto y mensaje</small></div>
-                            <select id="cfg-panel-design" class="input-field"></select>
-                        </div>
+                        <p class="pane-desc">Detalles del panel principal. Los colores, temas, fondos y diseños están en la sección <strong>Diseño</strong>.</p>
 
                         <div class="layout-box" style="margin-bottom:14px">
                             <div class="layout-row">
@@ -961,40 +956,6 @@
                             <div><strong>Mostrar "Top Donador" en el encabezado</strong><small>El recuadro de arriba con quien más donó. Apagalo para que no ocupe lugar.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-show-top-donor"><span class="toggle-slider"></span></span>
                         </label>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Tema del panel</div>
-                        <div class="theme-picker" id="theme-picker"></div>
-                        <div class="custom-accent-row hidden" id="custom-accent-row">
-                            <label for="cfg-custom-accent"><strong>Tu color</strong> <small>(el de tu setup)</small></label>
-                            <input type="color" id="cfg-custom-accent" value="#00E676">
-                            <span class="range-value" id="lbl-custom-accent">#00E676</span>
-                            <span class="custom-text-group">
-                                <label for="cfg-custom-text"><strong>Color de las letras</strong></label>
-                                <input type="color" id="cfg-custom-text" value="#F3F4F6">
-                                <label class="inline-check"><input type="checkbox" id="cfg-custom-text-auto" checked> Automático</label>
-                            </span>
-                        </div>
-                        <small class="pane-note" style="margin-top:-6px">Se ve en vivo; se confirma con "Guardar cambios". La ventana OBS usa este mismo tema, salvo que le elijas otro en la sección <strong>OBS</strong>.</small>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-image"></i> Fondo del panel</div>
-                        <div class="bg-picker" data-bg-target="panel">
-                            <select id="cfg-panel-bg-type">
-                                <option value="theme">El del tema</option>
-                                <option value="color">Un color</option>
-                                <option value="image">Una imagen</option>
-                            </select>
-                            <input type="color" id="cfg-panel-bg-color" value="#0B0E14" class="bg-color-input">
-                            <div class="bg-file-row" id="panel-bg-file-row">
-                                <button type="button" class="btn btn-outline btn-sm" id="btn-panel-bg-pick"><i class="fa-solid fa-upload"></i> Elegir imagen</button>
-                                <span class="bg-file-name" id="panel-bg-name">Sin imagen</span>
-                                <input type="file" id="panel-bg-file" accept="image/*" class="hidden">
-                            </div>
-                            <div class="bg-dim-row" id="panel-bg-dim-row">
-                                <label for="cfg-panel-bg-dim">Oscurecer la imagen</label>
-                                <input type="range" id="cfg-panel-bg-dim" min="0" max="0.85" step="0.05">
-                                <span class="range-value" id="lbl-panel-bg-dim">50%</span>
-                            </div>
-                        </div>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-swatchbook"></i> Color de cada plataforma</div>
                         <div class="platform-colors">
@@ -1021,23 +982,6 @@
                             <div><strong>Mostrar la dirección completa en el panel</strong><small>Apagado: el botón muestra solo el sitio ("youtube.com"). Prendido: muestra el link entero.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-links-full"><span class="toggle-slider"></span></span>
                         </label>
-
-                        <div class="text-size-row">
-                            <div class="text-size-head">
-                                <label for="cfg-panel-text"><strong>Tamaño del texto en el panel</strong></label>
-                                <span class="range-value" id="lbl-panel-text">100%</span>
-                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-panel-text" title="Volver al 100%">100%</button>
-                            </div>
-                            <input type="range" id="cfg-panel-text" min="0.7" max="2.5" step="0.1">
-                            <small>Nombre, monto y mensaje de cada tarjeta. Se ve en vivo mientras lo movés.</small>
-                            <div class="text-size-head" style="margin-top:8px">
-                                <label for="cfg-panel-head"><strong>Tamaño del nombre, la foto y el botón</strong></label>
-                                <span class="range-value" id="lbl-panel-head">85%</span>
-                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-panel-head" data-scale-default="0.85" title="Volver al tamaño recomendado">85%</button>
-                            </div>
-                            <input type="range" id="cfg-panel-head" min="0.6" max="1.4" step="0.05">
-                            <small>La parte de arriba de cada tarjeta (nombre, red, monto, foto y "Marcar Leído"), sin cambiar el tamaño del mensaje.</small>
-                        </div>
 
                     </section>
 
@@ -1087,12 +1031,17 @@
 
                     </section>
 
-                    <!-- OBS -->
-                    <section class="settings-pane" data-pane="obs">
-                        <h3 class="pane-title">OBS</h3>
-                        <p class="pane-desc">Lo que ve tu audiencia: cómo llegan las donaciones a OBS, su diseño, colores y qué se muestra en cada una.</p>
+                    <!-- DISEÑO: todo lo visual del panel y de OBS en un solo lugar -->
+                    <section class="settings-pane" data-pane="diseno">
+                        <h3 class="pane-title">Diseño</h3>
+                        <p class="pane-desc">Cómo se ven las donaciones. Elegí qué querés editar: el <strong>panel</strong> (lo que ves vos) o <strong>OBS</strong> (lo que ve tu audiencia). Todo se ve en vivo en la vista previa y se confirma con "Guardar cambios".</p>
 
-                        <!-- Vista previa fija arriba: se ve mientras cambiás cualquier opción de esta sección -->
+                        <div class="dz-tabs" role="tablist">
+                            <button type="button" class="dz-tab active" data-side="panel" role="tab"><i class="fa-solid fa-display"></i> Panel</button>
+                            <button type="button" class="dz-tab" data-side="obs" role="tab"><i class="fa-solid fa-video"></i> OBS</button>
+                        </div>
+
+                        <!-- Vista previa fija arriba: muestra el panel o OBS según la pestaña -->
                         <div class="obs-live-preview" id="obs-live-preview">
                             <div class="obs-live-head">
                                 <span><i class="fa-solid fa-eye"></i> Vista previa</span>
@@ -1101,34 +1050,106 @@
                                     <button type="button" class="btn-link-sm" id="btn-preview-toggle"><i class="fa-solid fa-chevron-up"></i> <span>Achicar</span></button>
                                 </span>
                             </div>
+                            <div class="panel-preview hidden" id="panel-preview"></div>
                             <div class="design-preview-wrap">
                                 <iframe id="design-preview" src="obs.html#preview=1" title="Vista previa del diseño" tabindex="-1"></iframe>
                             </div>
                         </div>
 
-                        <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Cómo llevar las donaciones a OBS</div>
-                        <p class="pane-note">Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.</p>
-                        <div class="obs-ways">
-                            <button type="button" class="obs-way tauri-only" data-way="link">
-                                <span class="obs-way-badge">Recomendado</span>
-                                <i class="fa-solid fa-link"></i>
-                                <strong>Link</strong>
-                                <small>Pegás un link en OBS o Streamlabs una sola vez. Sin fondo y se ve perfecto.</small>
-                            </button>
-                            <button type="button" class="obs-way" data-way="window">
-                                <i class="fa-solid fa-window-maximize"></i>
-                                <strong>Captura de ventana</strong>
-                                <small>Capturás la ventana "Modo OBS" y le sacás el fondo con un filtro de color.</small>
-                            </button>
-                            <button type="button" class="obs-way" data-way="auto">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                <strong>Automático con OBS</strong>
-                                <small>La app agrega la fuente sola. Hay que activar el WebSocket en OBS y poner su contraseña.</small>
-                            </button>
+
+                        <div class="dz-side" data-side="panel">
+                        <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones</div>
+                        <div class="setting-row">
+                            <div><strong>Diseño</strong><small id="pdesign-desc">La de siempre: foto, nick, monto y mensaje</small></div>
+                            <select id="cfg-panel-design" class="input-field"></select>
                         </div>
 
+                        <div class="setting-row">
+                            <div><strong>Colores de la tarjeta</strong><small>El fondo de cada donación y el color de las letras. "Automático" usa los del diseño y el tema.</small></div>
+                            <div class="card-colors">
+                                <span class="custom-text-group">
+                                    <label for="cfg-panel-card-color">Fondo</label>
+                                    <input type="color" id="cfg-panel-card-color" value="#14161F">
+                                    <label class="inline-check"><input type="checkbox" id="cfg-panel-card-color-auto" checked> Automático</label>
+                                </span>
+                                <span class="custom-text-group">
+                                    <label for="cfg-panel-card-text">Letras</label>
+                                    <input type="color" id="cfg-panel-card-text" value="#F3F4F6">
+                                    <label class="inline-check"><input type="checkbox" id="cfg-panel-card-text-auto" checked> Automático</label>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div><strong>Fondo detrás de cada donación</strong><small>Qué tan tapado queda el fondo de la ventana detrás de cada donación.</small></div>
+                            <div class="range-row">
+                                <input type="range" id="cfg-panel-card-alpha" min="0" max="100" step="5" value="90">
+                                <span class="range-value" id="lbl-panel-card-alpha">Auto</span>
+                                <label class="inline-check"><input type="checkbox" id="cfg-panel-card-auto" checked> Automático</label>
+                            </div>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Tema y colores</div>
+                        <div class="theme-picker" id="theme-picker"></div>
+                        <div class="custom-accent-row hidden" id="custom-accent-row">
+                            <label for="cfg-custom-accent"><strong>Tu color</strong> <small>(el de tu setup)</small></label>
+                            <input type="color" id="cfg-custom-accent" value="#00E676">
+                            <span class="range-value" id="lbl-custom-accent">#00E676</span>
+                            <span class="custom-text-group">
+                                <label for="cfg-custom-text"><strong>Color de las letras</strong></label>
+                                <input type="color" id="cfg-custom-text" value="#F3F4F6">
+                                <label class="inline-check"><input type="checkbox" id="cfg-custom-text-auto" checked> Automático</label>
+                            </span>
+                        </div>
+                        <small class="pane-note" style="margin-top:-6px">Se ve en vivo; se confirma con "Guardar cambios". La ventana OBS usa este mismo tema, salvo que le elijas otro en la sección <strong>OBS</strong>.</small>
+
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-image"></i> Fondo de la ventana</div>
+                        <div class="bg-picker" data-bg-target="panel">
+                            <select id="cfg-panel-bg-type">
+                                <option value="theme">El del tema</option>
+                                <option value="color">Un color</option>
+                                <option value="image">Una imagen</option>
+                            </select>
+                            <input type="color" id="cfg-panel-bg-color" value="#0B0E14" class="bg-color-input">
+                            <div class="bg-file-row" id="panel-bg-file-row">
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-panel-bg-pick"><i class="fa-solid fa-upload"></i> Elegir imagen</button>
+                                <span class="bg-file-name" id="panel-bg-name">Sin imagen</span>
+                                <input type="file" id="panel-bg-file" accept="image/*" class="hidden">
+                            </div>
+                            <div class="bg-dim-row" id="panel-bg-dim-row">
+                                <label for="cfg-panel-bg-dim">Oscurecer la imagen</label>
+                                <input type="range" id="cfg-panel-bg-dim" min="0" max="0.85" step="0.05">
+                                <span class="range-value" id="lbl-panel-bg-dim">50%</span>
+                            </div>
+                        </div>
+
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-text-height"></i> Tamaño del texto</div>
+                        <div class="text-size-row">
+                            <div class="text-size-head">
+                                <label for="cfg-panel-text"><strong>Tamaño del texto en el panel</strong></label>
+                                <span class="range-value" id="lbl-panel-text">100%</span>
+                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-panel-text" title="Volver al 100%">100%</button>
+                            </div>
+                            <input type="range" id="cfg-panel-text" min="0.7" max="2.5" step="0.1">
+                            <small>Nombre, monto y mensaje de cada tarjeta. Se ve en vivo mientras lo movés.</small>
+                            <div class="text-size-head" style="margin-top:8px">
+                                <label for="cfg-panel-head"><strong>Tamaño del nombre, la foto y el botón</strong></label>
+                                <span class="range-value" id="lbl-panel-head">85%</span>
+                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-panel-head" data-scale-default="0.85" title="Volver al tamaño recomendado">85%</button>
+                            </div>
+                            <input type="range" id="cfg-panel-head" min="0.6" max="1.4" step="0.05">
+                            <small>La parte de arriba de cada tarjeta (nombre, red, monto, foto y "Marcar Leído"), sin cambiar el tamaño del mensaje.</small>
+                        </div>
+
+                        </div>
+
+                        <div class="dz-side hidden" data-side="obs">
+                            <div class="dz-copy">
+                                <span>¿Querés que OBS se vea igual que el panel?</span>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-dz-copy"><i class="fa-solid fa-copy"></i> Copiar lo del panel</button>
+                            </div>
                         <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones</div>
-                        <p class="pane-note">La forma de cada donación en OBS. Los colores salen del tema de abajo. Se ve al instante en la vista previa y en OBS; se confirma con "Guardar cambios".</p>
                         <div class="setting-row">
                             <div><strong>Diseño</strong><small id="design-desc">La de siempre: foto, nick, monto y mensaje</small></div>
                             <select id="cfg-obs-design" class="input-field"></select>
@@ -1156,22 +1177,8 @@
                                 <label class="inline-check"><input type="checkbox" id="cfg-obs-card-auto" checked> Automático</label>
                             </div>
                         </div>
-                        <div class="setting-row">
-                            <div><strong>Total acumulado al lado del nick</strong><small>Un chip con todo lo que donó esa persona (por ejemplo "$200 acum."), en cualquier diseño.</small></div>
-                            <select id="cfg-obs-accum" class="input-field">
-                                <option value="off">No mostrar</option>
-                                <option value="session">En este directo</option>
-                                <option value="today">Hoy</option>
-                                <option value="30">Últimos 30 días</option>
-                            </select>
-                        </div>
 
-                        <label class="setting-row toggle-row">
-                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra suave detrás del texto para que se lea sobre cualquier escena: negra si las letras son claras y blanca si son oscuras.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-textshadow"><span class="toggle-slider"></span></span>
-                        </label>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Tema de OBS</div>
+                        <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Tema y colores</div>
                         <div class="form-group">
                             <select id="cfg-obs-theme"></select>
                             <div class="custom-accent-row hidden" id="obs-custom-accent-row" style="margin-top:8px">
@@ -1180,7 +1187,8 @@
                             </div>
                         </div>
 
-                        <div class="pane-subtitle"><i class="fa-solid fa-image"></i> Fondo de la ventana OBS</div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-image"></i> Fondo de la ventana "Modo OBS"</div>
                         <div class="bg-picker" data-bg-target="obs">
                             <select id="cfg-obs-bg-type">
                                 <option value="theme">El del tema</option>
@@ -1218,6 +1226,75 @@
                         </div>
                         <div class="pane-note chroma-help hidden" id="obs-chroma-help"><i class="fa-solid fa-wand-magic-sparkles"></i> <strong>Cómo dejarlo transparente en OBS:</strong> clic derecho en la captura de la ventana → <em>Filtros</em> → <strong>+</strong> → <em>Clave cromática</em> (Chroma Key) → elegí el mismo color de acá (Magenta, Verde o Azul). Las tarjetas quedan flotando sobre tu escena. Si mostrás donaciones de Kick (verde), usá Magenta.</div>
                         <small class="pane-note" style="margin-top:-6px">Los GIF se ven animados. Máximo 8 MB. La imagen queda guardada en esta PC (no va en la "copia completa").</small>
+
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-text-height"></i> Tamaño del texto</div>
+                        <div class="text-size-row">
+                            <div class="text-size-head">
+                                <label for="cfg-obs-text"><strong>Tamaño del texto en OBS</strong></label>
+                                <span class="range-value" id="lbl-obs-text">100%</span>
+                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-obs-text" title="Volver al 100%">100%</button>
+                            </div>
+                            <input type="range" id="cfg-obs-text" min="0.7" max="2.5" step="0.1">
+                            <div class="text-size-head" style="margin-top:8px">
+                                <label for="cfg-obs-amount"><strong>Tamaño de los montos ($) en OBS</strong></label>
+                                <span class="range-value" id="lbl-obs-amount">80%</span>
+                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-obs-amount" data-scale-default="0.8" title="Volver al tamaño recomendado">80%</button>
+                            </div>
+                            <input type="range" id="cfg-obs-amount" min="0.5" max="1.6" step="0.05">
+                            <div class="text-size-head" style="margin-top:8px">
+                                <label for="cfg-obs-head"><strong>Tamaño del nombre, la foto y el botón en OBS</strong></label>
+                                <span class="range-value" id="lbl-obs-head">75%</span>
+                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-obs-head" data-scale-default="0.75" title="Volver al tamaño recomendado">75%</button>
+                            </div>
+                            <input type="range" id="cfg-obs-head" min="0.5" max="1.4" step="0.05">
+                            <small>Lo que ve tu audiencia en la ventana "Modo OBS". Abrila para ver el cambio en vivo; si no hay alertas en pantalla, mostrá una de ejemplo.</small>
+                            <div><button type="button" class="btn btn-outline btn-sm" id="btn-obs-preview"><i class="fa-solid fa-eye"></i> Mostrar alerta de ejemplo en OBS</button></div>
+                        </div>
+
+                        </div>
+                    </section>
+
+                    <!-- OBS -->
+                    <section class="settings-pane" data-pane="obs">
+                        <h3 class="pane-title">OBS</h3>
+                        <p class="pane-desc">Cómo llegan las donaciones a OBS y qué se muestra en cada una. Los colores, temas y diseños están en la sección <strong>Diseño</strong>.</p>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Cómo llevar las donaciones a OBS</div>
+                        <p class="pane-note">Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.</p>
+                        <div class="obs-ways">
+                            <button type="button" class="obs-way tauri-only" data-way="link">
+                                <span class="obs-way-badge">Recomendado</span>
+                                <i class="fa-solid fa-link"></i>
+                                <strong>Link</strong>
+                                <small>Pegás un link en OBS o Streamlabs una sola vez. Sin fondo y se ve perfecto.</small>
+                            </button>
+                            <button type="button" class="obs-way" data-way="window">
+                                <i class="fa-solid fa-window-maximize"></i>
+                                <strong>Captura de ventana</strong>
+                                <small>Capturás la ventana "Modo OBS" y le sacás el fondo con un filtro de color.</small>
+                            </button>
+                            <button type="button" class="obs-way" data-way="auto">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <strong>Automático con OBS</strong>
+                                <small>La app agrega la fuente sola. Hay que activar el WebSocket en OBS y poner su contraseña.</small>
+                            </button>
+                        </div>
+
+                        <div class="setting-row">
+                            <div><strong>Total acumulado al lado del nick</strong><small>Un chip con todo lo que donó esa persona (por ejemplo "$200 acum."), en cualquier diseño.</small></div>
+                            <select id="cfg-obs-accum" class="input-field">
+                                <option value="off">No mostrar</option>
+                                <option value="session">En este directo</option>
+                                <option value="today">Hoy</option>
+                                <option value="30">Últimos 30 días</option>
+                            </select>
+                        </div>
+
+                        <label class="setting-row toggle-row">
+                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra suave detrás del texto para que se lea sobre cualquier escena: negra si las letras son claras y blanca si son oscuras.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-textshadow"><span class="toggle-slider"></span></span>
+                        </label>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-table-cells-large"></i> Qué se ve en cada donación y dónde</div>
                         <div class="layout-box">
@@ -1277,29 +1354,6 @@
                             <div><strong>Menú para elegir plataforma en OBS</strong><small>Una barrita arriba en la ventana OBS (Todas · Ceneka · YouTube · Twitch · Kick) para ver solo las de una red y leerlas primero. Apagalo para ver todas juntas sin que ocupe lugar.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-filter-bar"><span class="toggle-slider"></span></span>
                         </label>
-
-                        <div class="text-size-row">
-                            <div class="text-size-head">
-                                <label for="cfg-obs-text"><strong>Tamaño del texto en OBS</strong></label>
-                                <span class="range-value" id="lbl-obs-text">100%</span>
-                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-obs-text" title="Volver al 100%">100%</button>
-                            </div>
-                            <input type="range" id="cfg-obs-text" min="0.7" max="2.5" step="0.1">
-                            <div class="text-size-head" style="margin-top:8px">
-                                <label for="cfg-obs-amount"><strong>Tamaño de los montos ($) en OBS</strong></label>
-                                <span class="range-value" id="lbl-obs-amount">80%</span>
-                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-obs-amount" data-scale-default="0.8" title="Volver al tamaño recomendado">80%</button>
-                            </div>
-                            <input type="range" id="cfg-obs-amount" min="0.5" max="1.6" step="0.05">
-                            <div class="text-size-head" style="margin-top:8px">
-                                <label for="cfg-obs-head"><strong>Tamaño del nombre, la foto y el botón en OBS</strong></label>
-                                <span class="range-value" id="lbl-obs-head">75%</span>
-                                <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-obs-head" data-scale-default="0.75" title="Volver al tamaño recomendado">75%</button>
-                            </div>
-                            <input type="range" id="cfg-obs-head" min="0.5" max="1.4" step="0.05">
-                            <small>Lo que ve tu audiencia en la ventana "Modo OBS". Abrila para ver el cambio en vivo; si no hay alertas en pantalla, mostrá una de ejemplo.</small>
-                            <div><button type="button" class="btn btn-outline btn-sm" id="btn-obs-preview"><i class="fa-solid fa-eye"></i> Mostrar alerta de ejemplo en OBS</button></div>
-                        </div>
 
                         <div class="form-grid">
                             <div class="form-group">
