@@ -1,12 +1,3 @@
-Novedades de la 2.0.0:
-- StreamDonations ahora es un programa propio: ya no necesita Google Chrome.
-- La primera vez trae sola tus datos de la versión anterior (conexiones, opciones, rangos, historial, imágenes y sonidos).
-- Fuente de navegador para OBS Studio y Streamlabs sin configurar nada: Opciones → OBS → Copiar link.
-- Voz argentina "Daniela" sin internet (opcional): Opciones → Sonido y voz → Bajar voz Daniela (unos 130 MB, una sola vez). Trae un botón para probar si tu PC la aguanta. Si la PC tarda, la app vuelve sola a la voz de Windows de siempre.
-- Temas animados: el tema OVNI ahora es "Animados" y abre una ventana con Nieve, Navidad, Año Nuevo, Halloween, Argentina, 4 de Julio, San Valentín, Primavera, Lluvia de plata y OVNI. Se ven en vivo antes de elegir.
-- Tema personalizado: también se puede elegir el color de las letras (panel y OBS).
-- Sombra en las letras en la fuente de navegador: negra si las letras son claras y blanca si son oscuras.
-- Donaciones de prueba: ahora se puede probar dar rangos y bloquear desde el nick. No toca tus rangos ni bloqueos de verdad y se borra junto con las pruebas.
-- Ícono en la bandeja, opción de abrirse al prender la PC y atajos globales con Ctrl + Alt (opcionales).
-- Los links y las descargas se abren en tu navegador de siempre.
-- Al avisar de una versión nueva se muestran solo las novedades que te faltan desde tu versión.
+Novedades de la 2.0.1:
+- Diseños para las donaciones en OBS: Tarjeta (la de siempre), Barra, Compacto, Burbuja, Neón, Cristal, Ticket, Subtítulo y Franja. Se eligen en Opciones → OBS con vista previa al instante.
+- Total acumulado al lado del nick (opcional): "$200 acum." con lo que donó esa persona en este directo, hoy o en los últimos 30 días.

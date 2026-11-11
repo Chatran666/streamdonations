@@ -113,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
             obsPlatformStyle: 'tag', panelPlatformStyle: 'tag',
             obsWsEnabled: false, obsWsPort: 4455, obsWsPassword: '',
             obsTextShadow: true, // sombra suave en las letras en modo transparente real
+            obsDesign: 'tarjeta', // forma de las donaciones en OBS (Tarjeta, Barra, Compacto…)
+            obsAccum: 'off', // chip con lo que donó cada uno: off | session (este directo) | today | 30
             customIcons: [], // imágenes propias para los rangos: [{ id, name }] (el archivo queda guardado en esta PC)
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
@@ -1464,8 +1466,24 @@ document.addEventListener('DOMContentLoaded', () => {
             amtColor: amountColor(d, 'obs'),
             rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null)(rankFor(d.nick, 'obs', d.isTest)),
             obsHideMessage: !!state.settings.obsHideMessage,
-            obsDuration: state.settings.obsDuration || 0
+            obsDuration: state.settings.obsDuration || 0,
+            accum: accumFor(d)
         };
+    }
+    // Total que donó esa persona (en este directo, hoy o en 30 días), para el chip "acum." de OBS
+    function accumFor(d) {
+        const mode = state.settings.obsAccum;
+        if (!['session', 'today', '30'].includes(mode)) return '';
+        const k = nickKey(d.nick);
+        if (!k) return '';
+        const since = mode === 'session' ? (state.settings.sessionStart || 0) : mode === 'today' ? new Date().setHours(0, 0, 0, 0) : Date.now() - 30 * 86400000;
+        let t = 0, seen = false;
+        state.donations.forEach(x => {
+            if (x.id === d.id) seen = true;
+            if (!!x.isTest === !!d.isTest && !x.blocked && nickKey(x.nick) === k && (x.timestamp || 0) >= since) t += toARS(x) || 0;
+        });
+        if (!seen) t += toARS(d) || 0;
+        return t > 0 ? formatMoney(Math.round(t), 'ARS') : '';
     }
     function panelNick(n) { return censorText(n, 'panel'); }
 
@@ -4540,6 +4558,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-pstyle').value = st.obsPlatformStyle || 'tag';
         $('cfg-obsws-enabled').checked = !!st.obsWsEnabled;
         $('cfg-obs-textshadow').checked = st.obsTextShadow !== false;
+        $('cfg-obs-accum').value = ['session', 'today', '30'].includes(st.obsAccum) ? st.obsAccum : 'off';
+        renderDesignPicker();
+        setTimeout(refreshDesignPreview, 200);
         $('obsws-box').classList.toggle('hidden', !st.obsWsEnabled);
         $('cfg-obsws-port').value = st.obsWsPort || 4455;
         $('cfg-obsws-pw').value = st.obsWsPassword || '';
@@ -4646,6 +4667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lookDraft = null;
         obsLayoutDraft = null;
         obsPStyleDraft = null;
+        obsDesignDraft = null;
         applyPanelPStyle(state.settings.panelPlatformStyle);
         applyTheme();      // si había una vista previa sin guardar, vuelve a lo guardado
         applyLook();
@@ -4720,6 +4742,9 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxObs = $('cfg-fx-obs').checked;
         st.obsLayout = readObsLayoutForm();
         st.obsTextShadow = $('cfg-obs-textshadow').checked;
+        st.obsDesign = OBS_DESIGNS.some(d => d.k === currentDesign()) ? currentDesign() : 'tarjeta';
+        st.obsAccum = $('cfg-obs-accum').value;
+        obsDesignDraft = null;
         const wsBefore = JSON.stringify([st.obsWsEnabled, st.obsWsPort, st.obsWsPassword]);
         st.obsWsEnabled = $('cfg-obsws-enabled').checked;
         st.obsWsPort = Math.min(65535, Math.max(1, parseInt($('cfg-obsws-port').value) || 4455));
@@ -5658,6 +5683,81 @@ document.addEventListener('DOMContentLoaded', () => {
     var lastObsScale = 1, lastObsAmount = 0.8, lastObsHead = 0.75;
     var obsLayoutDraft = null; // vista previa sin guardar de "qué se ve y dónde"
     var obsPStyleDraft = null;
+    var obsDesignDraft = null; // diseño elegido sin guardar (se ve en vivo en OBS y en la vista previa)
+
+    // ---- Diseños de las donaciones en OBS ----
+    const OBS_DESIGNS = [
+        { k: 'tarjeta', label: 'Tarjeta', icon: 'fa-id-card', desc: 'La de siempre: foto, nick, monto y mensaje' },
+        { k: 'barra', label: 'Barra', icon: 'fa-grip-lines', desc: 'Monto grande a la izquierda, ancha y baja' },
+        { k: 'compacto', label: 'Compacto', icon: 'fa-compress', desc: 'Lo más chico posible, ideal con mucho chat' },
+        { k: 'burbuja', label: 'Burbuja', icon: 'fa-comment', desc: 'Globo de chat con la foto al costado' },
+        { k: 'neon', label: 'Neón', icon: 'fa-bolt', desc: 'Esquinas cortadas y brillo, estilo gamer' },
+        { k: 'cristal', label: 'Cristal', icon: 'fa-gem', desc: 'Vidrio translúcido, redondeado y suave' },
+        { k: 'ticket', label: 'Ticket', icon: 'fa-receipt', desc: 'Comprobante de papel con borde troquelado' },
+        { k: 'subtitulo', label: 'Subtítulo', icon: 'fa-closed-captioning', desc: 'Sin tarjeta: solo texto con sombra' },
+        { k: 'franja', label: 'Franja', icon: 'fa-tv', desc: 'Zócalo de noticiero con el nick en una franja' }
+    ];
+    function currentDesign() { return obsDesignDraft || state.settings.obsDesign || 'tarjeta'; }
+    function renderDesignPicker() {
+        const g = $('design-grid');
+        if (!g) return;
+        const cur = currentDesign();
+        g.innerHTML = OBS_DESIGNS.map(d => `<button type="button" class="design-tile ${d.k === cur ? 'active' : ''}" data-design="${d.k}">
+            <i class="fa-solid ${d.icon}"></i><strong>${escapeHTML(d.label)}</strong><small>${escapeHTML(d.desc)}</small></button>`).join('');
+    }
+    // Vista previa: la misma página de OBS dentro de Opciones, con dos donaciones de ejemplo
+    let previewIds = [], previewN = 0;
+    function designPreviewStyle(payload) {
+        const f = $('design-preview');
+        if (!f || !f.contentWindow) return;
+        try { f.contentWindow.postMessage({ type: 'STYLE_UPDATE', data: Object.assign({}, payload, { filterBar: false, ts: Date.now() }) }, '*'); } catch (e) {}
+    }
+    function designPreviewSamples() {
+        const f = $('design-preview');
+        if (!f || !f.contentWindow || $('modal-settings').classList.contains('hidden')) return;
+        const w = f.contentWindow;
+        previewIds.forEach(id => { try { w.postMessage({ type: 'DISMISS_ALERT', id }, '*'); } catch (e) {} });
+        const accumMode = $('cfg-obs-accum') ? $('cfg-obs-accum').value : 'off';
+        const r = (state.settings.ranks || [])[0];
+        const rank = r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null;
+        const base = [
+            { platform: 'youtube', nick: 'leandropaz1286', amount: 100, currency: 'ARS', message: '¡Qué buen stream! Saludos desde Mendoza 👋', accum: '$200' },
+            { platform: 'kick', nick: 'Juan_Gamer', amount: 5000, currency: 'ARS', message: 'Para el fernet del final 🍻 aguante el canal', accum: '$12.500', rank }
+        ];
+        previewN++;
+        previewIds = base.map((d, i) => 'pv' + previewN + '_' + i);
+        base.reverse().forEach((d, i) => {
+            const id = previewIds[base.length - 1 - i];
+            let sty = null, amtColor = '';
+            try { sty = mergedStyle(d, 'obs'); amtColor = amountColor(d, 'obs'); } catch (e) {}
+            const data = Object.assign({}, d, { id, formattedAmount: formatMoney(d.amount, d.currency), sty, amtColor, accum: accumMode === 'off' ? '' : d.accum, obsHideMessage: false, obsDuration: 0 });
+            setTimeout(() => { try { w.postMessage({ type: 'NEW_DONATION', data }, '*'); } catch (e) {} }, previewIds.length ? 320 : 0);
+        });
+    }
+    function fitDesignPreview() {
+        const wrap = document.querySelector('.design-preview-wrap'), f = $('design-preview');
+        if (!wrap || !f || !wrap.clientWidth) return;
+        const k = Math.min(1, wrap.clientWidth / 600);
+        f.style.transform = 'scale(' + k + ')';
+        wrap.style.height = Math.round(330 * k) + 'px';
+    }
+    window.addEventListener('resize', fitDesignPreview);
+    function refreshDesignPreview() {
+        fitDesignPreview();
+        if (lastObsStylePayload) designPreviewStyle(lastObsStylePayload);
+        designPreviewSamples();
+    }
+    $('design-grid').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-design]');
+        if (!b) return;
+        obsDesignDraft = b.dataset.design;
+        renderDesignPicker();
+        setSettingsDirty(true);
+        sendObsStyle(); // se ve al instante en OBS y en la vista previa
+        designPreviewSamples();
+    });
+    $('cfg-obs-accum').addEventListener('change', () => { setSettingsDirty(true); designPreviewSamples(); });
+    $('design-preview').addEventListener('load', () => setTimeout(refreshDesignPreview, 150));
     $('cfg-obs-pstyle').addEventListener('change', () => { obsPStyleDraft = $('cfg-obs-pstyle').value; sendObsStyle(); });
     $('cfg-panel-pstyle').addEventListener('change', () => applyPanelPStyle($('cfg-panel-pstyle').value));
     function applyPanelPStyle(v) {
@@ -5687,9 +5787,11 @@ document.addEventListener('DOMContentLoaded', () => {
             platformStyle: obsPStyleDraft || state.settings.obsPlatformStyle || 'tag',
             lang: window.SD_LANG === 'en' ? 'en' : 'es',
             textShadow: state.settings.obsTextShadow !== false,
+            design: obsDesignDraft || state.settings.obsDesign || 'tarjeta',
             ts: Date.now()
         };
         lastObsStylePayload = payload;
+        designPreviewStyle(payload);
         obsWsSend({ type: 'STYLE_UPDATE', data: payload });
         try { localStorage.setItem('obs_style', JSON.stringify(payload)); } catch (e) {}
         if (state.overlayWindow && !state.overlayWindow.closed) {

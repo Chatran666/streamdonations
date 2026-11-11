@@ -1,6 +1,9 @@
 /* StreamDonations - ventana Modo OBS */
         // Mensajes válidos: los que manda la ventana del panel que abrió esta, o los que llegan por la conexión con OBS
-        const fromPanel = (e) => e.__sdWs === true || (!!window.opener && e.source === window.opener);
+        // Vista previa dentro de Opciones (#preview=1): solo muestra ejemplos, no toca las donaciones de verdad
+        const PREVIEW = /(^|[#&])preview=1(&|$)/.test(location.hash) && window.parent !== window;
+        if (PREVIEW) document.documentElement.classList.add('obs-preview');
+        const fromPanel = (e) => e.__sdWs === true || (!!window.opener && e.source === window.opener) || (PREVIEW && e.source === window.parent);
 
         // ---- Modo transparente real: esta página está dentro de OBS (fuente de navegador) y recibe todo por obs-websocket ----
         const WS_PARAMS = new URLSearchParams(location.hash.slice(1));
@@ -196,6 +199,11 @@
             const platformLabel = ({ youtube: 'YouTube', twitch: 'Twitch', kick: 'Kick' })[d.platform] || 'Ceneka';
             const amtColor = /^#[0-9a-fA-F]{6}$/.test(d.amtColor || '') ? d.amtColor : '';
             const formattedAmt = escapeHTML(d.formattedAmount || ('$' + (parseFloat(d.amount) || 0)));
+            // Para el diseño "Barra": el número grande y la moneda abajo (AR$, US$…)
+            const numPart = escapeHTML((String(d.formattedAmount || '').match(/\d[\d.,]*/) || [String(parseFloat(d.amount) || 0)])[0]);
+            const cur = String(d.currency || 'ARS').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4) || 'ARS';
+            const curLabel = ({ ARS: 'AR$', USD: 'US$', EUR: '€', BRL: 'R$', CLP: 'CL$', UYU: 'UY$', MXN: 'MX$' })[cur] || cur;
+            const accumHTML = (typeof d.accum === 'string' && d.accum && d.accum.length < 30) ? '<span class="obs-accum" data-no-i18n>' + escapeHTML(d.accum) + ' ' + (window.SD_LANG === 'en' ? 'total' : 'acum.') + '</span>' : '';
 
             if (sty.card) alertEl.classList.add('sfx-host');
             alertEl.innerHTML = ringHTML(sty.card) + `
@@ -204,14 +212,14 @@
                         <div class="obs-avatar">${avatarHTML}</div>
                         <div class="obs-donor-text">
                             <div class="obs-nick">
-                                <span${tAttr(sty.nick)}>${escapeHTML(d.nick || 'Anónimo')}</span>${rankIconsHTML}${rankNameHTML}
+                                <span${tAttr(sty.nick)}>${escapeHTML(d.nick || 'Anónimo')}</span>${rankIconsHTML}${rankNameHTML}${accumHTML}
                             </div>
                             <div class="obs-sub"></div>
                         </div>
                     </div>
                     <div class="obs-header-right">
                         <span class="obs-tag ${d.platform || 'ceneka'}" data-el="platform">${platformLabel}</span>
-                        <div class="obs-amount${amtColor ? ' has-amt-color' : ''}${sty.amount ? ' tfx tfx-' + sty.amount.fx : ''}" data-el="amount" style="${amtColor ? '--amt-color:' + amtColor + ';' : ''}${sty.amount ? vars(sty.amount) : ''}">${formattedAmt}</div>
+                        <div class="obs-amount${amtColor ? ' has-amt-color' : ''}${sty.amount ? ' tfx tfx-' + sty.amount.fx : ''}" data-el="amount" style="${amtColor ? '--amt-color:' + amtColor + ';' : ''}${sty.amount ? vars(sty.amount) : ''}"><span class="amt-full">${formattedAmt}</span><span class="amt-split"><b>${numPart}</b><small>${escapeHTML(curLabel)}</small></span></div>
                         <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar como leído y ocultar">
                             <i class="fa-solid fa-check"></i>
                         </button>
@@ -294,6 +302,7 @@
 
         function dismissAndMarkRead(id) {
             dismissAlert(id);
+            if (PREVIEW) return;
             if (WS_MODE) wsToPanel({ type: 'MARK_READ', id });
 
             // 1. Notificar vía BroadcastChannel
@@ -337,7 +346,7 @@
         const OBS_OPENED_AT = Date.now() - 2000;
 
         // 1. BroadcastChannel
-        if (typeof BroadcastChannel !== 'undefined') {
+        if (typeof BroadcastChannel !== 'undefined' && !PREVIEW) {
             try {
                 const bc = new BroadcastChannel('obs_overlay_channel');
                 bc.onmessage = (e) => {
@@ -361,7 +370,7 @@
         });
 
         // 3. Polling de localStorage COLA (funciona siempre en file:// y OBS Browser Source)
-        setInterval(() => {
+        if (!PREVIEW) setInterval(() => {
             // Nuevas donaciones
             try {
                 const queueRaw = localStorage.getItem('obs_donation_queue');
@@ -444,7 +453,7 @@
                 msgEl.textContent = item.message;
             });
         }
-        setInterval(() => {
+        if (!PREVIEW) setInterval(() => {
             try {
                 const raw = localStorage.getItem('obs_alerts_update');
                 if (raw) applyAlertsUpdate(JSON.parse(raw));
@@ -526,6 +535,10 @@
         const LAYOUT_ORDER = ['rankIcons', 'rankName', 'platform', 'amount'];
         const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
         let obsLayout = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
+        // Diseños que necesitan cosas en un lugar fijo (en "Barra" el monto va siempre en su bloque de la izquierda)
+        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja'];
+        const DESIGN_FORCE = { barra: { amount: 'right' } };
+        let obsDesign = 'tarjeta';
         function placeElements(card) {
             const zones = { name: card.querySelector('.obs-nick'), below: card.querySelector('.obs-sub'), right: card.querySelector('.obs-header-right') };
             const btn = card.querySelector('.obs-btn-dismiss');
@@ -533,7 +546,8 @@
             LAYOUT_ORDER.forEach(k => {
                 const el = card.querySelector('[data-el="' + k + '"]');
                 if (!el) return;
-                const spot = obsLayout[k];
+                const forced = (DESIGN_FORCE[obsDesign] || {})[k];
+                const spot = forced && obsLayout[k] !== 'hidden' ? forced : obsLayout[k];
                 el.classList.toggle('lay-hidden', spot === 'hidden');
                 if (spot === 'hidden') return;
                 if (spot === 'right') zones.right.insertBefore(el, btn);
@@ -568,6 +582,12 @@
                 });
             }
             applyObsBg(st.obsBg);
+            const dz = DESIGNS.includes(st.design) ? st.design : 'tarjeta';
+            if (dz !== obsDesign) {
+                obsDesign = dz;
+                document.documentElement.dataset.design = dz;
+                document.querySelectorAll('.obs-alert').forEach(placeElements);
+            }
             setLayout(st.layout);
             document.documentElement.classList.toggle('text-shadow', st.textShadow !== false);
             const ps = ['tag', 'color', 'both'].includes(st.platformStyle) ? st.platformStyle : 'tag';
@@ -650,7 +670,7 @@
             try { const raw = localStorage.getItem('obs_style'); if (raw) applyStyle(JSON.parse(raw)); } catch (e) {}
         }
         readStyle();
-        setInterval(readStyle, 700);
+        if (!PREVIEW) setInterval(readStyle, 700);
         window.addEventListener('message', (e) => {
             if (!fromPanel(e)) return; // solo se aceptan avisos del panel de StreamDonations
             if (e.data && e.data.type === 'STYLE_UPDATE') applyStyle(e.data.data);
@@ -677,8 +697,7 @@
                 }
             } catch (e) {}
         }
-        readGoalFromStorage();
-        setInterval(readGoalFromStorage, 1000);
+        if (!PREVIEW) { readGoalFromStorage(); setInterval(readGoalFromStorage, 1000); }
         window.addEventListener('message', (e) => {
             if (!fromPanel(e)) return; // solo se aceptan avisos del panel de StreamDonations
             if (e.data && e.data.type === 'GOAL_UPDATE') {
