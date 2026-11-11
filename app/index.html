@@ -939,35 +939,9 @@
                     <!-- PANTALLA Y OBS -->
                     <section class="settings-pane" data-pane="pantalla">
                         <h3 class="pane-title">Pantalla</h3>
-                        <p class="pane-desc">Detalles del panel principal. Los colores, temas, fondos y diseños están en la sección <strong>Diseño</strong>.</p>
+                        <p class="pane-desc">El encabezado y los links del panel. Todo lo que es apariencia (colores, temas, fondos, diseños) está en la sección <strong>Diseño</strong>.</p>
 
-                        <div class="layout-box" style="margin-bottom:14px">
-                            <div class="layout-row">
-                                <label for="cfg-panel-pstyle"><i class="fa-solid fa-droplet"></i> Cómo se nota la red en el panel</label>
-                                <select id="cfg-panel-pstyle">
-                                    <option value="tag">Con una etiqueta (YOUTUBE, KICK…)</option>
-                                    <option value="color">Pintando el nombre y el borde de la foto</option>
-                                    <option value="both">Las dos cosas</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <label class="setting-row toggle-row">
-                            <div><strong>Mostrar "Top Donador" en el encabezado</strong><small>El recuadro de arriba con quien más donó. Apagalo para que no ocupe lugar.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-show-top-donor"><span class="toggle-slider"></span></span>
-                        </label>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-swatchbook"></i> Color de cada plataforma</div>
-                        <div class="platform-colors">
-                            <label><span><i class="fa-solid fa-mug-hot"></i> Ceneka</span><input type="color" id="cfg-color-ceneka"></label>
-                            <label><span><i class="fa-brands fa-youtube"></i> YouTube</span><input type="color" id="cfg-color-youtube"></label>
-                            <label><span><i class="fa-brands fa-twitch"></i> Twitch</span><input type="color" id="cfg-color-twitch"></label>
-                            <label><span><i class="fa-solid fa-bolt"></i> Kick</span><input type="color" id="cfg-color-kick"></label>
-                            <button type="button" class="btn btn-outline btn-sm" id="btn-reset-platform-colors"><i class="fa-solid fa-rotate-left"></i> Colores originales</button>
-                        </div>
-                        <small class="pane-note" style="margin-top:-6px">Se usan en las tarjetas, etiquetas y columnas del panel y en las alertas de OBS.</small>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-text-height"></i> Textos, montos y links del panel</div>
+                        <div class="pane-subtitle"><i class="fa-solid fa-sliders"></i> Encabezado y links del panel</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Mostrar montos en la barra superior</strong><small>Si está apagado, solo muestra la cantidad de mensajes (útil si el panel sale en cámara).</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-toggle-amounts"><span class="toggle-slider"></span></span>
@@ -981,6 +955,11 @@
                         <label class="setting-row toggle-row">
                             <div><strong>Mostrar la dirección completa en el panel</strong><small>Apagado: el botón muestra solo el sitio ("youtube.com"). Prendido: muestra el link entero.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-links-full"><span class="toggle-slider"></span></span>
+                        </label>
+
+                        <label class="setting-row toggle-row">
+                            <div><strong>Mostrar "Top Donador" en el encabezado</strong><small>El recuadro de arriba con quien más donó. Apagalo para que no ocupe lugar.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-show-top-donor"><span class="toggle-slider"></span></span>
                         </label>
 
                     </section>
@@ -1088,6 +1067,19 @@
                             </div>
                         </div>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-table-cells-large"></i> Qué se ve en cada donación</div>
+                        <div class="layout-box">
+                            <div class="layout-row">
+                                <label for="cfg-panel-pstyle"><i class="fa-solid fa-droplet"></i> Cómo se nota la red en el panel</label>
+                                <select id="cfg-panel-pstyle">
+                                    <option value="tag">Con una etiqueta (YOUTUBE, KICK…)</option>
+                                    <option value="color">Pintando el nombre y el borde de la foto</option>
+                                    <option value="both">Las dos cosas</option>
+                                </select>
+                            </div>
+                        </div>
+
+
                         <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Tema y colores</div>
                         <div class="theme-picker" id="theme-picker"></div>
                         <div class="custom-accent-row hidden" id="custom-accent-row">
@@ -1102,6 +1094,16 @@
                         </div>
                         <small class="pane-note" style="margin-top:-6px">Se ve en vivo; se confirma con "Guardar cambios". La ventana OBS usa este mismo tema, salvo que le elijas otro en la sección <strong>OBS</strong>.</small>
 
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-swatchbook"></i> Color de cada plataforma</div>
+                        <div class="platform-colors">
+                            <label><span><i class="fa-solid fa-mug-hot"></i> Ceneka</span><input type="color" id="cfg-color-ceneka"></label>
+                            <label><span><i class="fa-brands fa-youtube"></i> YouTube</span><input type="color" id="cfg-color-youtube"></label>
+                            <label><span><i class="fa-brands fa-twitch"></i> Twitch</span><input type="color" id="cfg-color-twitch"></label>
+                            <label><span><i class="fa-solid fa-bolt"></i> Kick</span><input type="color" id="cfg-color-kick"></label>
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-reset-platform-colors"><i class="fa-solid fa-rotate-left"></i> Colores originales</button>
+                        </div>
+                        <small class="pane-note" style="margin-top:-6px">Valen para el panel y para OBS: tarjetas, etiquetas, columnas y alertas.</small>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-image"></i> Fondo de la ventana</div>
                         <div class="bg-picker" data-bg-target="panel">
@@ -1178,9 +1180,81 @@
                             </div>
                         </div>
 
+                        <label class="setting-row toggle-row">
+                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra suave detrás del texto para que se lea sobre cualquier escena: negra si las letras son claras y blanca si son oscuras.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-textshadow"><span class="toggle-slider"></span></span>
+                        </label>
+
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-table-cells-large"></i> Qué se ve en cada donación y dónde</div>
+                        <div class="layout-box">
+                            <div class="layout-row">
+                                <label for="cfg-lay-amount"><i class="fa-solid fa-coins"></i> Monto</label>
+                                <select id="cfg-lay-amount">
+                                    <option value="name">Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right" selected>A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-lay-platform"><i class="fa-solid fa-tower-broadcast"></i> Red (YouTube, Kick…)</label>
+                                <select id="cfg-lay-platform">
+                                    <option value="name">Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right" selected>A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-lay-rankicons"><i class="fa-solid fa-crown"></i> Íconos del rango</label>
+                                <select id="cfg-lay-rankicons">
+                                    <option value="name" selected>Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right">A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-lay-rankname"><i class="fa-solid fa-tag"></i> Nombre del rango</label>
+                                <select id="cfg-lay-rankname">
+                                    <option value="name" selected>Al lado del nombre</option>
+                                    <option value="below">Debajo del nombre</option>
+                                    <option value="right">A la derecha</option>
+                                    <option value="hidden">No mostrar</option>
+                                </select>
+                            </div>
+                            <div class="layout-row">
+                                <label for="cfg-obs-pstyle"><i class="fa-solid fa-droplet"></i> Cómo se nota la red</label>
+                                <select id="cfg-obs-pstyle">
+                                    <option value="tag">Con una etiqueta (YOUTUBE, KICK…)</option>
+                                    <option value="color">Pintando el nombre y el borde de la foto</option>
+                                    <option value="both">Las dos cosas</option>
+                                </select>
+                            </div>
+                            <small class="pane-note">Solo cambia la ventana "Modo OBS" (lo que ve tu audiencia). Abrila para ver los cambios en vivo. Los rangos se ven si están activados en Opciones → Destacar.</small>
+                        </div>
+
+                        <label class="setting-row toggle-row">
+                            <div><strong>Ocultar el texto de los mensajes en OBS</strong><small>En pantalla solo sale el nombre y el monto; vos leés el mensaje en el panel.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-hide-message"><span class="toggle-slider"></span></span>
+                        </label>
+
+                        <div class="setting-row">
+                            <div><strong>Total acumulado al lado del nick</strong><small>Un chip con todo lo que donó esa persona (por ejemplo "$200 acum."), en cualquier diseño.</small></div>
+                            <select id="cfg-obs-accum" class="input-field">
+                                <option value="off">No mostrar</option>
+                                <option value="session">En este directo</option>
+                                <option value="today">Hoy</option>
+                                <option value="30">Últimos 30 días</option>
+                            </select>
+                        </div>
+
+
                         <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Tema y colores</div>
                         <div class="form-group">
                             <select id="cfg-obs-theme"></select>
+                            <small class="pane-note">Los colores de cada plataforma (Ceneka, YouTube, Twitch, Kick) se cambian en la pestaña Panel y valen para los dos.</small>
                             <div class="custom-accent-row hidden" id="obs-custom-accent-row" style="margin-top:8px">
                                 <label for="cfg-obs-custom-accent"><strong>Color de OBS</strong></label>
                                 <input type="color" id="cfg-obs-custom-accent" value="#00E676">
@@ -1258,7 +1332,7 @@
                     <!-- OBS -->
                     <section class="settings-pane" data-pane="obs">
                         <h3 class="pane-title">OBS</h3>
-                        <p class="pane-desc">Cómo llegan las donaciones a OBS y qué se muestra en cada una. Los colores, temas y diseños están en la sección <strong>Diseño</strong>.</p>
+                        <p class="pane-desc">Cómo llegan las donaciones a OBS, las herramientas de la ventana "Modo OBS", cuánto dura cada alerta y los links. Todo lo que es apariencia está en la sección <strong>Diseño</strong>.</p>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Cómo llevar las donaciones a OBS</div>
                         <p class="pane-note">Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.</p>
@@ -1281,75 +1355,7 @@
                             </button>
                         </div>
 
-                        <div class="setting-row">
-                            <div><strong>Total acumulado al lado del nick</strong><small>Un chip con todo lo que donó esa persona (por ejemplo "$200 acum."), en cualquier diseño.</small></div>
-                            <select id="cfg-obs-accum" class="input-field">
-                                <option value="off">No mostrar</option>
-                                <option value="session">En este directo</option>
-                                <option value="today">Hoy</option>
-                                <option value="30">Últimos 30 días</option>
-                            </select>
-                        </div>
-
-                        <label class="setting-row toggle-row">
-                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra suave detrás del texto para que se lea sobre cualquier escena: negra si las letras son claras y blanca si son oscuras.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-textshadow"><span class="toggle-slider"></span></span>
-                        </label>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-table-cells-large"></i> Qué se ve en cada donación y dónde</div>
-                        <div class="layout-box">
-                            <div class="layout-row">
-                                <label for="cfg-lay-amount"><i class="fa-solid fa-coins"></i> Monto</label>
-                                <select id="cfg-lay-amount">
-                                    <option value="name">Al lado del nombre</option>
-                                    <option value="below">Debajo del nombre</option>
-                                    <option value="right" selected>A la derecha</option>
-                                    <option value="hidden">No mostrar</option>
-                                </select>
-                            </div>
-                            <div class="layout-row">
-                                <label for="cfg-lay-platform"><i class="fa-solid fa-tower-broadcast"></i> Red (YouTube, Kick…)</label>
-                                <select id="cfg-lay-platform">
-                                    <option value="name">Al lado del nombre</option>
-                                    <option value="below">Debajo del nombre</option>
-                                    <option value="right" selected>A la derecha</option>
-                                    <option value="hidden">No mostrar</option>
-                                </select>
-                            </div>
-                            <div class="layout-row">
-                                <label for="cfg-lay-rankicons"><i class="fa-solid fa-crown"></i> Íconos del rango</label>
-                                <select id="cfg-lay-rankicons">
-                                    <option value="name" selected>Al lado del nombre</option>
-                                    <option value="below">Debajo del nombre</option>
-                                    <option value="right">A la derecha</option>
-                                    <option value="hidden">No mostrar</option>
-                                </select>
-                            </div>
-                            <div class="layout-row">
-                                <label for="cfg-lay-rankname"><i class="fa-solid fa-tag"></i> Nombre del rango</label>
-                                <select id="cfg-lay-rankname">
-                                    <option value="name" selected>Al lado del nombre</option>
-                                    <option value="below">Debajo del nombre</option>
-                                    <option value="right">A la derecha</option>
-                                    <option value="hidden">No mostrar</option>
-                                </select>
-                            </div>
-                            <div class="layout-row">
-                                <label for="cfg-obs-pstyle"><i class="fa-solid fa-droplet"></i> Cómo se nota la red</label>
-                                <select id="cfg-obs-pstyle">
-                                    <option value="tag">Con una etiqueta (YOUTUBE, KICK…)</option>
-                                    <option value="color">Pintando el nombre y el borde de la foto</option>
-                                    <option value="both">Las dos cosas</option>
-                                </select>
-                            </div>
-                            <small class="pane-note">Solo cambia la ventana "Modo OBS" (lo que ve tu audiencia). Abrila para ver los cambios en vivo. Los rangos se ven si están activados en Opciones → Destacar.</small>
-                        </div>
-
-                        <label class="setting-row toggle-row">
-                            <div><strong>Ocultar el texto de los mensajes en OBS</strong><small>En pantalla solo sale el nombre y el monto; vos leés el mensaje en el panel.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-hide-message"><span class="toggle-slider"></span></span>
-                        </label>
-
+                        <div class="pane-subtitle"><i class="fa-solid fa-filter"></i> Herramientas de la ventana "Modo OBS"</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Menú para elegir plataforma en OBS</strong><small>Una barrita arriba en la ventana OBS (Todas · Ceneka · YouTube · Twitch · Kick) para ver solo las de una red y leerlas primero. Apagalo para ver todas juntas sin que ocupe lugar.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-filter-bar"><span class="toggle-slider"></span></span>

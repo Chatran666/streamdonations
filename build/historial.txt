@@ -1,3 +1,7 @@
+Novedades de la 2.1.1:
+- Todo lo visual quedó en Opciones → Diseño: la sombra de las letras, qué se ve en cada donación y dónde, ocultar el mensaje, el total acumulado, cómo se nota la red y los colores de cada plataforma.
+- "Pantalla" quedó con el encabezado y los links del panel; "OBS" con la forma de conectar, la barrita de plataformas, cuánto dura cada alerta y los links.
+
 Novedades de la 2.1.0:
 - Nueva sección "Diseño" en Opciones: todo lo visual en un solo lugar, con dos pestañas, Panel (lo que ves vos) y OBS (lo que ve tu audiencia), con las mismas opciones en el mismo orden: diseño, colores de la tarjeta, tema, fondo y tamaño del texto.
 - Vista previa fija arriba que muestra el panel o OBS según la pestaña.
