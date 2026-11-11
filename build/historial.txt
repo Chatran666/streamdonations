@@ -1,3 +1,6 @@
+Novedades de la 2.0.8:
+- La vista previa fija de OBS muestra una sola donación de ejemplo (ocupa la mitad) y tiene un botón para alternar entre una común y una grande.
+
 Novedades de la 2.0.7:
 - Colores de la tarjeta en OBS: podés elegir el color del fondo y de las letras de cada donación, en cualquier diseño (también en Ticket).
 - La vista previa de OBS queda fija arriba mientras bajás por las opciones: ves al instante cómo cambia el tamaño del texto, los colores y todo lo demás. Se puede achicar.

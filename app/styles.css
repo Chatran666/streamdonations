@@ -2858,3 +2858,5 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .card-colors { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
 .card-colors .custom-text-group { margin-left: 0; }
 .card-colors input[type="color"]:disabled { opacity: 0.35; }
+
+.obs-live-btns { display: inline-flex; gap: 10px; }

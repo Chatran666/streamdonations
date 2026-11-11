@@ -5876,7 +5876,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('design-desc').textContent = d.desc;
     }
     // Vista previa: la misma página de OBS dentro de Opciones, con dos donaciones de ejemplo
-    let previewIds = [], previewN = 0;
+    let previewIds = [], previewN = 0, previewBig = false;
     function designPreviewStyle(payload) {
         const f = $('design-preview');
         if (!f || !f.contentWindow) return;
@@ -5891,10 +5891,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const accumMode = $('cfg-obs-accum') ? $('cfg-obs-accum').value : 'off';
         const r = (state.settings.ranks || [])[0];
         const rank = r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null;
-        const base = [
+        // Una sola donación de ejemplo (así la vista previa fija ocupa poco): la común o la grande
+        const all = [
             { platform: 'youtube', nick: 'leandropaz1286', amount: 100, currency: 'ARS', message: '¡Qué buen stream! Saludos desde Mendoza 👋', accum: '$200' },
             { platform: 'kick', nick: 'Juan_Gamer', amount: 5000, currency: 'ARS', message: 'Para el fernet del final 🍻 aguante el canal', accum: '$12.500', rank }
         ];
+        const base = [all[previewBig ? 1 : 0]];
         previewN++;
         previewIds = base.map((d, i) => 'pv' + previewN + '_' + i);
         base.reverse().forEach((d, i) => {
@@ -5958,6 +5960,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let c0 = false; try { c0 = localStorage.getItem('sd_preview_collapsed') === '1'; } catch (e) {}
         set(c0);
         btn.addEventListener('click', () => set(!box.classList.contains('collapsed')));
+        // Alternar el ejemplo: donación común / donación grande
+        const sw = $('btn-preview-sample');
+        sw.addEventListener('click', () => {
+            previewBig = !previewBig;
+            sw.innerHTML = previewBig ? '<i class="fa-solid fa-arrow-down-short-wide"></i> <span>Ver común</span>' : '<i class="fa-solid fa-arrow-up-wide-short"></i> <span>Ver grande</span>';
+            designPreviewSamples();
+        });
     })();
     $('cfg-obs-accum').addEventListener('change', () => { setSettingsDirty(true); designPreviewSamples(); });
     $('design-preview').addEventListener('load', () => setTimeout(refreshDesignPreview, 150));
