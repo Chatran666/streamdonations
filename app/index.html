@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="lib/fa/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="effects.css">
+    <link rel="stylesheet" href="panel-designs.css">
 </head>
 <body>
     <div class="app-container">
@@ -513,6 +514,7 @@
                     <button class="settings-tab" data-pane="alertas"><i class="fa-solid fa-bell"></i> <span>Sonido y voz</span></button>
                     <button class="settings-tab" data-pane="pantalla"><i class="fa-solid fa-display"></i> <span>Pantalla</span></button>
                     <button class="settings-tab" data-pane="obs"><i class="fa-solid fa-video"></i> <span>OBS</span></button>
+                    <button class="settings-tab" data-pane="programa"><i class="fa-solid fa-sliders"></i> <span>Programa</span></button>
                     <button class="settings-tab" data-pane="meta"><i class="fa-solid fa-bullseye"></i> <span>Meta</span></button>
                     <button class="settings-tab" data-pane="datos"><i class="fa-solid fa-database"></i> <span>Historial</span></button>
                     <button class="settings-tab" data-pane="pruebas"><i class="fa-solid fa-flask"></i> <span>Pruebas</span></button>
@@ -624,7 +626,21 @@
                             <div class="min-card-input"><span>$</span><input type="number" id="cfg-min-tts" min="0" step="50" placeholder="0"></div>
                         </div>
 
-                        <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Los Super Chats en dólares se comparan usando la cotización de "Pantalla y OBS". Si no la cargaste, se muestran y se leen siempre.</p>
+                        <div class="pane-subtitle"><i class="fa-solid fa-dollar-sign"></i> Dólar, Bits y KICKs</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="cfg-usd-rate">Cotización del dólar ($ por US$1)</label>
+                                <input type="number" id="cfg-usd-rate" min="0" step="10" placeholder="Ej: 1200 (opcional)">
+                                <small>Opcional. Para sumar los Super Chats en dólares, los Bits y los KICKs a los totales y a la meta.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="cfg-kick-usd">Valor de 1 KICK (en dólares)</label>
+                                <input type="number" id="cfg-kick-usd" min="0" step="0.001" placeholder="0.01">
+                                <small>Aproximado, para pasar los KICKs a pesos. Revisá el valor actual en Kick. (1 Bit de Twitch = US$0,01.)</small>
+                            </div>
+                        </div>
+
+                        <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Los Super Chats en dólares se comparan usando la cotización de acá abajo. Si no la cargaste, se muestran y se leen siempre.</p>
                     </section>
 
                     <!-- FILTROS: palabras prohibidas y usuarios bloqueados -->
@@ -847,7 +863,7 @@
                                 <input type="range" id="cfg-big-sound-volume" min="0" max="1" step="0.05">
                                 <span class="range-value" id="lbl-big-sound-volume">90%</span>
                             </div>
-                            <small class="pane-note">Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Pantalla.</small>
+                            <small class="pane-note">Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Montos mínimos.</small>
                         </div>
 
                         <label class="setting-row toggle-row">
@@ -919,6 +935,12 @@
                         <h3 class="pane-title">Pantalla</h3>
                         <p class="pane-desc">Cómo se ve el panel principal. Lo de la ventana "Modo OBS" está en la sección <strong>OBS</strong>.</p>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones en el panel</div>
+                        <div class="setting-row">
+                            <div><strong>Diseño del panel</strong><small id="pdesign-desc">La de siempre: foto, nick, monto y mensaje</small></div>
+                            <select id="cfg-panel-design" class="input-field"></select>
+                        </div>
+
                         <div class="layout-box" style="margin-bottom:14px">
                             <div class="layout-row">
                                 <label for="cfg-panel-pstyle"><i class="fa-solid fa-droplet"></i> Cómo se nota la red en el panel</label>
@@ -928,14 +950,6 @@
                                     <option value="both">Las dos cosas</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="form-group lang-group" data-no-i18n>
-                            <label for="cfg-language"><i class="fa-solid fa-language"></i> Idioma / Language</label>
-                            <select id="cfg-language">
-                                <option value="es">Español</option>
-                                <option value="en">English</option>
-                            </select>
                         </div>
 
                         <label class="setting-row toggle-row">
@@ -987,23 +1001,11 @@
                         </div>
                         <small class="pane-note" style="margin-top:-6px">Se usan en las tarjetas, etiquetas y columnas del panel y en las alertas de OBS.</small>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-text-height"></i> Textos, montos y links del panel</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Mostrar montos en la barra superior</strong><small>Si está apagado, solo muestra la cantidad de mensajes (útil si el panel sale en cámara).</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-toggle-amounts"><span class="toggle-slider"></span></span>
                         </label>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="cfg-usd-rate">Cotización del dólar ($ por US$1)</label>
-                                <input type="number" id="cfg-usd-rate" min="0" step="10" placeholder="Ej: 1200 (opcional)">
-                                <small>Opcional. Para sumar los Super Chats en dólares, los Bits y los KICKs a los totales y a la meta.</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="cfg-kick-usd">Valor de 1 KICK (en dólares)</label>
-                                <input type="number" id="cfg-kick-usd" min="0" step="0.001" placeholder="0.01">
-                                <small>Aproximado, para pasar los KICKs a pesos. Revisá el valor actual en Kick. (1 Bit de Twitch = US$0,01.)</small>
-                            </div>
-                        </div>
 
                         <label class="setting-row toggle-row">
                             <div><strong>Links que se pueden abrir en el panel</strong><small>Los links de los mensajes aparecen como un botón con el sitio (ej. "youtube.com"). Al tocarlo te muestra la dirección completa y te pregunta antes de abrir.</small></div>
@@ -1032,8 +1034,24 @@
                             <small>La parte de arriba de cada tarjeta (nombre, red, monto, foto y "Marcar Leído"), sin cambiar el tamaño del mensaje.</small>
                         </div>
 
+                    </section>
+
+                    <!-- PROGRAMA: idioma, arranque, bandeja y atajos -->
+                    <section class="settings-pane" data-pane="programa">
+                        <h3 class="pane-title">Programa</h3>
+                        <p class="pane-desc">Idioma, cómo arranca y se cierra la app, y los atajos de teclado.</p>
+
+                        <div class="form-group lang-group" data-no-i18n>
+                            <label for="cfg-language"><i class="fa-solid fa-language"></i> Idioma / Language</label>
+                            <select id="cfg-language">
+                                <option value="es">Español</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+
+
                         <div class="tauri-only">
-                            <div class="pane-subtitle"><i class="fa-solid fa-window-maximize"></i> Programa</div>
+                            <div class="pane-subtitle"><i class="fa-solid fa-window-maximize"></i> Arranque y bandeja</div>
                             <label class="setting-row toggle-row">
                                 <div><strong>Abrir StreamDonations al prender la PC</strong><small>Arranca sola cuando iniciás Windows.</small></div>
                                 <span class="toggle-switch"><input type="checkbox" id="cfg-autostart"><span class="toggle-slider"></span></span>
@@ -1067,7 +1085,7 @@
                     <!-- OBS -->
                     <section class="settings-pane" data-pane="obs">
                         <h3 class="pane-title">OBS</h3>
-                        <p class="pane-desc">Lo que ve tu audiencia en la ventana "Modo OBS". Abrila para ver los cambios en vivo.</p>
+                        <p class="pane-desc">Lo que ve tu audiencia: cómo llegan las donaciones a OBS, su diseño, colores y qué se muestra en cada una.</p>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Cómo llevar las donaciones a OBS</div>
                         <p class="pane-note">Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.</p>
@@ -1089,11 +1107,6 @@
                                 <small>La app agrega la fuente sola. Hay que activar el WebSocket en OBS y poner su contraseña.</small>
                             </button>
                         </div>
-
-                        <label class="setting-row toggle-row">
-                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra suave detrás del texto para que se lea sobre cualquier escena: negra si las letras son claras y blanca si son oscuras.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-textshadow"><span class="toggle-slider"></span></span>
-                        </label>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones</div>
                         <p class="pane-note">La forma de cada donación en OBS. Los colores salen del tema de abajo. Se ve al instante en la vista previa y en OBS; se confirma con "Guardar cambios".</p>
@@ -1121,6 +1134,11 @@
                                 <option value="30">Últimos 30 días</option>
                             </select>
                         </div>
+
+                        <label class="setting-row toggle-row">
+                            <div><strong>Sombra en las letras (fuente de navegador)</strong><small>Una sombra suave detrás del texto para que se lea sobre cualquier escena: negra si las letras son claras y blanca si son oscuras.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-textshadow"><span class="toggle-slider"></span></span>
+                        </label>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Tema de OBS</div>
                         <div class="form-group">
@@ -1174,23 +1192,6 @@
                         </div>
                         <div class="pane-note chroma-help hidden" id="obs-chroma-help"><i class="fa-solid fa-wand-magic-sparkles"></i> <strong>Cómo dejarlo transparente en OBS:</strong> clic derecho en la captura de la ventana → <em>Filtros</em> → <strong>+</strong> → <em>Clave cromática</em> (Chroma Key) → elegí el mismo color de acá (Magenta, Verde o Azul). Las tarjetas quedan flotando sobre tu escena. Si mostrás donaciones de Kick (verde), usá Magenta.</div>
                         <small class="pane-note" style="margin-top:-6px">Los GIF se ven animados. Máximo 8 MB. La imagen queda guardada en esta PC (no va en la "copia completa").</small>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-desktop"></i> Alertas</div>
-
-                        <div class="form-group">
-                            <label for="cfg-obs-links">Links en OBS (lo que ve tu audiencia)</label>
-                            <select id="cfg-obs-links">
-                                <option value="hide">Ocultar: mostrar "🔗 link" (recomendado)</option>
-                                <option value="domain">Mostrar solo el sitio: "🔗 youtube.com"</option>
-                                <option value="full">Mostrar la dirección completa</option>
-                            </select>
-                            <small>Mostrar la dirección completa en vivo deja que cualquiera la vea y la copie: usalo solo si confiás en los links.</small>
-                        </div>
-
-                        <label class="setting-row toggle-row">
-                            <div><strong>Proteger contra el "doxxing accidental" en los links</strong><small>Les saca a los links los datos de quién los compartió (por ejemplo <em>?si=</em> de YouTube y Spotify, <em>?igsh=</em> de Instagram, los de TikTok, X y Facebook). Así, al abrirlos, nadie ve "Fulano te compartió esto" con su foto y perfil. Se aplica en OBS y en los links que abrís o copiás desde el panel.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-strip-tracking"><span class="toggle-slider"></span></span>
-                        </label>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-table-cells-large"></i> Qué se ve en cada donación y dónde</div>
                         <div class="layout-box">
@@ -1281,6 +1282,24 @@
                                 <small><strong>0 = no se oculta sola</strong>: queda en OBS hasta que la marcás como leída (recomendado).</small>
                             </div>
                         </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-link"></i> Links en los mensajes</div>
+
+                        <div class="form-group">
+                            <label for="cfg-obs-links">Links en OBS (lo que ve tu audiencia)</label>
+                            <select id="cfg-obs-links">
+                                <option value="hide">Ocultar: mostrar "🔗 link" (recomendado)</option>
+                                <option value="domain">Mostrar solo el sitio: "🔗 youtube.com"</option>
+                                <option value="full">Mostrar la dirección completa</option>
+                            </select>
+                            <small>Mostrar la dirección completa en vivo deja que cualquiera la vea y la copie: usalo solo si confiás en los links.</small>
+                        </div>
+
+                        <label class="setting-row toggle-row">
+                            <div><strong>Proteger contra el "doxxing accidental" en los links</strong><small>Les saca a los links los datos de quién los compartió (por ejemplo <em>?si=</em> de YouTube y Spotify, <em>?igsh=</em> de Instagram, los de TikTok, X y Facebook). Así, al abrirlos, nadie ve "Fulano te compartió esto" con su foto y perfil. Se aplica en OBS y en los links que abrís o copiás desde el panel.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-strip-tracking"><span class="toggle-slider"></span></span>
+                        </label>
+
                     </section>
 
                     <!-- META -->
@@ -1319,7 +1338,7 @@
                                 <div><strong>Progreso actual</strong><small id="goal-progress-text">$0 desde —</small></div>
                                 <button type="button" class="btn btn-outline" id="btn-goal-reset"><i class="fa-solid fa-rotate-left"></i> Reiniciar meta</button>
                             </div>
-                            <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Suman las donaciones de Ceneka y los Super Chats en pesos. Los Super Chats en dólares suman si cargás la cotización en "Pantalla y OBS".</p>
+                            <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Suman las donaciones de Ceneka y los Super Chats en pesos. Los Super Chats en dólares suman si cargás la cotización en Opciones → Montos mínimos.</p>
                         </div>
                     </section>
 

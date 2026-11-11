@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsDesign: 'tarjeta', // forma de las donaciones en OBS (Tarjeta, Barra, Compacto…)
             obsAccum: 'off', // chip con lo que donó cada uno: off | session (este directo) | today | 30
             obsCardAlpha: -1, // fondo detrás de cada donación: -1 automático (según el diseño) o 0…100
+            panelDesign: 'tarjeta', // diseño de las donaciones en el panel ('same' = igual que OBS)
             customIcons: [], // imágenes propias para los rangos: [{ id, name }] (el archivo queda guardado en esta PC)
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
@@ -2169,7 +2170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { target: '#btn-toggle-tts', title: 'Lectura en voz alta',
           text: 'También viene <strong>apagada</strong>. Prendela acá para que la app lea el nombre, el monto y el mensaje. La voz, la velocidad y desde qué monto se lee están en Opciones → Sonido y voz.' },
         { target: '#btn-open-settings', title: 'Filtros y atajos',
-          text: 'En <strong>Opciones → Filtros</strong> cargás palabras prohibidas (se tapan en OBS y la voz las saltea) y usuarios bloqueados. Los atajos de teclado vienen apagados: se prenden en Opciones → Pantalla.' },
+          text: 'En <strong>Opciones → Filtros</strong> cargás palabras prohibidas (se tapan en OBS y la voz las saltea) y usuarios bloqueados. Los atajos de teclado vienen apagados: se prenden en Opciones → Programa.' },
         { target: '#btn-open-settings', title: 'Conectá tu cuenta', final: true,
           text: 'Lo más importante: en <strong>Opciones → Conexión</strong> pegás el <strong>JWT Token de StreamElements</strong> de cada canal (YouTube, Kick, Twitch). Las donaciones de Ceneka entran por el canal que vinculaste en ceneka.net. Si no sabés dónde está el token, mirá la <a href="AYUDA.html" target="_blank" class="help-link">guía paso a paso</a>.' }
     ];
@@ -4564,6 +4565,7 @@ document.addEventListener('DOMContentLoaded', () => {
           $('cfg-obs-card-auto').checked = auto; $('cfg-obs-card-alpha').value = auto ? 90 : ca; $('cfg-obs-card-alpha').disabled = auto;
           $('lbl-obs-card-alpha').textContent = auto ? 'Auto' : ca + '%'; }
         renderDesignPicker();
+        renderPanelDesignSelect(st.panelDesign || 'tarjeta');
         setTimeout(refreshDesignPreview, 200);
         $('obsws-box').classList.toggle('hidden', !st.obsWsEnabled);
         $('cfg-obsws-port').value = st.obsWsPort || 4455;
@@ -4673,6 +4675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         obsPStyleDraft = null;
         obsDesignDraft = null;
         cardAlphaDraft = null;
+        applyPanelDesign(state.settings.panelDesign);
         applyPanelPStyle(state.settings.panelPlatformStyle);
         applyTheme();      // si había una vista previa sin guardar, vuelve a lo guardado
         applyLook();
@@ -4749,6 +4752,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsTextShadow = $('cfg-obs-textshadow').checked;
         st.obsDesign = OBS_DESIGNS.some(d => d.k === currentDesign()) ? currentDesign() : 'tarjeta';
         st.obsAccum = $('cfg-obs-accum').value;
+        st.panelDesign = $('cfg-panel-design').value || 'tarjeta';
         st.obsCardAlpha = $('cfg-obs-card-auto').checked ? -1 : Math.min(100, Math.max(0, parseInt($('cfg-obs-card-alpha').value, 10) || 0));
         cardAlphaDraft = null;
         obsDesignDraft = null;
@@ -5735,6 +5739,29 @@ document.addEventListener('DOMContentLoaded', () => {
         { k: 'franja', label: 'Franja', icon: 'fa-tv', desc: 'Zócalo de noticiero con el nick en una franja' }
     ];
     function currentDesign() { return obsDesignDraft || state.settings.obsDesign || 'tarjeta'; }
+    // Diseño del panel: uno propio o "igual que OBS"
+    function applyPanelDesign(v, obsKey) {
+        let k = v === 'same' ? (obsKey || state.settings.obsDesign) : v;
+        if (!OBS_DESIGNS.some(d => d.k === k)) k = 'tarjeta';
+        if (k === 'tarjeta') delete document.documentElement.dataset.pdesign;
+        else document.documentElement.dataset.pdesign = k;
+        return k;
+    }
+    function renderPanelDesignSelect(v) {
+        const sel = $('cfg-panel-design');
+        if (!sel) return;
+        if (!sel.options.length) sel.innerHTML = '<option value="same">Igual que OBS</option>' + OBS_DESIGNS.map(d => `<option value="${d.k}">${escapeHTML(d.label)}</option>`).join('');
+        sel.value = v === 'same' || OBS_DESIGNS.some(d => d.k === v) ? v : 'tarjeta';
+        const k = sel.value === 'same' ? currentDesign() : sel.value;
+        const d = OBS_DESIGNS.find(x => x.k === k) || OBS_DESIGNS[0];
+        $('pdesign-desc').textContent = (sel.value === 'same' ? 'Ahora: ' + d.label + '. ' : '') + d.desc;
+    }
+    applyPanelDesign(state.settings.panelDesign);
+    $('cfg-panel-design').addEventListener('change', () => {
+        setSettingsDirty(true);
+        renderPanelDesignSelect($('cfg-panel-design').value);
+        applyPanelDesign($('cfg-panel-design').value, currentDesign()); // se ve al instante en el panel
+    });
     function renderDesignPicker() {
         const sel = $('cfg-obs-design');
         if (!sel) return;
@@ -5789,6 +5816,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('cfg-obs-design').addEventListener('change', () => {
         obsDesignDraft = $('cfg-obs-design').value;
         renderDesignPicker();
+        if ($('cfg-panel-design').value === 'same') { applyPanelDesign('same', obsDesignDraft); renderPanelDesignSelect('same'); }
         setSettingsDirty(true);
         sendObsStyle(); // se ve al instante en OBS y en la vista previa
         designPreviewSamples();

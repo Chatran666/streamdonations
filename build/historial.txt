@@ -1,3 +1,7 @@
+Novedades de la 2.0.4:
+- Diseños también en el panel: Opciones → Pantalla → Diseño del panel. Podés elegir uno propio o "Igual que OBS". Los botones y el menú del nick siguen andando en todos.
+- Opciones más ordenadas: nueva sección "Programa" con el idioma, el arranque con Windows, la bandeja y los atajos; la cotización del dólar pasó a "Montos mínimos"; en OBS la sombra de las letras quedó junto al diseño y "Links en los mensajes" al final.
+
 Novedades de la 2.0.3:
 - Opciones → OBS más simple: "Cómo llevar las donaciones a OBS" muestra las tres formas (Link, Captura de ventana y Automático con OBS) y cada una abre una ventanita con sus pasos.
 - Captura de ventana: botones para abrir el Modo OBS y poner el fondo para recortar en un toque.

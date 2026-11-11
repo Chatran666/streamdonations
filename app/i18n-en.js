@@ -370,7 +370,7 @@ window.SD_I18N_EN = {
     'Las donaciones menores no aparecen en la ventana "Modo OBS" (lo que ve tu audiencia), aunque las veas en el panel.': 'Smaller donations don\'t appear in the "OBS mode" window (what your audience sees), even if you see them in the panel.',
     'Leer en voz alta desde': 'Read aloud from',
     'Las menores no se leen solas. Podés leerlas igual con "Leer Voz" o con la barra espaciadora.': 'Smaller ones aren\'t read automatically. You can still read them with "Read aloud" or the space bar.',
-    'Los Super Chats en dólares se comparan usando la cotización de "Pantalla y OBS". Si no la cargaste, se muestran y se leen siempre.': 'Dollar Super Chats are compared using the exchange rate in "Display". If you didn\'t set it, they are always shown and read.',
+    'Los Super Chats en dólares se comparan usando la cotización de acá abajo. Si no la cargaste, se muestran y se leen siempre.': 'Dollar Super Chats are compared using the exchange rate below. If you didn\'t set it, they are always shown and read.',
 
     // ---- Settings: Filters ----
     'Para que no salga en vivo lo que no querés: palabras que se tapan y usuarios que se ignoran.': "So what you don't want doesn't go live: words that get hidden and users that get ignored.",
@@ -536,7 +536,7 @@ window.SD_I18N_EN = {
     'Progreso actual': 'Current progress',
     '$0 desde —': '$0 since —',
     'Reiniciar meta': 'Reset goal',
-    'Suman las donaciones de Ceneka y los Super Chats en pesos. Los Super Chats en dólares suman si cargás la cotización en "Pantalla y OBS".': 'Ceneka donations and peso Super Chats count. Dollar Super Chats count if you set the exchange rate in "Display".',
+    'Suman las donaciones de Ceneka y los Super Chats en pesos. Los Super Chats en dólares suman si cargás la cotización en Opciones → Montos mínimos.': 'Ceneka donations and peso Super Chats count. Dollar Super Chats count if you set the exchange rate in Options → Minimum amounts.',
 
     // ---- Settings: History ----
     'Historial de donaciones': 'Donation history',
@@ -999,6 +999,17 @@ window.SD_I18N_EN = {
     'Billetes y monedas que caen': 'Falling bills and coins',
     'Diseño de las donaciones': 'Donation design',
     'Diseño': 'Design',
+    'Diseño de las donaciones en el panel': 'Donation design on the panel',
+    'Diseño del panel': 'Panel design',
+    'Igual que OBS': 'Same as OBS',
+    'Ahora: {}. {}': 'Now: {}. {}',
+    'Dólar, Bits y KICKs': 'Dollar, Bits and KICKs',
+    'Textos, montos y links del panel': 'Panel text, amounts and links',
+    'Arranque y bandeja': 'Startup and tray',
+    'Idioma, cómo arranca y se cierra la app, y los atajos de teclado.': 'Language, how the app starts and closes, and keyboard shortcuts.',
+    'Links en los mensajes': 'Links in messages',
+    'Lo que ve tu audiencia: cómo llegan las donaciones a OBS, su diseño, colores y qué se muestra en cada una.': 'What your audience sees: how donations get to OBS, their design, colors and what each one shows.',
+    'Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Montos mínimos.': 'Dollar Super Chats, Bits and KICKs count if you set the dollar rate in Options → Minimum amounts.',
     'Cómo llevar las donaciones a OBS': 'How to bring donations into OBS',
     'Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.': 'Pick one of these three ways and tap it to see the steps. One is enough.',
     'Recomendado': 'Recommended',
