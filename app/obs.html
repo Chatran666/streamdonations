@@ -85,7 +85,7 @@
         }
 
         .obs-alert {
-            background: rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0.95));
+            background: rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.95));
             border-radius: 14px;
             padding: 16px 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(var(--obs-accent-rgb), 0.25);
@@ -416,7 +416,7 @@
         :root[data-anim] #obs-scroll-area { z-index: 1; }
         :root[data-anim] .obs-alert {
             border-color: rgba(var(--obs-accent-rgb), 0.35) !important;
-            background: rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0.66));
+            background: rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.66));
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 22px rgba(var(--obs-accent-rgb), 0.3) !important;
         }
         :root[data-anim] .obs-alert::after {

@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
     delete state.settings.platforms;
     if (!Array.isArray(state.settings.seChannels)) state.settings.seChannels = [];
     // Los colores guardados tienen que ser colores (#RRGGBB): se usan dentro de estilos
-    ['customAccent', 'obsCustomAccent', 'customText', 'obsCustomText'].forEach(k => {
+    ['customAccent', 'obsCustomAccent', 'customText', 'obsCustomText', 'obsCardColor'].forEach(k => {
         if (state.settings[k] !== undefined && !/^#[0-9a-fA-F]{6}$/.test(state.settings[k] || '')) delete state.settings[k];
     });
     // Simulador: ahora por defecto una donación cada 5 segundos
@@ -5532,6 +5532,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsTheme: st.obsTheme || 'same',
             obsCustomAccent: cleanColor(st.obsCustomAccent, '#00E676'),
             obsCustomText: cleanColor(st.obsCustomText, ''),
+            obsCardColor: cleanColor(st.obsCardColor, ''),
             obsBg: Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '' }, st.obsBg || {})
         };
         return Object.assign(base, lookDraft || {});
@@ -5598,6 +5599,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-custom-text-auto').checked = !lk.obsCustomText;
         $('cfg-obs-custom-text').value = lk.obsCustomText || '#FFFFFF';
         $('cfg-obs-custom-text').disabled = !lk.obsCustomText;
+        $('cfg-obs-card-color-auto').checked = !lk.obsCardColor;
+        $('cfg-obs-card-color').value = lk.obsCardColor || '#14161F';
+        $('cfg-obs-card-color').disabled = !lk.obsCardColor;
         $('cfg-obs-bg-type').value = lk.obsBg.type;
         $('cfg-obs-bg-color').value = cleanColor(lk.obsBg.color, '#000000');
         $('cfg-obs-bg-fit').value = lk.obsBg.fit || 'cover';
@@ -5622,6 +5626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsTheme: $('cfg-obs-theme').value || 'same',
             obsCustomAccent: cleanColor($('cfg-obs-custom-accent').value, '#00E676'),
             obsCustomText: $('cfg-obs-custom-text-auto').checked ? '' : cleanColor($('cfg-obs-custom-text').value, ''),
+            obsCardColor: $('cfg-obs-card-color-auto').checked ? '' : cleanColor($('cfg-obs-card-color').value, ''),
             obsBg: {
                 type: $('cfg-obs-bg-type').value, color: $('cfg-obs-bg-color').value,
                 fit: $('cfg-obs-bg-fit').value || 'cover',
@@ -5646,6 +5651,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('obs-chroma-help').classList.toggle('hidden', ot !== 'chroma');
         $('obs-custom-accent-row').classList.toggle('hidden', $('cfg-obs-theme').value !== 'custom');
         $('cfg-obs-custom-text').disabled = $('cfg-obs-custom-text-auto').checked;
+        $('cfg-obs-card-color').disabled = $('cfg-obs-card-color-auto').checked;
         $('lbl-panel-bg-dim').textContent = Math.round($('cfg-panel-bg-dim').value * 100) + '%';
         $('lbl-obs-bg-dim').textContent = Math.round($('cfg-obs-bg-dim').value * 100) + '%';
     }
@@ -5725,7 +5731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLook();
         const ids = ['cfg-color-ceneka', 'cfg-color-youtube', 'cfg-color-twitch', 'cfg-color-kick',
             'cfg-panel-bg-type', 'cfg-panel-bg-color', 'cfg-panel-bg-dim',
-            'cfg-obs-theme', 'cfg-obs-custom-accent', 'cfg-obs-custom-text', 'cfg-obs-custom-text-auto', 'cfg-obs-bg-type', 'cfg-obs-bg-color', 'cfg-obs-bg-fit', 'cfg-obs-bg-dim', 'cfg-obs-chroma'];
+            'cfg-obs-theme', 'cfg-obs-custom-accent', 'cfg-obs-custom-text', 'cfg-obs-custom-text-auto', 'cfg-obs-card-color', 'cfg-obs-card-color-auto', 'cfg-obs-bg-type', 'cfg-obs-bg-color', 'cfg-obs-bg-fit', 'cfg-obs-bg-dim', 'cfg-obs-chroma'];
         ids.forEach(id => { const el = $(id); if (el) { el.addEventListener('input', previewLook); el.addEventListener('change', previewLook); } });
         $('btn-reset-platform-colors').addEventListener('click', () => {
             PLATFORM_KEYS.forEach(k => { $('cfg-color-' + k).value = PLATFORM_COLOR_DEFAULTS[k]; });
@@ -5940,6 +5946,19 @@ document.addEventListener('DOMContentLoaded', () => {
     $('cfg-obs-card-auto').addEventListener('change', cardAlphaInput);
     // La vista previa se acomoda sola cuando aparece o cambia de tamaño
     if (window.ResizeObserver) new ResizeObserver(() => fitDesignPreview()).observe(document.querySelector('.design-preview-wrap'));
+    // Achicar / mostrar la vista previa fija (se recuerda)
+    (() => {
+        const box = $('obs-live-preview'), btn = $('btn-preview-toggle');
+        const set = (c) => {
+            box.classList.toggle('collapsed', c);
+            btn.innerHTML = c ? '<i class="fa-solid fa-chevron-down"></i> <span>Mostrar</span>' : '<i class="fa-solid fa-chevron-up"></i> <span>Achicar</span>';
+            try { localStorage.setItem('sd_preview_collapsed', c ? '1' : '0'); } catch (e) {}
+            if (!c) setTimeout(fitDesignPreview, 0);
+        };
+        let c0 = false; try { c0 = localStorage.getItem('sd_preview_collapsed') === '1'; } catch (e) {}
+        set(c0);
+        btn.addEventListener('click', () => set(!box.classList.contains('collapsed')));
+    })();
     $('cfg-obs-accum').addEventListener('change', () => { setSettingsDirty(true); designPreviewSamples(); });
     $('design-preview').addEventListener('load', () => setTimeout(refreshDesignPreview, 150));
     $('cfg-obs-pstyle').addEventListener('change', () => { obsPStyleDraft = $('cfg-obs-pstyle').value; sendObsStyle(); });
@@ -5972,6 +5991,9 @@ document.addEventListener('DOMContentLoaded', () => {
             lang: window.SD_LANG === 'en' ? 'en' : 'es',
             textShadow: state.settings.obsTextShadow !== false,
             design: obsDesignDraft || state.settings.obsDesign || 'tarjeta',
+            // Colores propios de la tarjeta (valen para cualquier diseño y tema)
+            cardColor: lk.obsCardColor || '',
+            textColor: lk.obsCustomText || '',
             cardAlpha: (v => v >= 0 && v <= 100 ? v / 100 : null)(cardAlphaDraft != null ? cardAlphaDraft : Number(state.settings.obsCardAlpha)),
             ts: Date.now()
         };

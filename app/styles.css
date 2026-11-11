@@ -2845,3 +2845,16 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .update-progress small { color: var(--text-secondary); font-size: 0.8rem; }
 .update-browser-link { background: none; border: none; color: var(--text-secondary); text-decoration: underline; cursor: pointer; font-size: 0.8rem; padding: 2px; }
 .update-browser-link.hidden { display: none; }
+
+/* Vista previa de OBS fija arriba mientras se recorren las opciones */
+.obs-live-preview { position: sticky; top: -20px; z-index: 6; margin: -6px -22px 0; padding: 22px 22px 10px;
+    background: var(--modal-bg, #121722); border-bottom: 1px solid var(--border-color); box-shadow: 0 10px 14px -12px rgba(0, 0, 0, 0.7); }
+.obs-live-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 0.78rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
+.btn-link-sm { background: none; border: none; color: var(--text-secondary); font-size: 0.75rem; cursor: pointer; padding: 2px 4px; text-transform: none; letter-spacing: 0; }
+.btn-link-sm:hover { color: var(--text-primary); }
+.obs-live-preview .design-preview-wrap { margin: 0 auto; max-width: 440px; }
+.obs-live-preview.collapsed .design-preview-wrap { display: none; }
+.card-colors { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.card-colors .custom-text-group { margin-left: 0; }
+.card-colors input[type="color"]:disabled { opacity: 0.35; }

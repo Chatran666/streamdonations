@@ -1,3 +1,7 @@
+Novedades de la 2.0.7:
+- Colores de la tarjeta en OBS: podés elegir el color del fondo y de las letras de cada donación, en cualquier diseño (también en Ticket).
+- La vista previa de OBS queda fija arriba mientras bajás por las opciones: ves al instante cómo cambia el tamaño del texto, los colores y todo lo demás. Se puede achicar.
+
 Novedades de la 2.0.6:
 - Actualizar desde la misma app: en el aviso de versión nueva tocás "Actualizar ahora" y se baja, se controla que sea el instalador original y se instala solo, sin el asistente. La app se cierra y se vuelve a abrir actualizada.
 

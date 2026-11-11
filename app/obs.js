@@ -635,6 +635,22 @@
                 if (window.XFilesFX) { if (t.fx === 'xfiles') window.XFilesFX.start(); else window.XFilesFX.stop(); }
                 if (window.SDAnimFX) { if (t.fx && t.fx !== 'xfiles') window.SDAnimFX.start(t.fx); else window.SDAnimFX.stop(); }
             }
+            // Colores propios de la tarjeta (fondo y letras), en cualquier diseño
+            {
+                const r = document.documentElement.style;
+                const hex = c => /^#[0-9a-fA-F]{6}$/.test(c || '') ? [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)) : null;
+                const cc = hex(st.cardColor);
+                if (cc) { r.setProperty('--obs-card-rgb', cc.join(', ')); r.setProperty('--obs-card-custom', st.cardColor); }
+                else { r.removeProperty('--obs-card-rgb'); r.removeProperty('--obs-card-custom'); }
+                const tc = hex(st.textColor);
+                if (tc) {
+                    const L = tc.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+                    r.setProperty('--obs-text', st.textColor);
+                    r.setProperty('--obs-ink-rgb', tc.join(', '));
+                    r.setProperty('--obs-text-custom', st.textColor);
+                    r.setProperty('--obs-shadow-rgb', 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.35 ? '0, 0, 0' : '255, 255, 255');
+                } else r.removeProperty('--obs-text-custom');
+            }
             layoutTop();
         }
         // Fondo de la ventana: el del tema, un color o una imagen/GIF (guardada en IndexedDB)

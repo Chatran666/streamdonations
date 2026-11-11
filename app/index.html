@@ -1092,6 +1092,17 @@
                         <h3 class="pane-title">OBS</h3>
                         <p class="pane-desc">Lo que ve tu audiencia: cómo llegan las donaciones a OBS, su diseño, colores y qué se muestra en cada una.</p>
 
+                        <!-- Vista previa fija arriba: se ve mientras cambiás cualquier opción de esta sección -->
+                        <div class="obs-live-preview" id="obs-live-preview">
+                            <div class="obs-live-head">
+                                <span><i class="fa-solid fa-eye"></i> Vista previa</span>
+                                <button type="button" class="btn-link-sm" id="btn-preview-toggle"><i class="fa-solid fa-chevron-up"></i> <span>Achicar</span></button>
+                            </div>
+                            <div class="design-preview-wrap">
+                                <iframe id="design-preview" src="obs.html#preview=1" title="Vista previa del diseño" tabindex="-1"></iframe>
+                            </div>
+                        </div>
+
                         <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Cómo llevar las donaciones a OBS</div>
                         <p class="pane-note">Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.</p>
                         <div class="obs-ways">
@@ -1119,8 +1130,20 @@
                             <div><strong>Diseño</strong><small id="design-desc">La de siempre: foto, nick, monto y mensaje</small></div>
                             <select id="cfg-obs-design" class="input-field"></select>
                         </div>
-                        <div class="design-preview-wrap">
-                            <iframe id="design-preview" src="obs.html#preview=1" title="Vista previa del diseño" tabindex="-1"></iframe>
+                        <div class="setting-row">
+                            <div><strong>Colores de la tarjeta</strong><small>El fondo de cada donación y el color de las letras, en cualquier diseño. "Automático" usa los del diseño y el tema.</small></div>
+                            <div class="card-colors">
+                                <span class="custom-text-group">
+                                    <label for="cfg-obs-card-color">Fondo</label>
+                                    <input type="color" id="cfg-obs-card-color" value="#14161F">
+                                    <label class="inline-check"><input type="checkbox" id="cfg-obs-card-color-auto" checked> Automático</label>
+                                </span>
+                                <span class="custom-text-group">
+                                    <label for="cfg-obs-custom-text">Letras</label>
+                                    <input type="color" id="cfg-obs-custom-text" value="#FFFFFF">
+                                    <label class="inline-check"><input type="checkbox" id="cfg-obs-custom-text-auto" checked> Automático</label>
+                                </span>
+                            </div>
                         </div>
                         <div class="setting-row">
                             <div><strong>Fondo detrás de cada donación</strong><small>Qué tan tapado queda lo de atrás. Subilo si sobre tu escena no se lee bien; bajalo para que se vea más el juego o la cámara.</small></div>
@@ -1151,11 +1174,6 @@
                             <div class="custom-accent-row hidden" id="obs-custom-accent-row" style="margin-top:8px">
                                 <label for="cfg-obs-custom-accent"><strong>Color de OBS</strong></label>
                                 <input type="color" id="cfg-obs-custom-accent" value="#00E676">
-                                <span class="custom-text-group">
-                                    <label for="cfg-obs-custom-text"><strong>Color de las letras</strong></label>
-                                    <input type="color" id="cfg-obs-custom-text" value="#FFFFFF">
-                                    <label class="inline-check"><input type="checkbox" id="cfg-obs-custom-text-auto" checked> Automático</label>
-                                </span>
                             </div>
                         </div>
 
