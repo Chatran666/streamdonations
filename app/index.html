@@ -1041,10 +1041,19 @@
 
                         <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones</div>
                         <p class="pane-note">La forma de cada donación en OBS. Los colores salen del tema de abajo. Se ve al instante en la vista previa y en OBS; se confirma con "Guardar cambios".</p>
-                        <div class="design-layout">
-                            <div class="design-grid" id="design-grid"></div>
-                            <div class="design-preview-wrap">
-                                <iframe id="design-preview" src="obs.html#preview=1" title="Vista previa del diseño" tabindex="-1"></iframe>
+                        <div class="setting-row">
+                            <div><strong>Diseño</strong><small id="design-desc">La de siempre: foto, nick, monto y mensaje</small></div>
+                            <select id="cfg-obs-design" class="input-field"></select>
+                        </div>
+                        <div class="design-preview-wrap">
+                            <iframe id="design-preview" src="obs.html#preview=1" title="Vista previa del diseño" tabindex="-1"></iframe>
+                        </div>
+                        <div class="setting-row">
+                            <div><strong>Fondo detrás de cada donación</strong><small>Qué tan tapado queda lo de atrás. Subilo si sobre tu escena no se lee bien; bajalo para que se vea más el juego o la cámara.</small></div>
+                            <div class="range-row">
+                                <input type="range" id="cfg-obs-card-alpha" min="0" max="100" step="5" value="90">
+                                <span class="range-value" id="lbl-obs-card-alpha">90%</span>
+                                <label class="inline-check"><input type="checkbox" id="cfg-obs-card-auto" checked> Automático</label>
                             </div>
                         </div>
                         <div class="setting-row">

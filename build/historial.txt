@@ -1,3 +1,7 @@
+Novedades de la 2.0.2:
+- El diseño de las donaciones se elige desde un menú desplegable, con la vista previa abajo (ocupa mucho menos lugar).
+- Nuevo: "Fondo detrás de cada donación" para regular qué tan tapado queda lo de atrás (sirve sobre todo en Subtítulo, Cristal y con fondos claros).
+
 Novedades de la 2.0.1:
 - Diseños para las donaciones en OBS: Tarjeta (la de siempre), Barra, Compacto, Burbuja, Neón, Cristal, Ticket, Subtítulo y Franja. Se eligen en Opciones → OBS con vista previa al instante.
 - Total acumulado al lado del nick (opcional): "$200 acum." con lo que donó esa persona en este directo, hoy o en los últimos 30 días.

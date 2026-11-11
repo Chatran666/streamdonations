@@ -115,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsTextShadow: true, // sombra suave en las letras en modo transparente real
             obsDesign: 'tarjeta', // forma de las donaciones en OBS (Tarjeta, Barra, Compacto…)
             obsAccum: 'off', // chip con lo que donó cada uno: off | session (este directo) | today | 30
+            obsCardAlpha: -1, // fondo detrás de cada donación: -1 automático (según el diseño) o 0…100
             customIcons: [], // imágenes propias para los rangos: [{ id, name }] (el archivo queda guardado en esta PC)
             amtColorsEnabled: false, amtColorsPanel: true, amtColorsObs: true,
             amtColors: [
@@ -4559,6 +4560,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obsws-enabled').checked = !!st.obsWsEnabled;
         $('cfg-obs-textshadow').checked = st.obsTextShadow !== false;
         $('cfg-obs-accum').value = ['session', 'today', '30'].includes(st.obsAccum) ? st.obsAccum : 'off';
+        { const ca = Number(st.obsCardAlpha); const auto = !(ca >= 0 && ca <= 100);
+          $('cfg-obs-card-auto').checked = auto; $('cfg-obs-card-alpha').value = auto ? 90 : ca; $('cfg-obs-card-alpha').disabled = auto;
+          $('lbl-obs-card-alpha').textContent = auto ? 'Auto' : ca + '%'; }
         renderDesignPicker();
         setTimeout(refreshDesignPreview, 200);
         $('obsws-box').classList.toggle('hidden', !st.obsWsEnabled);
@@ -4668,6 +4672,7 @@ document.addEventListener('DOMContentLoaded', () => {
         obsLayoutDraft = null;
         obsPStyleDraft = null;
         obsDesignDraft = null;
+        cardAlphaDraft = null;
         applyPanelPStyle(state.settings.panelPlatformStyle);
         applyTheme();      // si había una vista previa sin guardar, vuelve a lo guardado
         applyLook();
@@ -4744,6 +4749,8 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsTextShadow = $('cfg-obs-textshadow').checked;
         st.obsDesign = OBS_DESIGNS.some(d => d.k === currentDesign()) ? currentDesign() : 'tarjeta';
         st.obsAccum = $('cfg-obs-accum').value;
+        st.obsCardAlpha = $('cfg-obs-card-auto').checked ? -1 : Math.min(100, Math.max(0, parseInt($('cfg-obs-card-alpha').value, 10) || 0));
+        cardAlphaDraft = null;
         obsDesignDraft = null;
         const wsBefore = JSON.stringify([st.obsWsEnabled, st.obsWsPort, st.obsWsPassword]);
         st.obsWsEnabled = $('cfg-obsws-enabled').checked;
@@ -5684,6 +5691,7 @@ document.addEventListener('DOMContentLoaded', () => {
     var obsLayoutDraft = null; // vista previa sin guardar de "qué se ve y dónde"
     var obsPStyleDraft = null;
     var obsDesignDraft = null; // diseño elegido sin guardar (se ve en vivo en OBS y en la vista previa)
+    var cardAlphaDraft = null;
 
     // ---- Diseños de las donaciones en OBS ----
     const OBS_DESIGNS = [
@@ -5699,11 +5707,13 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     function currentDesign() { return obsDesignDraft || state.settings.obsDesign || 'tarjeta'; }
     function renderDesignPicker() {
-        const g = $('design-grid');
-        if (!g) return;
+        const sel = $('cfg-obs-design');
+        if (!sel) return;
         const cur = currentDesign();
-        g.innerHTML = OBS_DESIGNS.map(d => `<button type="button" class="design-tile ${d.k === cur ? 'active' : ''}" data-design="${d.k}">
-            <i class="fa-solid ${d.icon}"></i><strong>${escapeHTML(d.label)}</strong><small>${escapeHTML(d.desc)}</small></button>`).join('');
+        if (!sel.options.length) sel.innerHTML = OBS_DESIGNS.map(d => `<option value="${d.k}">${escapeHTML(d.label)}</option>`).join('');
+        sel.value = cur;
+        const d = OBS_DESIGNS.find(x => x.k === cur) || OBS_DESIGNS[0];
+        $('design-desc').textContent = d.desc;
     }
     // Vista previa: la misma página de OBS dentro de Opciones, con dos donaciones de ejemplo
     let previewIds = [], previewN = 0;
@@ -5739,7 +5749,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!wrap || !f || !wrap.clientWidth) return;
         const k = Math.min(1, wrap.clientWidth / 600);
         f.style.transform = 'scale(' + k + ')';
-        wrap.style.height = Math.round(330 * k) + 'px';
+        wrap.style.height = Math.round(280 * k) + 'px';
     }
     window.addEventListener('resize', fitDesignPreview);
     function refreshDesignPreview() {
@@ -5747,15 +5757,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (lastObsStylePayload) designPreviewStyle(lastObsStylePayload);
         designPreviewSamples();
     }
-    $('design-grid').addEventListener('click', (e) => {
-        const b = e.target.closest('[data-design]');
-        if (!b) return;
-        obsDesignDraft = b.dataset.design;
+    $('cfg-obs-design').addEventListener('change', () => {
+        obsDesignDraft = $('cfg-obs-design').value;
         renderDesignPicker();
         setSettingsDirty(true);
         sendObsStyle(); // se ve al instante en OBS y en la vista previa
         designPreviewSamples();
     });
+    const cardAlphaInput = () => {
+        const auto = $('cfg-obs-card-auto').checked;
+        $('cfg-obs-card-alpha').disabled = auto;
+        $('lbl-obs-card-alpha').textContent = auto ? 'Auto' : $('cfg-obs-card-alpha').value + '%';
+        cardAlphaDraft = auto ? -1 : parseInt($('cfg-obs-card-alpha').value, 10);
+        setSettingsDirty(true);
+        sendObsStyle();
+    };
+    $('cfg-obs-card-alpha').addEventListener('input', cardAlphaInput);
+    $('cfg-obs-card-auto').addEventListener('change', cardAlphaInput);
+    // La vista previa se acomoda sola cuando aparece o cambia de tamaño
+    if (window.ResizeObserver) new ResizeObserver(() => fitDesignPreview()).observe(document.querySelector('.design-preview-wrap'));
     $('cfg-obs-accum').addEventListener('change', () => { setSettingsDirty(true); designPreviewSamples(); });
     $('design-preview').addEventListener('load', () => setTimeout(refreshDesignPreview, 150));
     $('cfg-obs-pstyle').addEventListener('change', () => { obsPStyleDraft = $('cfg-obs-pstyle').value; sendObsStyle(); });
@@ -5788,6 +5808,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lang: window.SD_LANG === 'en' ? 'en' : 'es',
             textShadow: state.settings.obsTextShadow !== false,
             design: obsDesignDraft || state.settings.obsDesign || 'tarjeta',
+            cardAlpha: (v => v >= 0 && v <= 100 ? v / 100 : null)(cardAlphaDraft != null ? cardAlphaDraft : Number(state.settings.obsCardAlpha)),
             ts: Date.now()
         };
         lastObsStylePayload = payload;

@@ -21,7 +21,7 @@
     display: grid; grid-template-columns: auto 1fr; grid-template-areas: "amt who" "amt msg";
     column-gap: 0; row-gap: 4px; align-items: center;
     padding: 12px 46px 12px 0; border: none; border-radius: 6px;
-    background: rgba(var(--obs-bg-rgb), 0.93); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+    background: rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0.93)); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
 }
 :root[data-design="barra"] .obs-alert::before { content: ''; position: absolute; top: 0; left: 0; width: 18px; height: 18px; z-index: 2;
     background: linear-gradient(135deg, var(--cur) 50%, transparent 50%); }
@@ -55,7 +55,7 @@
 /* ===================== BURBUJA (globo de chat) ===================== */
 :root[data-design="burbuja"] .obs-alert { isolation: isolate; background: none; border: none; box-shadow: none; overflow: visible; padding: 10px 14px 12px calc(66px * var(--obs-scale)); gap: 6px; backdrop-filter: none; }
 :root[data-design="burbuja"] .obs-alert::after { content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; left: calc(52px * var(--obs-scale));
-    background: rgba(var(--obs-bg-rgb), 0.94); border: 2px solid rgba(var(--cur-rgb), 0.75); border-radius: 18px 18px 18px 4px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45); }
+    background: rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0.94)); border: 2px solid rgba(var(--cur-rgb), 0.75); border-radius: 18px 18px 18px 4px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45); }
 :root[data-design="burbuja"] .obs-avatar { position: absolute; left: 0; bottom: 0; border: 2px solid var(--cur); }
 :root[data-design="burbuja"] .obs-nick > span:first-child { color: var(--cur); }
 :root[data-design="burbuja"] .obs-msg { background: none !important; border: none; padding: 0; }
@@ -64,7 +64,7 @@
 /* ===================== NEÓN (esquinas cortadas y brillo) ===================== */
 :root[data-design="neon"] .obs-alert { border: none; border-radius: 0;
     clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
-    background: linear-gradient(135deg, rgba(var(--obs-bg-rgb), 0.96), rgba(var(--cur-rgb), 0.16));
+    background: linear-gradient(135deg, rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0.96)), rgba(var(--cur-rgb), 0.16));
     box-shadow: inset 0 0 0 2px var(--cur), inset 0 0 22px rgba(var(--cur-rgb), 0.45); }
 :root[data-design="neon"] .obs-nick > span:first-child { text-transform: uppercase; letter-spacing: 0.06em; color: var(--cur); text-shadow: 0 0 8px rgba(var(--cur-rgb), 0.8); }
 :root[data-design="neon"] .obs-amount { background: none !important; border: 1px solid var(--cur) !important; border-radius: 0 !important; text-shadow: 0 0 8px currentColor; }
@@ -73,7 +73,7 @@
 :root[data-design="neon"] .obs-avatar img { border-radius: 4px !important; }
 
 /* ===================== CRISTAL (vidrio translúcido) ===================== */
-:root[data-design="cristal"] .obs-alert { background: linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.06)), rgba(var(--obs-bg-rgb), 0.45);
+:root[data-design="cristal"] .obs-alert { background: linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.06)), rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0.45));
     border: 1px solid rgba(255, 255, 255, 0.38); border-radius: 22px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
 :root[data-design="cristal"] .obs-msg { background: rgba(255, 255, 255, 0.10); border: none; border-radius: 14px; }
 :root[data-design="cristal"] .obs-amount { background: rgba(255, 255, 255, 0.16) !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; border-radius: 999px !important; }
@@ -94,7 +94,7 @@
 :root[data-design="ticket"] .obs-btn-dismiss { background: rgba(17, 24, 39, 0.06); border-color: rgba(17, 24, 39, 0.2); color: #1F2937; }
 
 /* ===================== SUBTÍTULO (sin tarjeta, solo texto) ===================== */
-:root[data-design="subtitulo"] .obs-alert { background: none !important; border: none; box-shadow: none; backdrop-filter: none; padding: 4px 6px; gap: 2px; }
+:root[data-design="subtitulo"] .obs-alert { background: rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0)) !important; border-radius: 10px; border: none; box-shadow: none; backdrop-filter: none; padding: 4px 6px; gap: 2px; }
 :root[data-design="subtitulo"] .obs-avatar { display: none !important; }
 :root[data-design="subtitulo"] .obs-nick > span:first-child { color: var(--cur); }
 :root[data-design="subtitulo"] .obs-amount { background: none !important; border: none !important; padding: 0 !important; }
@@ -104,7 +104,7 @@
 
 /* ===================== FRANJA (zócalo de tele) ===================== */
 :root[data-design="franja"] .obs-alert { border: none; border-left: 8px solid var(--cur); border-radius: 0 10px 10px 0; padding: 0 0 12px; gap: 10px;
-    background: linear-gradient(90deg, rgba(var(--obs-bg-rgb), 0.96), rgba(var(--obs-bg-rgb), 0.82)); }
+    background: linear-gradient(90deg, rgba(var(--obs-bg-rgb), var(--obs-card-alpha, 0.96)), rgba(var(--obs-bg-rgb), calc(var(--obs-card-alpha, 0.96) * 0.85))); }
 :root[data-design="franja"] .obs-header { background: linear-gradient(90deg, var(--cur), rgba(var(--cur-rgb), 0.55)); padding: 8px 14px; }
 :root[data-design="franja"] .obs-nick, :root[data-design="franja"] .obs-nick > span:first-child { color: #fff; text-transform: uppercase; letter-spacing: 0.04em; }
 :root[data-design="franja"] .obs-amount { background: #fff !important; color: #111827; border: none !important; border-radius: 4px !important; }

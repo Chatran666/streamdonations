@@ -582,6 +582,10 @@
                 });
             }
             applyObsBg(st.obsBg);
+            // Fondo detrás de cada donación: automático (según el diseño) o el que elijas
+            const ca = parseFloat(st.cardAlpha);
+            if (Number.isFinite(ca) && ca >= 0 && ca <= 1) document.documentElement.style.setProperty('--obs-card-alpha', String(ca));
+            else document.documentElement.style.removeProperty('--obs-card-alpha');
             const dz = DESIGNS.includes(st.design) ? st.design : 'tarjeta';
             if (dz !== obsDesign) {
                 obsDesign = dz;
