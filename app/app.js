@@ -1800,7 +1800,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function importFullBackup(file) {
         const reader = new FileReader();
-        reader.onload = () => {
+        reader.onload = async () => {
             let data;
             try { data = JSON.parse(reader.result); } catch (e) { showToast('El archivo no es una copia válida', 'warning'); return; }
             if (!data || data.type !== 'full-backup' || !data.settings) {
@@ -1809,7 +1809,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const n = Array.isArray(data.donations) ? data.donations.length : 0;
             const nm = data.media && typeof data.media === 'object' ? Object.keys(data.media).length : 0;
-            if (!confirm(`¿Reemplazar la configuración y el historial actuales con esta copia?\n\nIncluye ${n} donaciones y tus conexiones${nm ? ` y ${nm} imágenes o sonidos` : ''}.`)) return;
+            if (!await askConfirm(`¿Reemplazar la configuración y el historial actuales con esta copia?\n\nIncluye ${n} donaciones y tus conexiones${nm ? ` y ${nm} imágenes o sonidos` : ''}.`)) return;
             applyFullBackup(data);
         };
         reader.readAsText(file);
@@ -2032,8 +2032,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const c = syncTopic();
             (navigator.clipboard ? navigator.clipboard.writeText(c) : Promise.reject()).then(() => showToast('Código copiado', 'success'), () => prompt('Copiá el código:', c));
         });
-        $('btn-sync-stop').addEventListener('click', () => {
-            if (!confirm('¿Dejar de sincronizar con la otra PC?')) return;
+        $('btn-sync-stop').addEventListener('click', async () => {
+            if (!await askConfirm('¿Dejar de sincronizar con la otra PC?')) return;
             state.settings.syncCode = '';
             persistSettings();
             syncDisconnect();
@@ -2635,6 +2635,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Las donaciones de prueba no sobreviven a un reinicio: si la app se cerró (o se actualizó) con el simulador
+    // prendido, al volver a abrir el simulador está apagado y no tienen que quedar pruebas sueltas
+    setTimeout(() => { if (!state.isSimulating && state.donations.some(d => d.isTest)) clearTestDonations(); else if (!state.isSimulating) clearTestBox(); }, 0);
+
     // Borra todas las donaciones de prueba (simulador y botón "Probar") del panel, la base de datos y OBS
     function clearTestDonations() {
         stopAllSpeech(); // corta cualquier lectura pendiente
@@ -2722,6 +2726,59 @@ document.addEventListener('DOMContentLoaded', () => {
             currency: currency,
             message: msg,
             isTest: true
+        });
+    }
+
+    // --- Ventana de confirmación con el estilo de la app (en vez de la del navegador) ---
+    // askConfirm('¿Seguro?', { ok: 'Borrar', cancel: 'Cancelar', danger: true }) → Promise<boolean>
+    function askConfirm(message, opts = {}) {
+        const tr = (t) => (window.SDi18n ? window.SDi18n.tLines(t) : t);
+        return new Promise(resolve => {
+            const prevFocus = document.activeElement;
+            const ov = document.createElement('div');
+            ov.className = 'sd-confirm-overlay';
+            ov.setAttribute('role', 'alertdialog');
+            ov.setAttribute('aria-modal', 'true');
+            const card = document.createElement('div');
+            card.className = 'sd-confirm-card';
+            const text = String(message || '');
+            const lines = text.split(/\n\s*\n/);
+            const title = document.createElement('div');
+            title.className = 'sd-confirm-title';
+            title.textContent = tr(lines.length > 1 ? lines[0] : text);
+            card.appendChild(title);
+            if (lines.length > 1) {
+                const body = document.createElement('div');
+                body.className = 'sd-confirm-body';
+                body.textContent = tr(lines.slice(1).join('\n\n'));
+                card.appendChild(body);
+            }
+            const row = document.createElement('div');
+            row.className = 'sd-confirm-actions';
+            const no = document.createElement('button');
+            no.type = 'button'; no.className = 'btn btn-outline'; no.textContent = tr(opts.cancel || 'Cancelar');
+            const yes = document.createElement('button');
+            yes.type = 'button'; yes.className = 'btn ' + (opts.danger || /borrar|eliminar|vaciar|restablecer|salir sin|quitar|todo/i.test(text) ? 'btn-danger-solid' : 'btn-primary');
+            yes.textContent = tr(opts.ok || 'Aceptar');
+            row.append(no, yes);
+            card.appendChild(row);
+            ov.appendChild(card);
+            document.body.appendChild(ov);
+            const done = (v) => {
+                document.removeEventListener('keydown', onKey, true);
+                ov.remove();
+                try { if (prevFocus && prevFocus.focus) prevFocus.focus(); } catch (e) {}
+                resolve(v);
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(false); }
+                else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); done(document.activeElement !== no); }
+            };
+            document.addEventListener('keydown', onKey, true);
+            no.addEventListener('click', () => done(false));
+            yes.addEventListener('click', () => done(true));
+            ov.addEventListener('click', (e) => { if (e.target === ov) done(false); });
+            setTimeout(() => yes.focus(), 0);
         });
     }
 
@@ -3679,8 +3736,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modals & Settings: ver bloque "CONFIGURACIÓN" más abajo
 
-    els.btnResetData.addEventListener('click', () => {
-        if (confirm('¿Estás seguro de borrar todos los datos de donaciones registrados?')) {
+    els.btnResetData.addEventListener('click', async () => {
+        if (await askConfirm('¿Estás seguro de borrar todos los datos de donaciones registrados?')) {
             state.donations = [];
             saveDonationsToStorage();
             dismissOverlayAlert('all');
@@ -3893,7 +3950,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const parsed = JSON.parse(e.target.result);
                 let incoming = [];
@@ -3930,11 +3987,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
                 }).map(safeDonation);
 
-                const replace = confirm(
+                const replace = await askConfirm(
                     `Se encontraron ${normalized.length} chats en el archivo.\n\n` +
-                    `¿Deseas REEMPLAZAR todos los chats actuales?\n\n` +
-                    `• Aceptar = REEMPLAZAR la base de datos completa con este archivo.\n` +
-                    `• Cancelar = FUSIONAR (agregar solo los que no existan).`
+                    `¿Reemplazar todos los chats actuales con los del archivo, o sumar solo los que falten?`,
+                    { ok: 'Reemplazar todo', cancel: 'Sumar los que faltan', danger: true }
                 );
 
                 if (replace) {
@@ -3993,10 +4049,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.dbEditNick) els.dbEditNick.focus();
     };
 
-    window.dbDeleteChat = function(id) {
+    window.dbDeleteChat = async function(id) {
         const item = state.donations.find(d => d.id === id);
         const name = item ? item.nick : 'este registro';
-        if (confirm(`¿Eliminar la donación de "${name}" de la base de datos?`)) {
+        if (await askConfirm(`¿Eliminar la donación de "${name}" de la base de datos?`)) {
             state.donations = state.donations.filter(d => d.id !== id);
             dismissOverlayAlert(id);
             saveDonationsToStorage();
@@ -4010,8 +4066,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listeners para controles del Gestor de Base de Datos
     if (els.btnOpenDb) els.btnOpenDb.addEventListener('click', openDbModal);
     if (els.cfgBtnOpenDb) {
-        els.cfgBtnOpenDb.addEventListener('click', () => {
-            if (settingsDirty && !confirm('Tenés cambios sin guardar en la configuración.\n\n¿Abrir la base de datos sin guardarlos?')) return;
+        els.cfgBtnOpenDb.addEventListener('click', async () => {
+            if (settingsDirty && !await askConfirm('Tenés cambios sin guardar en la configuración.\n\n¿Abrir la base de datos sin guardarlos?')) return;
             closeSettings();
             openDbModal();
         });
@@ -4195,8 +4251,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (els.dbBtnClearAll) {
-        els.dbBtnClearAll.addEventListener('click', () => {
-            if (confirm('¿Estás seguro de vaciar toda la base de datos de chats? Esta acción no se puede deshacer.')) {
+        els.dbBtnClearAll.addEventListener('click', async () => {
+            if (await askConfirm('¿Estás seguro de vaciar toda la base de datos de chats? Esta acción no se puede deshacer.')) {
                 state.donations = [];
                 saveDonationsToStorage();
                 dismissOverlayAlert('all');
@@ -4327,8 +4383,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-session').classList.add('hidden');
     }
 
-    function startNewSession() {
-        if (!confirm('¿Empezar un nuevo directo?\n\nSe marcan como leídas todas las donaciones pendientes y el resumen arranca de cero. El historial no se borra.')) return;
+    async function startNewSession() {
+        if (!await askConfirm('¿Empezar un nuevo directo?\n\nSe marcan como leídas todas las donaciones pendientes y el resumen arranca de cero. El historial no se borra.')) return;
         clearTestDonations();
         state.donations.forEach(d => { d.isRead = true; });
         dismissOverlayAlert('all');
@@ -4663,8 +4719,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Cerrar preguntando si hay cambios sin guardar
-    function requestCloseSettings() {
-        if (settingsDirty && !confirm('Tenés cambios sin guardar.\n\n¿Salir sin guardarlos?')) return;
+    async function requestCloseSettings() {
+        if (settingsDirty && !await askConfirm('Tenés cambios sin guardar.\n\n¿Salir sin guardarlos?', { ok: 'Salir sin guardar', cancel: 'Seguir editando', danger: true })) return;
         closeSettings();
     }
 
@@ -4930,8 +4986,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         ['cfg-voice-rate', 'cfg-voice-pitch', 'cfg-voice-volume'].forEach(id => $(id).addEventListener('input', updateVoiceSliderLabels));
         $('cfg-goal-enabled').addEventListener('change', updateGoalFieldsState);
-        $('btn-goal-reset').addEventListener('click', () => {
-            if (!confirm('¿Reiniciar la meta? El progreso vuelve a cero desde ahora.')) return;
+        $('btn-goal-reset').addEventListener('click', async () => {
+            if (!await askConfirm('¿Reiniciar la meta? El progreso vuelve a cero desde ahora.')) return;
             state.settings.goalStart = Date.now();
             persistSettings();
             updateGoalFieldsState();
@@ -5776,7 +5832,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function designPreviewStyle(payload) {
         const f = $('design-preview');
         if (!f || !f.contentWindow) return;
-        try { f.contentWindow.postMessage({ type: 'STYLE_UPDATE', data: Object.assign({}, payload, { filterBar: false, ts: Date.now() }) }, '*'); } catch (e) {}
+        // En la vista previa se ven todas las plataformas, aunque no tengas conectadas
+        try { f.contentWindow.postMessage({ type: 'STYLE_UPDATE', data: Object.assign({}, payload, { filterBar: false, platforms: null, ts: Date.now() }) }, '*'); } catch (e) {}
     }
     function designPreviewSamples() {
         const f = $('design-preview');
@@ -5800,13 +5857,21 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { try { w.postMessage({ type: 'NEW_DONATION', data }, '*'); } catch (e) {} }, previewIds.length ? 320 : 0);
         });
     }
+    let previewH = 220; // alto real de los ejemplos (lo avisa la vista previa)
     function fitDesignPreview() {
         const wrap = document.querySelector('.design-preview-wrap'), f = $('design-preview');
         if (!wrap || !f || !wrap.clientWidth) return;
         const k = Math.min(1, wrap.clientWidth / 600);
         f.style.transform = 'scale(' + k + ')';
-        wrap.style.height = Math.round(280 * k) + 'px';
+        f.style.height = previewH + 'px';
+        wrap.style.height = Math.round(previewH * k) + 'px';
     }
+    window.addEventListener('message', (e) => {
+        const f = $('design-preview');
+        if (!f || e.source !== f.contentWindow || !e.data || e.data.type !== 'SD_PREVIEW_H') return;
+        const h = parseInt(e.data.h, 10);
+        if (h > 40 && h < 900) { previewH = h; fitDesignPreview(); }
+    });
     window.addEventListener('resize', fitDesignPreview);
     function refreshDesignPreview() {
         fitDesignPreview();
@@ -5939,9 +6004,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function resetConfig() {
+    async function resetConfig() {
         const keepToken = $('reset-keep-token').checked;
-        if (!confirm('¿Restablecer toda la configuración a como venía de fábrica?\n\nEl historial de donaciones no se borra.' + (keepToken ? '\nLos tokens (StreamElements y Streamlabs) se conservan.' : '\nTambién se borran los tokens de StreamElements y Streamlabs.'))) return;
+        if (!await askConfirm('¿Restablecer toda la configuración a como venía de fábrica?\n\nEl historial de donaciones no se borra.' + (keepToken ? '\nLos tokens (StreamElements y Streamlabs) se conservan.' : '\nTambién se borran los tokens de StreamElements y Streamlabs.'))) return;
         if (state.isSimulating) stopSimulation(true);
         const token = state.settings.slToken || '';
         const seChannels = state.settings.seChannels || [];
@@ -5956,9 +6021,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => location.reload(), 300);
     }
 
-    function factoryReset() {
+    async function factoryReset() {
         if ($('reset-confirm-input').value.trim().toUpperCase() !== 'BORRAR') return;
-        if (!confirm('ÚLTIMA CONFIRMACIÓN\n\nSe borra TODO: configuración, token e historial de donaciones. No se puede deshacer.\n\n¿Continuar?')) return;
+        if (!await askConfirm('ÚLTIMA CONFIRMACIÓN\n\nSe borra TODO: configuración, token e historial de donaciones. No se puede deshacer.\n\n¿Continuar?')) return;
         if (state.isSimulating) stopSimulation(true);
         const realCount = state.donations.filter(d => !d.isTest).length;
         if ($('reset-backup').checked && realCount > 0) {
@@ -6166,8 +6231,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         inp.click();
     }
-    function deleteCustomIcon(id) {
-        if (!confirm('¿Borrar esta imagen? Los rangos que la usan vuelven a un ícono común.')) return;
+    async function deleteCustomIcon(id) {
+        if (!await askConfirm('¿Borrar esta imagen? Los rangos que la usan vuelven a un ícono común.')) return;
         state.settings.customIcons = (state.settings.customIcons || []).filter(ic => ic.id !== id);
         ranksDraft.forEach(r => { if (r.icon === 'img:' + id) r.icon = 'fa:star'; });
         (state.settings.ranks || []).forEach(r => { if (r.icon === 'img:' + id) r.icon = 'fa:star'; });
@@ -6389,9 +6454,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const x = JSON.parse(JSON.stringify(edStyle)); x.name = (edStyle.name + ' (copia)').slice(0, 30); x.id = newStyleId(x.name);
             stylesDraft.push(x); edStyle = x; styleChanged();
         });
-        $('btn-style-del').addEventListener('click', () => {
+        $('btn-style-del').addEventListener('click', async () => {
             if (!edStyle) return;
-            if (!confirm(`¿Borrar el estilo "${edStyle.name}"? Los rangos y las donaciones grandes que lo usan quedan sin estilo.`)) return;
+            if (!await askConfirm(`¿Borrar el estilo "${edStyle.name}"? Los rangos y las donaciones grandes que lo usan quedan sin estilo.`)) return;
             const id = edStyle.id;
             stylesDraft = stylesDraft.filter(x => x.id !== id);
             ranksDraft.forEach(r => { if (r.style === id) r.style = ''; });
@@ -6696,12 +6761,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function maybeOfferMigration() {
         if (!TAURI) return;
         let done = false; try { done = localStorage.getItem('sd_legacy_done') === '1'; } catch (e) {}
-        TAURI.core.invoke('legacy_info').then(info => {
+        TAURI.core.invoke('legacy_info').then(async info => {
             if (!info || !info.found) return;
             const row = $('legacy-row'); if (row) row.classList.remove('hidden');
             if (done || HAD_SETTINGS) return;
             if (!info.chrome) { showToast('Encontré datos de la versión anterior, pero no encontré Google Chrome para abrirlos. Abrí la versión vieja y usá "Exportar copia completa".', 'warning'); return; }
-            if (confirm('Encontré tus datos de la versión anterior de StreamDonations (la que usaba Google Chrome): tus conexiones, opciones, rangos e historial.\n\n¿Los traigo a esta versión? Se abre una ventanita un momento y se cierra sola.')) startMigration();
+            if (await askConfirm('Encontré tus datos de la versión anterior de StreamDonations (la que usaba Google Chrome): tus conexiones, opciones, rangos e historial.\n\n¿Los traigo a esta versión? Se abre una ventanita un momento y se cierra sola.')) startMigration();
             else { try { localStorage.setItem('sd_legacy_done', '1'); } catch (e) {} }
         }).catch(() => {});
     }
@@ -6774,8 +6839,8 @@ document.addEventListener('DOMContentLoaded', () => {
             TAURI.core.invoke('voz_install').catch(err => { $('btn-voz-install').disabled = false; showToast('No se pudo bajar la voz: ' + escapeHTML(String(err)), 'warning'); });
         });
         $('btn-voz-test').addEventListener('click', vozSpeedTest);
-        $('btn-voz-remove').addEventListener('click', () => {
-            if (!confirm('¿Quitar la voz Daniela de esta PC? Se libera el espacio y se vuelve a la voz de Windows. La podés volver a bajar cuando quieras.')) return;
+        $('btn-voz-remove').addEventListener('click', async () => {
+            if (!await askConfirm('¿Quitar la voz Daniela de esta PC? Se libera el espacio y se vuelve a la voz de Windows. La podés volver a bajar cuando quieras.')) return;
             stopAllSpeech();
             TAURI.core.invoke('voz_remove').then(() => {
                 if (isLocalVoice(state.settings.voiceName)) { state.settings.voiceName = ''; persistSettings(); }
@@ -6807,8 +6872,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 () => showToast(on ? 'StreamDonations se va a abrir sola al prender la PC' : 'Ya no se abre sola al prender la PC', 'success'),
                 () => { e.target.checked = !on; showToast('No se pudo cambiar el arranque con Windows', 'warning'); });
         });
-        $('btn-legacy-import').addEventListener('click', () => {
-            if (confirm('¿Traer los datos de la versión anterior (la que usaba Google Chrome)?\n\nReemplaza la configuración y el historial de ahora.')) startMigration();
+        $('btn-legacy-import').addEventListener('click', async () => {
+            if (await askConfirm('¿Traer los datos de la versión anterior (la que usaba Google Chrome)?\n\nReemplaza la configuración y el historial de ahora.')) startMigration();
         });
         initVoz();
         relayStatus('wait', 'Arrancando…');

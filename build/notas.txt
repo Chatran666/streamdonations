@@ -1,3 +1,4 @@
-Novedades de la 2.0.4:
-- Diseños también en el panel: Opciones → Pantalla → Diseño del panel. Podés elegir uno propio o "Igual que OBS". Los botones y el menú del nick siguen andando en todos.
-- Opciones más ordenadas: nueva sección "Programa" con el idioma, el arranque con Windows, la bandeja y los atajos; la cotización del dólar pasó a "Montos mínimos"; en OBS la sombra de las letras quedó junto al diseño y "Links en los mensajes" al final.
+Novedades de la 2.0.5:
+- Las preguntas de confirmación ("¿Salir sin guardar?", "¿Borrar…?") ahora tienen el estilo de la app, con botones claros.
+- La vista previa del diseño se ajusta sola al tamaño de las donaciones (sin espacio vacío) y muestra todas las plataformas.
+- Arreglado: si la app se cerraba o actualizaba con el simulador prendido, las donaciones de prueba quedaban sueltas. Ahora se borran solas al abrir.

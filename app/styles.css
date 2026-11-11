@@ -2801,7 +2801,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 /* Diseños de las donaciones en OBS */
 .design-preview-wrap { border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 10px;
     background: repeating-conic-gradient(#2a2f3a 0 25%, #1c2029 0 50%) 0 0 / 22px 22px; }
-.design-preview-wrap { position: relative; height: 200px; max-width: 520px; }
+.design-preview-wrap { position: relative; height: 140px; max-width: 520px; transition: height 0.2s ease; }
 /* La vista previa se dibuja al ancho de una fuente de OBS (600 px) y se achica para entrar */
 .design-preview-wrap iframe { position: absolute; top: 0; left: 0; transform-origin: 0 0; display: block; width: 600px; height: 280px; border: 0; background: transparent; color-scheme: normal; /* igual que la página de adentro: así Chrome la deja transparente */ }
 .range-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 240px; }
@@ -2826,3 +2826,16 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .obsway-pane.hidden { display: none; }
 .obsway-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--border-color); }
 .obsway-foot small { color: var(--text-secondary); }
+
+/* Ventana de confirmación propia (reemplaza la del navegador) */
+.sd-confirm-overlay { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 16px;
+    background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(3px); animation: sdFade 0.15s ease; }
+@keyframes sdFade { from { opacity: 0; } to { opacity: 1; } }
+.sd-confirm-card { width: min(440px, 100%); background: var(--modal-bg, #121722); border: 1px solid var(--border-highlight, rgba(255, 255, 255, 0.15)); border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); padding: 20px 22px 18px; color: var(--text-primary); animation: sdPop 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes sdPop { from { transform: translateY(8px) scale(0.97); opacity: 0; } to { transform: none; opacity: 1; } }
+.sd-confirm-title { font-weight: 700; font-size: 1rem; line-height: 1.4; }
+.sd-confirm-body { margin-top: 8px; font-size: 0.86rem; line-height: 1.5; color: var(--text-secondary); white-space: pre-line; }
+.sd-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+.btn-danger-solid { background: #E5484D; color: #fff; border: 1px solid #E5484D; }
+.btn-danger-solid:hover { background: #F2555A; border-color: #F2555A; }

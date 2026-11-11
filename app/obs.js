@@ -2,7 +2,19 @@
         // Mensajes válidos: los que manda la ventana del panel que abrió esta, o los que llegan por la conexión con OBS
         // Vista previa dentro de Opciones (#preview=1): solo muestra ejemplos, no toca las donaciones de verdad
         const PREVIEW = /(^|[#&])preview=1(&|$)/.test(location.hash) && window.parent !== window;
-        if (PREVIEW) document.documentElement.classList.add('obs-preview');
+        if (PREVIEW) {
+            document.documentElement.classList.add('obs-preview');
+            // Le avisa a Opciones cuánto alto ocupan los ejemplos, así la vista previa no queda con espacio vacío
+            window.addEventListener('DOMContentLoaded', () => {
+                const c = document.getElementById('alerts-container');
+                if (!c || !window.ResizeObserver) return;
+                let last = 0;
+                new ResizeObserver(() => {
+                    const h = Math.ceil(c.getBoundingClientRect().height + c.offsetTop + 10);
+                    if (Math.abs(h - last) > 2) { last = h; try { window.parent.postMessage({ type: 'SD_PREVIEW_H', h }, '*'); } catch (e) {} }
+                }).observe(c);
+            });
+        }
         const fromPanel = (e) => e.__sdWs === true || (!!window.opener && e.source === window.opener) || (PREVIEW && e.source === window.parent);
 
         // ---- Modo transparente real: esta página está dentro de OBS (fuente de navegador) y recibe todo por obs-websocket ----
