@@ -505,22 +505,21 @@
 
     <div class="modal-overlay hidden" id="modal-settings">
         <div class="modal-card settings-card">
-            <div class="modal-header">
+            <div class="modal-header settings-head">
+                <button type="button" class="btn btn-outline btn-sm settings-back" id="btn-close-settings" title="Volver al panel (Esc)"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
                 <h2><i class="fa-solid fa-gear"></i> Configuración</h2>
-                <button class="btn-close" id="btn-close-settings" title="Cerrar sin guardar"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" class="settings-new hidden" id="settings-new" title="Volver al panel para verlas"><i class="fa-solid fa-bell"></i> <span id="settings-new-text">1 donación nueva</span></button>
             </div>
 
             <div class="settings-layout">
                 <nav class="settings-nav" id="settings-nav">
                     <button class="settings-tab active" data-pane="conexion"><i class="fa-solid fa-plug"></i> <span>Conexión</span></button>
-                    <button class="settings-tab" data-pane="montos"><i class="fa-solid fa-coins"></i> <span>Montos mínimos</span></button>
-                    <button class="settings-tab" data-pane="filtros"><i class="fa-solid fa-shield-halved"></i> <span>Filtros</span></button>
-                    <button class="settings-tab" data-pane="destacar"><i class="fa-solid fa-crown"></i> <span>Destacar</span></button>
-                    <button class="settings-tab" data-pane="alertas"><i class="fa-solid fa-bell"></i> <span>Sonido y voz</span></button>
-                    <button class="settings-tab" data-pane="diseno"><i class="fa-solid fa-palette"></i> <span>Diseño</span></button>
-                    <button class="settings-tab" data-pane="pantalla"><i class="fa-solid fa-display"></i> <span>Pantalla</span></button>
                     <button class="settings-tab" data-pane="obs"><i class="fa-solid fa-video"></i> <span>OBS</span></button>
                     <button class="settings-tab" data-pane="programa"><i class="fa-solid fa-sliders"></i> <span>Programa</span></button>
+                    <button class="settings-tab" data-pane="pantalla"><i class="fa-solid fa-display"></i> <span>Pantalla</span></button>
+                    <button class="settings-tab" data-pane="diseno"><i class="fa-solid fa-palette"></i> <span>Diseño</span></button>
+                    <button class="settings-tab" data-pane="filtros"><i class="fa-solid fa-shield-halved"></i> <span>Filtros</span></button>
+                    <button class="settings-tab" data-pane="alertas"><i class="fa-solid fa-bell"></i> <span>Sonido y voz</span></button>
                     <button class="settings-tab" data-pane="meta"><i class="fa-solid fa-bullseye"></i> <span>Meta</span></button>
                     <button class="settings-tab" data-pane="datos"><i class="fa-solid fa-database"></i> <span>Historial</span></button>
                     <button class="settings-tab" data-pane="pruebas"><i class="fa-solid fa-flask"></i> <span>Pruebas</span></button>
@@ -600,9 +599,18 @@
                         <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Si una misma donación llegara por los dos servicios, la app la muestra una sola vez. Para probar solo la app (tarjetas, sonido, voz y OBS) andá a <strong>Pruebas</strong>.</p>
                     </section>
 
-                    <!-- MONTOS MÍNIMOS -->
-                    <section class="settings-pane" data-pane="montos">
-                        <h3 class="pane-title">Montos mínimos</h3>
+                    <!-- FILTROS: palabras prohibidas y usuarios bloqueados -->
+                    <!-- FILTROS: montos mínimos, palabras y usuarios bloqueados -->
+                    <section class="settings-pane" data-pane="filtros">
+                        <h3 class="pane-title">Filtros</h3>
+                        <p class="pane-desc">Qué donaciones se muestran, cuáles se leen en voz alta y qué palabras o personas se tapan.</p>
+                        <div class="sub-tabs" data-subtabs="filtros">
+                            <button type="button" class="sub-tab active" data-sub="montos"><i class="fa-solid fa-coins"></i> Montos mínimos</button>
+                            <button type="button" class="sub-tab" data-sub="palabras"><i class="fa-solid fa-ban"></i> Palabras</button>
+                            <button type="button" class="sub-tab" data-sub="bloqueados"><i class="fa-solid fa-user-slash"></i> Usuarios bloqueados</button>
+                        </div>
+                        <div class="sub-pane" data-sub="montos">
+
                         <p class="pane-desc">Elegí desde qué monto se muestra y se lee cada donación. Dejá en 0 para que no haya mínimo. Los montos son en pesos.</p>
 
                         <div class="min-card">
@@ -647,11 +655,9 @@
                         </div>
 
                         <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Los Super Chats en dólares se comparan usando la cotización de acá abajo. Si no la cargaste, se muestran y se leen siempre.</p>
-                    </section>
+                                            </div>
+                        <div class="sub-pane hidden" data-sub="palabras">
 
-                    <!-- FILTROS: palabras prohibidas y usuarios bloqueados -->
-                    <section class="settings-pane" data-pane="filtros">
-                        <h3 class="pane-title">Filtros</h3>
                         <p class="pane-desc">Para que no salga en vivo lo que no querés: palabras que se tapan y usuarios que se ignoran.</p>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-comment-slash"></i> Palabras prohibidas</div>
@@ -680,98 +686,15 @@
                             <small id="cfg-censor-result" class="censor-result">&nbsp;</small>
                         </div>
 
+                        </div>
+                        <div class="sub-pane hidden" data-sub="bloqueados">
                         <div class="pane-subtitle"><i class="fa-solid fa-user-slash"></i> Usuarios bloqueados</div>
                         <div class="form-group">
                             <label for="cfg-blocked-users">Un nombre por línea, tal como aparece en la donación</label>
                             <textarea id="cfg-blocked-users" rows="4" spellcheck="false" placeholder="NombreDelUsuario"></textarea>
                             <small>Sus donaciones no suenan, no se leen, no van a OBS ni quedan pendientes: van directo a "Leídos" con la marca BLOQUEADO (la plata igual suma en los totales). También podés bloquear a alguien desde su donación en grande.</small>
                         </div>
-                    </section>
-
-                    <!-- DESTACAR: efecto para donaciones grandes y rangos de donadores -->
-                    <section class="settings-pane" data-pane="destacar">
-                        <h3 class="pane-title">Destacar</h3>
-                        <p class="pane-desc">Que las donaciones grandes y los que más te apoyan se noten.</p>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-wand-magic-sparkles"></i> Estilos</div>
-                        <div class="styles-intro">
-                            <p class="pane-note">Un estilo es un "look" con nombre (por ejemplo <em>Dorado brillante</em> o <em>Neón rosa</em>) que le pone efectos a la tarjeta, el mensaje, el nick, el rango y el monto. Después lo elegís para las donaciones grandes o para cada rango.</p>
-                            <div class="styles-chips" id="styles-chips"></div>
-                            <button type="button" class="btn btn-primary btn-sm" id="btn-edit-styles"><i class="fa-solid fa-paintbrush"></i> Crear y editar estilos</button>
-                        </div>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-sack-dollar"></i> Donaciones grandes</div>
-                        <label class="setting-row toggle-row">
-                            <div><strong>Destacar donaciones grandes</strong><small>Desde el monto que elijas, la donación se ve con un estilo especial.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-fx-enabled"><span class="toggle-slider"></span></span>
-                        </label>
-                        <div class="sound-picker" id="fx-picker">
-                            <div class="sound-row">
-                                <label for="cfg-fx-min"><strong>Desde</strong></label>
-                                <input type="number" id="cfg-fx-min" class="big-sound-min" min="0" step="500" placeholder="10000">
-                                <span class="pane-note big-sound-unit">pesos</span>
-                            </div>
-                            <div class="sound-row">
-                                <label for="cfg-fx-style"><strong>Estilo</strong></label>
-                                <select id="cfg-fx-style" class="style-select"></select>
-                            </div>
-                            <label class="setting-row toggle-row compact">
-                                <div><strong>En el panel</strong></div>
-                                <span class="toggle-switch"><input type="checkbox" id="cfg-fx-panel"><span class="toggle-slider"></span></span>
-                            </label>
-                            <label class="setting-row toggle-row compact">
-                                <div><strong>En OBS</strong></div>
-                                <span class="toggle-switch"><input type="checkbox" id="cfg-fx-obs"><span class="toggle-slider"></span></span>
-                            </label>
-                        </div>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Color del monto</div>
-                        <label class="setting-row toggle-row">
-                            <div><strong>Color según cuánto donó</strong><small>El monto de cada donación se pinta del color que le corresponde. Por ejemplo: verde las chicas, dorado desde $10.000.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-amt-enabled"><span class="toggle-slider"></span></span>
-                        </label>
-                        <div id="amt-box" class="ranks-box-like">
-                            <div class="ranks-list" id="amt-list"></div>
-                            <button type="button" class="btn btn-outline btn-sm" id="btn-add-amt"><i class="fa-solid fa-plus"></i> Agregar color</button>
-                            <label class="setting-row toggle-row compact">
-                                <div><strong>En el panel</strong></div>
-                                <span class="toggle-switch"><input type="checkbox" id="cfg-amt-panel"><span class="toggle-slider"></span></span>
-                            </label>
-                            <label class="setting-row toggle-row compact">
-                                <div><strong>En OBS</strong></div>
-                                <span class="toggle-switch"><input type="checkbox" id="cfg-amt-obs"><span class="toggle-slider"></span></span>
-                            </label>
-                            <small class="pane-note">En pesos. Los dólares, Bits y KICKs se pintan si cargaste la cotización.</small>
-                        </div>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-ranking-star"></i> Rangos de donadores</div>
-                        <label class="setting-row toggle-row">
-                            <div><strong>Activar rangos</strong><small>Al lado del nombre aparece el rango según cuánto donó esa persona en los últimos días (sumando todas sus donaciones del historial).</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-enabled"><span class="toggle-slider"></span></span>
-                        </label>
-                        <div id="ranks-box">
-                            <div class="sound-row ranks-days-row">
-                                <label for="cfg-ranks-days">Contar lo donado en los últimos</label>
-                                <input type="number" id="cfg-ranks-days" class="big-sound-min" min="1" max="3650" step="1">
-                                <span class="pane-note big-sound-unit">días</span>
-                            </div>
-                            <div class="ranks-list" id="ranks-list"></div>
-                            <button type="button" class="btn btn-outline btn-sm" id="btn-add-rank"><i class="fa-solid fa-plus"></i> Agregar rango</button>
-                            <label class="setting-row toggle-row compact">
-                                <div><strong>Mostrar el nombre del rango</strong><small>Apagado, solo se ven los íconos (el nombre aparece al pasar el mouse).</small></div>
-                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-name"><span class="toggle-slider"></span></span>
-                            </label>
-                            <label class="setting-row toggle-row compact">
-                                <div><strong>En el panel</strong></div>
-                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-panel"><span class="toggle-slider"></span></span>
-                            </label>
-                            <label class="setting-row toggle-row compact">
-                                <div><strong>En OBS</strong></div>
-                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-obs"><span class="toggle-slider"></span></span>
-                            </label>
-                            <small class="pane-note">Se cuenta por nombre de usuario (sin importar mayúsculas), en pesos. Los dólares, Bits y KICKs suman si cargaste la cotización. Las donaciones de prueba no cuentan.</small>
-                        </div>
-                        <div class="icon-pop hidden" id="icon-pop" role="dialog" aria-label="Elegir ícono"></div>
+                                            </div>
                     </section>
 
                     <!-- SONIDO Y VOZ -->
@@ -869,7 +792,7 @@
                                 <input type="range" id="cfg-big-sound-volume" min="0" max="1" step="0.05">
                                 <span class="range-value" id="lbl-big-sound-volume">90%</span>
                             </div>
-                            <small class="pane-note">Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Montos mínimos.</small>
+                            <small class="pane-note">Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Filtros → Montos mínimos.</small>
                         </div>
 
                         <label class="setting-row toggle-row">
@@ -897,7 +820,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Monto mínimo para leer</label>
-                                <button type="button" class="btn btn-outline goto-montos"><i class="fa-solid fa-coins"></i> Configurar en "Montos mínimos"</button>
+                                <button type="button" class="btn btn-outline goto-montos"><i class="fa-solid fa-coins"></i> Configurar en "Filtros → Montos mínimos"</button>
                             </div>
                         </div>
                         <div class="form-grid three">
@@ -994,37 +917,41 @@
                             <div><strong>Activar atajos de teclado</strong><small>Vienen apagados para que una tecla tocada sin querer no lea, marque ni silencie nada en pleno vivo.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-hotkeys"><span class="toggle-slider"></span></span>
                         </label>
-                        <div class="shortcuts-box">
-                            <div class="shortcut-row"><kbd>Espacio</kbd><span>Leer la siguiente pendiente</span></div>
-                            <div class="shortcut-row"><kbd>R</kbd><span>Repetir la última</span></div>
-                            <div class="shortcut-row"><kbd>M</kbd><span>Marcar como leída (o restaurar) la que está abierta</span></div>
-                            <div class="shortcut-row"><kbd>S</kbd><span>Callar la voz ahora</span></div>
-                            <div class="shortcut-row"><kbd>V</kbd><span>Prender / apagar la voz</span></div>
-                            <div class="shortcut-row"><kbd>B</kbd><span>Prender / apagar el sonido</span></div>
-                            <small>Funcionan con la ventana de StreamDonations al frente. Con un Stream Deck, usá la acción "Tecla de acceso rápido" con la app al frente. <kbd>Esc</kbd> para cerrar ventanas funciona siempre.</small>
-                        </div>
                         <label class="setting-row toggle-row tauri-only">
-                            <div><strong>Atajos globales con Ctrl + Alt</strong><small>Funcionan aunque estés en el juego o en OBS: <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd> lee la siguiente, y <kbd>Ctrl</kbd>+<kbd>Alt</kbd> + <kbd>R</kbd>, <kbd>M</kbd>, <kbd>S</kbd>, <kbd>V</kbd> o <kbd>B</kbd> hacen lo mismo que arriba. Ideal para el Stream Deck.</small></div>
+                            <div><strong>Atajos globales con Ctrl + Alt</strong><small>Funcionan aunque estés en el juego o en OBS. Ideal para el Stream Deck.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-global-hotkeys"><span class="toggle-slider"></span></span>
                         </label>
+                        <div class="shortcuts-table">
+                            <div class="sc-head"><span>Qué hace</span><span><i class="fa-solid fa-window-maximize"></i> Con la app al frente</span><span class="tauri-only"><i class="fa-solid fa-gamepad"></i> Desde cualquier lado</span></div>
+                            <div class="sc-row"><span>Leer la siguiente pendiente</span><span><kbd>Espacio</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd></span></div>
+                            <div class="sc-row"><span>Repetir la última</span><span><kbd>R</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd></span></div>
+                            <div class="sc-row"><span>Marcar como leída (o restaurar)</span><span><kbd>M</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd></span></div>
+                            <div class="sc-row"><span>Callar la voz ahora</span><span><kbd>S</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></span></div>
+                            <div class="sc-row"><span>Prender / apagar la voz</span><span><kbd>V</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd></span></div>
+                            <div class="sc-row"><span>Prender / apagar el sonido</span><span><kbd>B</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></span></div>
+                            <div class="sc-row"><span>Cerrar ventanas</span><span><kbd>Esc</kbd></span><span class="tauri-only">—</span></div>
+                            <small>La columna del medio necesita "Activar atajos de teclado" y la de la derecha "Atajos globales con Ctrl + Alt". Con un Stream Deck, usá la acción "Tecla de acceso rápido".</small>
+                        </div>
 
                     </section>
 
                     <!-- DISEÑO: todo lo visual del panel y de OBS en un solo lugar -->
                     <section class="settings-pane" data-pane="diseno">
                         <h3 class="pane-title">Diseño</h3>
-                        <p class="pane-desc">Cómo se ven las donaciones. Elegí qué querés editar: el <strong>panel</strong> (lo que ves vos) o <strong>OBS</strong> (lo que ve tu audiencia). Todo se ve en vivo en la vista previa y se confirma con "Guardar cambios".</p>
+                        <p class="pane-desc">Cómo se ven las donaciones: el <strong>panel</strong> (lo que ves vos), <strong>OBS</strong> (lo que ve tu audiencia) y cómo <strong>destacar</strong> a quien dona más. Todo se ve en vivo en la vista previa y se confirma con "Guardar cambios".</p>
 
-                        <div class="dz-tabs" role="tablist">
-                            <button type="button" class="dz-tab active" data-side="panel" role="tab"><i class="fa-solid fa-display"></i> Panel</button>
-                            <button type="button" class="dz-tab" data-side="obs" role="tab"><i class="fa-solid fa-video"></i> OBS</button>
-                        </div>
 
                         <!-- Vista previa fija arriba: muestra el panel o OBS según la pestaña -->
                         <div class="obs-live-preview" id="obs-live-preview">
+                            <div class="dz-tabs" role="tablist">
+                            <button type="button" class="dz-tab active" data-side="panel" role="tab"><i class="fa-solid fa-display"></i> Panel</button>
+                            <button type="button" class="dz-tab" data-side="obs" role="tab"><i class="fa-solid fa-video"></i> OBS</button>
+                            <button type="button" class="dz-tab" data-side="destacar" role="tab"><i class="fa-solid fa-crown"></i> Destacar</button>
+                        </div>
                             <div class="obs-live-head">
                                 <span><i class="fa-solid fa-eye"></i> Vista previa</span>
                                 <span class="obs-live-btns">
+                                    <button type="button" class="btn-link-sm hidden" id="btn-preview-where"><i class="fa-solid fa-display"></i> <span>Ver en el panel</span></button>
                                     <button type="button" class="btn-link-sm" id="btn-preview-sample" title="Cambiar el ejemplo entre una donación común y una grande"><i class="fa-solid fa-arrow-up-wide-short"></i> <span>Ver grande</span></button>
                                     <button type="button" class="btn-link-sm" id="btn-preview-toggle"><i class="fa-solid fa-chevron-up"></i> <span>Achicar</span></button>
                                 </span>
@@ -1065,6 +992,7 @@
                                 <span class="range-value" id="lbl-panel-card-alpha">Auto</span>
                                 <label class="inline-check"><input type="checkbox" id="cfg-panel-card-auto" checked> Automático</label>
                             </div>
+                            <div class="alpha-quick" data-alpha="panel"><button type="button" data-v="auto">Auto</button><button type="button" data-v="100">100%</button><button type="button" data-v="75">75%</button><button type="button" data-v="50">50%</button><button type="button" data-v="25">25%</button></div>
                         </div>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-table-cells-large"></i> Qué se ve en cada donación</div>
@@ -1178,6 +1106,7 @@
                                 <span class="range-value" id="lbl-obs-card-alpha">90%</span>
                                 <label class="inline-check"><input type="checkbox" id="cfg-obs-card-auto" checked> Automático</label>
                             </div>
+                            <div class="alpha-quick" data-alpha="obs"><button type="button" data-v="auto">Auto</button><button type="button" data-v="100">100%</button><button type="button" data-v="75">75%</button><button type="button" data-v="50">50%</button><button type="button" data-v="25">25%</button></div>
                         </div>
 
                         <label class="setting-row toggle-row">
@@ -1232,7 +1161,7 @@
                                     <option value="both">Las dos cosas</option>
                                 </select>
                             </div>
-                            <small class="pane-note">Solo cambia la ventana "Modo OBS" (lo que ve tu audiencia). Abrila para ver los cambios en vivo. Los rangos se ven si están activados en Opciones → Destacar.</small>
+                            <small class="pane-note">Solo cambia la ventana "Modo OBS" (lo que ve tu audiencia). Abrila para ver los cambios en vivo. Los rangos se ven si están activados en Opciones → Diseño → Destacar.</small>
                         </div>
 
                         <label class="setting-row toggle-row">
@@ -1327,6 +1256,91 @@
                         </div>
 
                         </div>
+
+                        <div class="dz-side hidden" data-side="destacar">
+
+                        <p class="pane-desc">Que las donaciones grandes y los que más te apoyan se noten.</p>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-wand-magic-sparkles"></i> Estilos</div>
+                        <div class="styles-intro">
+                            <p class="pane-note">Un estilo es un "look" con nombre (por ejemplo <em>Dorado brillante</em> o <em>Neón rosa</em>) que le pone efectos a la tarjeta, el mensaje, el nick, el rango y el monto. Después lo elegís para las donaciones grandes o para cada rango.</p>
+                            <div class="styles-chips" id="styles-chips"></div>
+                            <button type="button" class="btn btn-primary btn-sm" id="btn-edit-styles"><i class="fa-solid fa-paintbrush"></i> Crear y editar estilos</button>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-sack-dollar"></i> Donaciones grandes</div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Destacar donaciones grandes</strong><small>Desde el monto que elijas, la donación se ve con un estilo especial.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-fx-enabled"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="sound-picker" id="fx-picker">
+                            <div class="sound-row">
+                                <label for="cfg-fx-min"><strong>Desde</strong></label>
+                                <input type="number" id="cfg-fx-min" class="big-sound-min" min="0" step="500" placeholder="10000">
+                                <span class="pane-note big-sound-unit">pesos</span>
+                            </div>
+                            <div class="sound-row">
+                                <label for="cfg-fx-style"><strong>Estilo</strong></label>
+                                <select id="cfg-fx-style" class="style-select"></select>
+                            </div>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En el panel</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-fx-panel"><span class="toggle-slider"></span></span>
+                            </label>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En OBS</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-fx-obs"><span class="toggle-slider"></span></span>
+                            </label>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-palette"></i> Color del monto</div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Color según cuánto donó</strong><small>El monto de cada donación se pinta del color que le corresponde. Por ejemplo: verde las chicas, dorado desde $10.000.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-amt-enabled"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div id="amt-box" class="ranks-box-like">
+                            <div class="ranks-list" id="amt-list"></div>
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-add-amt"><i class="fa-solid fa-plus"></i> Agregar color</button>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En el panel</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-amt-panel"><span class="toggle-slider"></span></span>
+                            </label>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En OBS</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-amt-obs"><span class="toggle-slider"></span></span>
+                            </label>
+                            <small class="pane-note">En pesos. Los dólares, Bits y KICKs se pintan si cargaste la cotización.</small>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-ranking-star"></i> Rangos de donadores</div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Activar rangos</strong><small>Al lado del nombre aparece el rango según cuánto donó esa persona en los últimos días (sumando todas sus donaciones del historial).</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-enabled"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div id="ranks-box">
+                            <div class="sound-row ranks-days-row">
+                                <label for="cfg-ranks-days">Contar lo donado en los últimos</label>
+                                <input type="number" id="cfg-ranks-days" class="big-sound-min" min="1" max="3650" step="1">
+                                <span class="pane-note big-sound-unit">días</span>
+                            </div>
+                            <div class="ranks-list" id="ranks-list"></div>
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-add-rank"><i class="fa-solid fa-plus"></i> Agregar rango</button>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>Mostrar el nombre del rango</strong><small>Apagado, solo se ven los íconos (el nombre aparece al pasar el mouse).</small></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-name"><span class="toggle-slider"></span></span>
+                            </label>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En el panel</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-panel"><span class="toggle-slider"></span></span>
+                            </label>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>En OBS</strong></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-ranks-obs"><span class="toggle-slider"></span></span>
+                            </label>
+                            <small class="pane-note">Se cuenta por nombre de usuario (sin importar mayúsculas), en pesos. Los dólares, Bits y KICKs suman si cargaste la cotización. Las donaciones de prueba no cuentan.</small>
+                        </div>
+                        <div class="icon-pop hidden" id="icon-pop" role="dialog" aria-label="Elegir ícono"></div>
+                                            </div>
                     </section>
 
                     <!-- OBS -->
@@ -1424,7 +1438,7 @@
                                 <div><strong>Progreso actual</strong><small id="goal-progress-text">$0 desde —</small></div>
                                 <button type="button" class="btn btn-outline" id="btn-goal-reset"><i class="fa-solid fa-rotate-left"></i> Reiniciar meta</button>
                             </div>
-                            <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Suman las donaciones de Ceneka y los Super Chats en pesos. Los Super Chats en dólares suman si cargás la cotización en Opciones → Montos mínimos.</p>
+                            <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Suman las donaciones de Ceneka y los Super Chats en pesos. Los Super Chats en dólares suman si cargás la cotización en Opciones → Filtros → Montos mínimos.</p>
                         </div>
                     </section>
 

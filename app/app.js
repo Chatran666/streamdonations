@@ -1533,6 +1533,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playDonationSound(donation.tier, donation);
         speakDonation(donation);
         pushToOverlay(donation);
+        if (!donation.isTest) noteNewWhileInSettings();
         
         if (state.settings.donationToasts !== false) showToast(
             `<strong style="color: ${platformInfo(donation.platform).color}">` +
@@ -2468,8 +2469,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="um-stats">${mine.length} donaci${mine.length === 1 ? 'ón' : 'ones'}${test ? ' de prueba' : ''} · ${formatMoney(Math.round(total), 'ARS')} en total</div>
             ${test ? '<p class="um-test-note"><i class="fa-solid fa-flask"></i> Prueba: lo que hagas acá no toca tus rangos ni bloqueos de verdad y se borra junto con las donaciones de prueba.</p>' : ''}
             <label class="um-row"><span><i class="fa-solid fa-crown"></i> Rango a mano</span>
-                <select id="um-rank">${manual.length ? '<option value="-1">Ninguno</option>' + manual.map(x => `<option value="${x.i}"${cur && cur.i === x.i ? ' selected' : ''}>${escapeHTML(x.r.name)}</option>`).join('') : '<option value="-1">Creá uno en Opciones → Destacar</option>'}</select></label>
-            ${!state.settings.ranksEnabled && manual.length ? '<small class="pane-note">Los rangos están apagados en Opciones → Destacar.</small>' : ''}
+                <select id="um-rank">${manual.length ? '<option value="-1">Ninguno</option>' + manual.map(x => `<option value="${x.i}"${cur && cur.i === x.i ? ' selected' : ''}>${escapeHTML(x.r.name)}</option>`).join('') : '<option value="-1">Creá uno en Opciones → Diseño → Destacar</option>'}</select></label>
+            ${!state.settings.ranksEnabled && manual.length ? '<small class="pane-note">Los rangos están apagados en Opciones → Diseño → Destacar.</small>' : ''}
             <button type="button" class="um-btn" id="um-filter"><i class="fa-solid fa-magnifying-glass"></i> Ver sus donaciones</button>
             <button type="button" class="um-btn${blk ? '' : ' danger'}" id="um-block"><i class="fa-solid fa-user-slash"></i> ${blk ? 'Desbloquear' : 'Bloquear'}</button>`;
         if (menu.parentElement !== document.body) document.body.appendChild(menu);
@@ -4744,15 +4745,42 @@ document.addEventListener('DOMContentLoaded', () => {
         updateGoalFieldsState();
     }
 
+    // Pestañas internas (Filtros: Montos / Palabras / Bloqueados)
+    function switchSubTab(group, sub) {
+        const bar = document.querySelector(`.sub-tabs[data-subtabs="${group}"]`);
+        if (!bar) return;
+        const pane = bar.closest('.settings-pane');
+        bar.querySelectorAll('.sub-tab').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
+        pane.querySelectorAll('.sub-pane').forEach(p => p.classList.toggle('hidden', p.dataset.sub !== sub));
+    }
+    document.querySelectorAll('.sub-tabs').forEach(bar => bar.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-sub]');
+        if (b) switchSubTab(bar.dataset.subtabs, b.dataset.sub);
+    }));
     function switchSettingsPane(name) {
+        // Secciones que ahora viven adentro de otras
+        if (name === 'montos') { switchSubTab('filtros', 'montos'); name = 'filtros'; }
+        else if (name === 'destacar') { name = 'diseno'; setTimeout(() => setDzSide('destacar'), 0); }
         document.querySelectorAll('#settings-nav .settings-tab[data-pane]').forEach(b => b.classList.toggle('active', b.dataset.pane === name));
         document.querySelectorAll('.settings-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === name));
     }
 
+    // Donaciones que entran mientras Configuración tapa el panel: se avisan arriba
+    let settingsNewCount = 0;
+    function noteNewWhileInSettings() {
+        if (els.modalSettings.classList.contains('hidden')) return;
+        settingsNewCount++;
+        $('settings-new-text').textContent = settingsNewCount === 1 ? '1 donación nueva' : settingsNewCount + ' donaciones nuevas';
+        $('settings-new').classList.remove('hidden');
+    }
+    $('settings-new').addEventListener('click', () => $('btn-close-settings').click());
     function openSettings(pane) {
+        settingsNewCount = 0;
+        $('settings-new').classList.add('hidden');
         fillSettingsForm();
         switchSettingsPane(pane || 'conexion');
         els.modalSettings.classList.remove('hidden');
+        try { syncAlphaQuick(); } catch (e) {}
     }
 
     let settingsDirty = false;
@@ -5918,25 +5946,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- Sección Diseño: pestañas Panel / OBS y su vista previa ----
     let dzSide = 'panel';
-    try { if (localStorage.getItem('sd_dz_side') === 'obs') dzSide = 'obs'; } catch (e) {}
+    try { const v = localStorage.getItem('sd_dz_side'); if (v === 'obs' || v === 'destacar') dzSide = v; } catch (e) {}
+    // En "Destacar" la vista previa puede mostrarse como panel o como OBS
+    let dzDestacarView = 'obs';
+    function previewView() { return dzSide === 'destacar' ? dzDestacarView : dzSide; }
+    // Lo que todavía no guardaste en Destacar (para verlo en vivo en la vista previa)
+    function destacarDraft() {
+        try { syncAmtDraft(); syncRanksDraft(); } catch (e) {}
+        const ranks = cleanRanks(ranksDraft);
+        const styles = cleanStyles(stylesDraft);
+        return {
+            fxEnabled: $('cfg-fx-enabled').checked, fxMin: Math.max(0, parseFloat($('cfg-fx-min').value) || 0), styles,
+            fxStyle: styles.some(x => x.id === $('cfg-fx-style').value) ? $('cfg-fx-style').value : '',
+            fxPanel: $('cfg-fx-panel').checked, fxObs: $('cfg-fx-obs').checked,
+            amtColorsEnabled: $('cfg-amt-enabled').checked, amtColorsPanel: $('cfg-amt-panel').checked, amtColorsObs: $('cfg-amt-obs').checked,
+            amtColors: cleanAmtColors(amtDraft),
+            ranksEnabled: $('cfg-ranks-enabled').checked, ranksShowName: $('cfg-ranks-name').checked,
+            ranksPanel: $('cfg-ranks-panel').checked, ranksObs: $('cfg-ranks-obs').checked,
+            // El ejemplo grande lleva el primer rango, para que se vea cómo queda
+            ranks: ranks.length ? [Object.assign({}, ranks[0], { mode: 'manual', users: 'Juan_Gamer' })].concat(ranks.slice(1)) : ranks
+        };
+    }
+    function withDraftSettings(fn) {
+        if (els.modalSettings.classList.contains('hidden')) return fn();
+        const saved = state.settings;
+        try { state.settings = Object.assign({}, saved, destacarDraft()); return fn(); }
+        catch (e) { return fn(); }
+        finally { state.settings = saved; rankCache.key = ''; }
+    }
     function renderPanelPreview() {
         const box = $('panel-preview');
-        if (!box || dzSide !== 'panel') return;
+        if (!box || previewView() !== 'panel') return;
         const sample = { id: 'pv-panel', platform: 'youtube', nick: 'leandropaz1286', amount: 100, currency: 'ARS', formattedAmount: formatMoney(100, 'ARS'),
             message: '¡Qué buen stream! Saludos desde Mendoza 👋', isRead: false, timestamp: Date.now() - 60000, tier: 'tier-1' };
         const big = { id: 'pv-panel2', platform: 'kick', nick: 'Juan_Gamer', amount: 5000, currency: 'ARS', formattedAmount: formatMoney(5000, 'ARS'),
             message: 'Para el fernet del final 🍻 aguante el canal', isRead: false, timestamp: Date.now() - 30000, tier: 'tier-3' };
-        try { box.innerHTML = createCardHTML(previewBig ? big : sample); } catch (e) { box.innerHTML = ''; }
+        try { box.innerHTML = withDraftSettings(() => createCardHTML(previewBig ? big : sample)); } catch (e) { box.innerHTML = ''; }
     }
     function setDzSide(side) {
-        dzSide = side === 'obs' ? 'obs' : 'panel';
+        dzSide = ['panel', 'obs', 'destacar'].includes(side) ? side : 'panel';
         try { localStorage.setItem('sd_dz_side', dzSide); } catch (e) {}
         document.querySelectorAll('.dz-tab').forEach(b => b.classList.toggle('active', b.dataset.side === dzSide));
         document.querySelectorAll('.dz-side').forEach(d => d.classList.toggle('hidden', d.dataset.side !== dzSide));
-        $('panel-preview').classList.toggle('hidden', dzSide !== 'panel');
-        document.querySelector('#obs-live-preview .design-preview-wrap').classList.toggle('dz-hide', dzSide !== 'obs');
-        if (dzSide === 'panel') renderPanelPreview(); else setTimeout(refreshDesignPreview, 50);
+        $('btn-preview-where').classList.toggle('hidden', dzSide !== 'destacar');
+        $('btn-preview-where').innerHTML = dzDestacarView === 'obs' ? '<i class="fa-solid fa-display"></i> <span>Ver en el panel</span>' : '<i class="fa-solid fa-video"></i> <span>Ver en OBS</span>';
+        const v = previewView();
+        $('panel-preview').classList.toggle('hidden', v !== 'panel');
+        document.querySelector('#obs-live-preview .design-preview-wrap').classList.toggle('dz-hide', v !== 'obs');
+        if (v === 'panel') renderPanelPreview(); else setTimeout(refreshDesignPreview, 50);
     }
+    $('btn-preview-where').addEventListener('click', () => { dzDestacarView = dzDestacarView === 'obs' ? 'panel' : 'obs'; setDzSide('destacar'); });
+    // Cambios en Destacar: la vista previa se actualiza sola (un instante después de tocar)
+    let destacarTimer = null;
+    const destacarChanged = () => { clearTimeout(destacarTimer); destacarTimer = setTimeout(() => { if (dzSide === 'destacar') { if (previewView() === 'panel') renderPanelPreview(); else designPreviewSamples(); } }, 180); };
+    ['input', 'change', 'click'].forEach(ev => document.querySelector('.dz-side[data-side="destacar"]').addEventListener(ev, destacarChanged));
+    // Al cerrar el editor de estilos también
+    document.getElementById('modal-styles') && new MutationObserver(destacarChanged).observe(document.getElementById('modal-styles'), { attributes: true, attributeFilter: ['class'] });
     document.querySelector('.dz-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-side]'); if (b) setDzSide(b.dataset.side); });
     // La vista previa del panel no abre nada al tocarla
     $('panel-preview').addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); }, true);
@@ -5972,7 +6037,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('design-desc').textContent = d.desc;
     }
     // Vista previa: la misma página de OBS dentro de Opciones, con dos donaciones de ejemplo
-    let previewIds = [], previewN = 0, previewBig = false;
+    let previewN = 0, previewBig = false;
     function designPreviewStyle(payload) {
         const f = $('design-preview');
         if (!f || !f.contentWindow) return;
@@ -5983,7 +6048,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const f = $('design-preview');
         if (!f || !f.contentWindow || $('modal-settings').classList.contains('hidden')) return;
         const w = f.contentWindow;
-        previewIds.forEach(id => { try { w.postMessage({ type: 'DISMISS_ALERT', id }, '*'); } catch (e) {} });
         const accumMode = $('cfg-obs-accum') ? $('cfg-obs-accum').value : 'off';
         const r = (state.settings.ranks || [])[0];
         const rank = r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null;
@@ -5992,16 +6056,13 @@ document.addEventListener('DOMContentLoaded', () => {
             { platform: 'youtube', nick: 'leandropaz1286', amount: 100, currency: 'ARS', message: '¡Qué buen stream! Saludos desde Mendoza 👋', accum: '$200' },
             { platform: 'kick', nick: 'Juan_Gamer', amount: 5000, currency: 'ARS', message: 'Para el fernet del final 🍻 aguante el canal', accum: '$12.500', rank }
         ];
-        const base = [all[previewBig ? 1 : 0]];
+        const d = all[previewBig ? 1 : 0];
         previewN++;
-        previewIds = base.map((d, i) => 'pv' + previewN + '_' + i);
-        base.reverse().forEach((d, i) => {
-            const id = previewIds[base.length - 1 - i];
-            let sty = null, amtColor = '';
-            try { sty = mergedStyle(d, 'obs'); amtColor = amountColor(d, 'obs'); } catch (e) {}
-            const data = Object.assign({}, d, { id, formattedAmount: formatMoney(d.amount, d.currency), sty, amtColor, accum: accumMode === 'off' ? '' : d.accum, obsHideMessage: false, obsDuration: 0 });
-            setTimeout(() => { try { w.postMessage({ type: 'NEW_DONATION', data }, '*'); } catch (e) {} }, previewIds.length ? 320 : 0);
-        });
+        let sty = null, amtColor = '', rk = d.rank;
+        try { withDraftSettings(() => { rk = previewBig ? rankFor('Juan_Gamer', 'obs') : null; sty = mergedStyle(d, 'obs', rk); amtColor = amountColor(d, 'obs'); }); } catch (e) {}
+        const data = Object.assign({}, d, { rank: rk, id: 'pv' + previewN, formattedAmount: formatMoney(d.amount, d.currency), sty, amtColor, accum: accumMode === 'off' ? '' : d.accum, obsHideMessage: false, obsDuration: 0 });
+        // Reemplaza lo que haya: nunca se acumulan ejemplos aunque lleguen muchos cambios seguidos
+        try { w.postMessage({ type: 'PREVIEW_SHOW', data }, '*'); } catch (e) {}
     }
     let previewH = 220; // alto real de los ejemplos (lo avisa la vista previa)
     function fitDesignPreview() {
@@ -6041,6 +6102,28 @@ document.addEventListener('DOMContentLoaded', () => {
         sendObsStyle();
     };
     $('cfg-obs-card-alpha').addEventListener('input', cardAlphaInput);
+    // Botones rápidos de transparencia (Auto / 100 / 75 / 50 / 25 %)
+    function syncAlphaQuick() {
+        document.querySelectorAll('.alpha-quick').forEach(q => {
+            const side = q.dataset.alpha, auto = $('cfg-' + side + '-card-auto').checked, v = $('cfg-' + side + '-card-alpha').value;
+            q.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.v === 'auto' ? auto : (!auto && b.dataset.v === String(v))));
+        });
+    }
+    document.querySelectorAll('.alpha-quick').forEach(q => q.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]');
+        if (!b) return;
+        const side = q.dataset.alpha, chk = $('cfg-' + side + '-card-auto'), rng = $('cfg-' + side + '-card-alpha');
+        if (b.dataset.v === 'auto') chk.checked = true;
+        else { chk.checked = false; rng.disabled = false; rng.value = b.dataset.v; }
+        chk.dispatchEvent(new Event('change', { bubbles: true }));
+        rng.dispatchEvent(new Event('input', { bubbles: true }));
+        syncAlphaQuick();
+    }));
+    ['panel', 'obs'].forEach(side => ['input', 'change'].forEach(ev => {
+        $('cfg-' + side + '-card-alpha').addEventListener(ev, syncAlphaQuick);
+        $('cfg-' + side + '-card-auto').addEventListener(ev, syncAlphaQuick);
+    }));
+
     $('cfg-obs-card-auto').addEventListener('change', cardAlphaInput);
     // La vista previa se acomoda sola cuando aparece o cambia de tamaño
     if (window.ResizeObserver) new ResizeObserver(() => fitDesignPreview()).observe(document.querySelector('.design-preview-wrap'));

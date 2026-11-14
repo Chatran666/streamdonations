@@ -378,6 +378,11 @@
                 renderAlert(e.data.data);
             } else if (e.data && e.data.type === 'DISMISS_ALERT') {
                 dismissAlert(e.data.id);
+            } else if (PREVIEW && e.data && e.data.type === 'PREVIEW_SHOW' && e.data.data) {
+                // Vista previa: siempre un solo ejemplo (se borra lo anterior de golpe, sin animación)
+                document.querySelectorAll('.obs-alert').forEach(a => a.remove());
+                renderedIds.clear();
+                renderAlert(e.data.data);
             }
         });
 

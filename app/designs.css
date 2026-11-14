@@ -81,7 +81,7 @@
 
 /* ===================== TICKET (comprobante de papel) ===================== */
 :root[data-design="ticket"] .obs-alert { --obs-text: var(--obs-text-custom, #1F2937); --obs-ink-rgb: 31, 41, 55;
-    background: var(--obs-card-custom, #FFFDF6); border: none; border-radius: 6px; box-shadow: none; padding: 14px 22px; gap: 8px;
+    background: rgba(var(--obs-card-rgb, 255, 253, 246), var(--obs-card-alpha, 1)); border: none; border-radius: 6px; box-shadow: none; padding: 14px 22px; gap: 8px;
     font-family: 'JetBrains Mono', 'Consolas', monospace; text-shadow: none !important;
     -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 9px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat;
             mask: radial-gradient(circle 9px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 9px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; }

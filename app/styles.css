@@ -2878,3 +2878,43 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 /* Colores propios de las tarjetas del panel */
 :root.pcard-bg .donation-card { background: var(--pcard-bg) !important; }
 :root.pcard-text .donation-card .donor-nick-text, :root.pcard-text .donation-card .card-message { color: var(--pcard-text) !important; }
+
+/* Configuración en pantalla completa */
+#modal-settings { padding: 0; backdrop-filter: none; }
+#modal-settings .settings-card { width: 100vw; max-width: none; height: 100vh; max-height: none; border-radius: 0; border: none; box-shadow: none; }
+.settings-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+.settings-head h2 { justify-self: center; }
+.settings-back { justify-self: start; }
+.settings-new { justify-self: end; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 0.82rem;
+    color: #fff; background: var(--accent); border: none; box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); animation: sdNewPulse 1.6s ease-out infinite; }
+.settings-new.hidden { display: none; }
+@keyframes sdNewPulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 100% { box-shadow: 0 0 0 12px transparent; } }
+#modal-settings .settings-nav { width: 230px; }
+#modal-settings .settings-pane { max-width: 1040px; margin: 0 auto; width: 100%; }
+
+/* ===== 2.2.0: pestañas internas, atajos en tabla, transparencia rápida ===== */
+.sub-tabs { position: sticky; top: -20px; z-index: 5; display: flex; gap: 4px; padding: 4px; margin: 4px 0 14px; border-radius: 12px; width: max-content; max-width: 100%; flex-wrap: wrap;
+    background: var(--bg-secondary, #151a26); border: 1px solid var(--border-color); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18); }
+.sub-tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 9px; border: none; background: none; color: var(--text-secondary); font-weight: 700; font-size: 0.88rem; cursor: pointer; }
+.sub-tab:hover { color: var(--text-primary); }
+.sub-tab.active { background: var(--accent); color: #fff; }
+.sub-pane.hidden { display: none !important; }
+.dz-tabs { flex-wrap: wrap; }
+.obs-live-preview .dz-tabs { margin-bottom: 10px; }
+
+.shortcuts-table { display: grid; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; margin: 6px 0 14px; }
+.shortcuts-table .sc-head, .shortcuts-table .sc-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: 12px; align-items: center; padding: 10px 16px; }
+.shortcuts-table .sc-head { background: var(--bg-tertiary, rgba(255, 255, 255, 0.05)); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
+.shortcuts-table .sc-row { border-top: 1px solid var(--border-color); font-size: 0.92rem; }
+.shortcuts-table .sc-row:nth-child(odd) { background: rgba(var(--ink-rgb, 255, 255, 255), 0.02); }
+.shortcuts-table .sc-row > span:not(:first-child) { display: flex; align-items: center; gap: 4px; color: var(--text-secondary); flex-wrap: wrap; }
+.shortcuts-table kbd { display: inline-block; min-width: 28px; text-align: center; padding: 4px 9px; border-radius: 7px; font: 700 0.8rem 'JetBrains Mono', Consolas, monospace; color: var(--text-primary);
+    background: linear-gradient(180deg, rgba(var(--ink-rgb, 255, 255, 255), 0.12), rgba(var(--ink-rgb, 255, 255, 255), 0.04)); border: 1px solid rgba(var(--ink-rgb, 255, 255, 255), 0.22); border-bottom-width: 3px; }
+.shortcuts-table > small { padding: 10px 16px; border-top: 1px solid var(--border-color); color: var(--text-secondary); }
+:root:not(.is-tauri) .shortcuts-table .sc-head, :root:not(.is-tauri) .shortcuts-table .sc-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+@media (max-width: 640px) { .shortcuts-table .sc-head, .shortcuts-table .sc-row { grid-template-columns: 1fr; gap: 4px; } .shortcuts-table .sc-head span:not(:first-child) { display: none; } }
+
+.alpha-quick { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.alpha-quick button { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: var(--bg-tertiary, rgba(255, 255, 255, 0.05)); color: var(--text-secondary); font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+.alpha-quick button:hover { color: var(--text-primary); border-color: var(--accent); }
+.alpha-quick button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
