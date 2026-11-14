@@ -5984,6 +5984,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { box.innerHTML = withDraftSettings(() => createCardHTML(previewBig ? big : sample)); } catch (e) { box.innerHTML = ''; }
     }
     function setDzSide(side) {
+        if (document.querySelector('.pv-zoom')) { document.querySelectorAll('.pv-zoom').forEach(x => x.classList.remove('pv-zoom')); $('panel-preview').style.zoom = ''; $('preview-zoom-back').classList.add('hidden'); }
         dzSide = ['panel', 'obs', 'destacar'].includes(side) ? side : 'panel';
         try { localStorage.setItem('sd_dz_side', dzSide); } catch (e) {}
         document.querySelectorAll('.dz-tab').forEach(b => b.classList.toggle('active', b.dataset.side === dzSide));
@@ -6004,7 +6005,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('modal-styles') && new MutationObserver(destacarChanged).observe(document.getElementById('modal-styles'), { attributes: true, attributeFilter: ['class'] });
     document.querySelector('.dz-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-side]'); if (b) setDzSide(b.dataset.side); });
     // La vista previa del panel no abre nada al tocarla
-    $('panel-preview').addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); }, true);
+    $('panel-preview').addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); previewZoom(!$('panel-preview').classList.contains('pv-zoom')); }, true);
     // "Copiar lo del panel": OBS usa el mismo tema, diseño y colores de tarjeta
     $('btn-dz-copy').addEventListener('click', () => {
         const pd = $('cfg-panel-design').value;
@@ -6067,7 +6068,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let previewH = 220; // alto real de los ejemplos (lo avisa la vista previa)
     function fitDesignPreview() {
         const wrap = document.querySelector('.design-preview-wrap'), f = $('design-preview');
-        if (!wrap || !f || !wrap.clientWidth) return;
+        if (!wrap || !f) return;
+        if (wrap.classList.contains('pv-zoom')) {
+            // Ampliada: el doble de lo normal, sin pasarse de la ventana
+            const z = Math.max(0.5, Math.min(2 * Math.min(1, 440 / 600), (window.innerWidth - 60) / 600, (window.innerHeight - 140) / previewH));
+            wrap.style.width = Math.round(600 * z) + 'px';
+            f.style.transform = 'scale(' + z + ')';
+            f.style.height = previewH + 'px';
+            wrap.style.height = Math.round(previewH * z) + 'px';
+            return;
+        }
+        wrap.style.width = '';
+        if (!wrap.clientWidth) return;
         const k = Math.min(1, wrap.clientWidth / 600);
         f.style.transform = 'scale(' + k + ')';
         f.style.height = previewH + 'px';
@@ -6080,6 +6092,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (h > 40 && h < 900) { previewH = h; fitDesignPreview(); }
     });
     window.addEventListener('resize', fitDesignPreview);
+    // Clic en la vista previa: se ve al doble de tamaño (clic afuera o Esc para volver)
+    function previewZoom(on) {
+        const wrap = document.querySelector('.design-preview-wrap'), pp = $('panel-preview');
+        const v = previewView();
+        const el = v === 'panel' ? pp : wrap;
+        [wrap, pp].forEach(x => x.classList.remove('pv-zoom'));
+        pp.style.zoom = '';
+        $('preview-zoom-back').classList.toggle('hidden', !on);
+        if (on) {
+            el.classList.add('pv-zoom');
+            if (el === pp) {
+                const w = 560;
+                pp.style.zoom = String(Math.max(1, Math.min(2, (window.innerWidth - 60) / w, (window.innerHeight - 140) / Math.max(80, pp.scrollHeight))));
+            }
+        }
+        fitDesignPreview();
+    }
+    document.querySelector('.design-preview-wrap').addEventListener('click', () => previewZoom(!document.querySelector('.design-preview-wrap').classList.contains('pv-zoom')));
+    $('preview-zoom-back').addEventListener('click', () => previewZoom(false));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('preview-zoom-back').classList.contains('hidden')) { e.stopPropagation(); e.preventDefault(); previewZoom(false); } }, true);
     function refreshDesignPreview() {
         fitDesignPreview();
         if (lastObsStylePayload) designPreviewStyle(lastObsStylePayload);

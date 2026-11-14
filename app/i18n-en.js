@@ -1008,6 +1008,7 @@ window.SD_I18N_EN = {
     'Cómo se ven las donaciones: el': 'How donations look: the', '(lo que ves vos),': '(what you see),',
     '(lo que ve tu audiencia) y cómo': '(what your audience sees) and how to', 'destacar': 'highlight',
     'a quien dona más. Todo se ve en vivo en la vista previa y se confirma con "Guardar cambios".': 'whoever donates more. Everything shows live in the preview and is confirmed with "Save changes".',
+    'Clic afuera o Esc para achicar': 'Click outside or press Esc to shrink', 'Clic para ver más grande': 'Click to see it bigger',
     'Ver en el panel': 'Show in the panel', 'Ver en OBS': 'Show in OBS',
     'Volver al panel': 'Back to the panel', 'Volver al panel (Esc)': 'Back to the panel (Esc)', 'Volver al panel para verlas': 'Go back to the panel to see them',
     '1 donación nueva': '1 new donation', '{} donaciones nuevas': '{} new donations',

@@ -255,7 +255,7 @@
 
             // Se oculta sola después de la duración configurada en la app (no la marca como leída)
             const secs = parseFloat(d.obsDuration);
-            if (secs > 0) {
+            if (secs > 0 && !PREVIEW) {
                 setTimeout(() => dismissAlert(alertId), secs * 1000);
             }
 
@@ -313,8 +313,8 @@
         }
 
         function dismissAndMarkRead(id) {
+            if (PREVIEW) return; // en la vista previa el ejemplo no se puede cerrar (si no, queda vacía)
             dismissAlert(id);
-            if (PREVIEW) return;
             if (WS_MODE) wsToPanel({ type: 'MARK_READ', id });
 
             // 1. Notificar vía BroadcastChannel
@@ -383,6 +383,7 @@
                 document.querySelectorAll('.obs-alert').forEach(a => a.remove());
                 renderedIds.clear();
                 renderAlert(e.data.data);
+                if (scrollArea) scrollArea.scrollTop = 0;
             }
         });
 
@@ -585,8 +586,8 @@
             if (!st || (st.ts && st.ts < lastStyleTs)) return;
             lastStyleTs = st.ts || Date.now();
             const sc = Math.min(2.5, Math.max(0.7, parseFloat(st.scale) || 1));
-            const fb = st.filterBar !== false;
-            const pl = Array.isArray(st.platforms) && st.platforms.length ? st.platforms : null;
+            const fb = !PREVIEW && st.filterBar !== false;
+            const pl = !PREVIEW && Array.isArray(st.platforms) && st.platforms.length ? st.platforms : null;
             const plChanged = JSON.stringify(pl) !== JSON.stringify(allowedPlatforms);
             if (fb !== filterBarOn || plChanged) { filterBarOn = fb; allowedPlatforms = pl; applyFilter(); }
             if (st.platformColors) {

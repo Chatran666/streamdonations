@@ -1,8 +1,3 @@
-Novedades de la 2.2.0:
-- Configuración en pantalla completa, con "Volver al panel" y un aviso si llegan donaciones mientras estás ahí.
-- Nuevo orden: Conexión, OBS, Programa, Pantalla, Diseño, Filtros, Sonido y voz, Meta, Historial, Pruebas y Restablecer.
-- "Destacar" ahora es una pestaña dentro de Diseño (Panel | OBS | Destacar), fija arriba junto a la vista previa, y los cambios se ven en vivo.
-- "Montos mínimos" pasó a Filtros, con pestañas: Montos mínimos | Palabras | Usuarios bloqueados.
-- Atajos de teclado en una tabla clara: con la app al frente y con Ctrl + Alt desde cualquier lado.
-- Fondo de cada donación con botones rápidos 100 / 75 / 50 / 25 % (panel y OBS), en cualquier diseño, también en Ticket.
-- Arreglado: la vista previa de OBS ya no junta muchos mensajes.
+Novedades de la 2.2.1:
+- Vista previa de Diseño: hacé clic y se ve al doble de tamaño (clic afuera o Esc para volver). Funciona en Panel, OBS y Destacar.
+- Arreglado: la vista previa de OBS a veces quedaba vacía (por ejemplo si tocabas el ✓ del ejemplo, si la red del ejemplo no estaba conectada o si las alertas se ocultaban solas). Ahora el ejemplo siempre se ve y sin barra de scroll.

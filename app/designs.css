@@ -119,3 +119,7 @@
 :root.obs-preview, :root.obs-preview body, :root.obs-preview #obs-scroll-area { background: transparent !important; color-scheme: normal; }
 :root.obs-preview #obs-bg, :root.obs-preview canvas, :root.obs-preview .obs-preview-bar { display: none !important; }
 :root.obs-preview #alerts-container { padding-top: 6px; }
+/* Vista previa: el ejemplo aparece de una (sin la entrada animada), sin barra de scroll, y siempre visible */
+:root.obs-preview #obs-scroll-area { overflow: hidden !important; scrollbar-width: none; }
+:root.obs-preview #obs-scroll-area::-webkit-scrollbar { display: none !important; width: 0 !important; }
+:root.obs-preview .obs-alert { animation: none; opacity: 1; }

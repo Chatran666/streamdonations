@@ -1,3 +1,7 @@
+Novedades de la 2.2.1:
+- Vista previa de Diseño: hacé clic y se ve al doble de tamaño (clic afuera o Esc para volver). Funciona en Panel, OBS y Destacar.
+- Arreglado: la vista previa de OBS a veces quedaba vacía (por ejemplo si tocabas el ✓ del ejemplo, si la red del ejemplo no estaba conectada o si las alertas se ocultaban solas). Ahora el ejemplo siempre se ve y sin barra de scroll.
+
 Novedades de la 2.2.0:
 - Configuración en pantalla completa, con "Volver al panel" y un aviso si llegan donaciones mientras estás ahí.
 - Nuevo orden: Conexión, OBS, Programa, Pantalla, Diseño, Filtros, Sonido y voz, Meta, Historial, Pruebas y Restablecer.

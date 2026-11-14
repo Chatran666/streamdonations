@@ -2872,7 +2872,8 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .dz-copy { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 10px;
     border: 1px dashed var(--border-color); font-size: 0.84rem; color: var(--text-secondary); }
 .design-preview-wrap.dz-hide { display: none; }
-.panel-preview { max-width: 560px; margin: 0 auto; pointer-events: none; }
+.panel-preview { max-width: 560px; margin: 0 auto; cursor: zoom-in; }
+.panel-preview * { pointer-events: none !important; }
 .panel-preview.hidden { display: none; }
 .obs-live-preview.collapsed .panel-preview { display: none; }
 /* Colores propios de las tarjetas del panel */
@@ -2918,3 +2919,12 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .alpha-quick button { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border-color); background: var(--bg-tertiary, rgba(255, 255, 255, 0.05)); color: var(--text-secondary); font-weight: 700; font-size: 0.8rem; cursor: pointer; }
 .alpha-quick button:hover { color: var(--text-primary); border-color: var(--accent); }
 .alpha-quick button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Vista previa ampliada (clic para ver al doble) */
+.design-preview-wrap::after { content: ''; position: absolute; inset: 0; cursor: zoom-in; z-index: 1; }
+.preview-zoom-back { position: fixed; inset: 0; z-index: 1190; background: rgba(5, 8, 14, 0.82); backdrop-filter: blur(3px); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 28px; cursor: zoom-out; }
+.preview-zoom-back.hidden { display: none; }
+.preview-zoom-back span { color: #cbd5e1; font-size: 0.9rem; font-weight: 600; background: rgba(255, 255, 255, 0.08); padding: 8px 16px; border-radius: 999px; }
+.obs-live-preview .design-preview-wrap.pv-zoom, .panel-preview.pv-zoom { position: fixed; z-index: 1200; left: 50%; top: 45%; transform: translate(-50%, -50%); margin: 0; max-width: none; cursor: zoom-out; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+.design-preview-wrap.pv-zoom::after { cursor: zoom-out; }
+.panel-preview.pv-zoom { width: 560px; background: var(--bg-primary, #0b0f17); padding: 12px; border-radius: 14px; border: 1px solid var(--border-color); }
