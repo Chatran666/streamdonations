@@ -3002,3 +3002,26 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 /* Ventana de temas animados: los títulos siempre claros (las tarjetitas son oscuras) */
 .anim-tile strong { color: #fff; }
 .anim-tile small { color: rgba(255, 255, 255, 0.78); }
+
+/* ===== Vista previa al lado de las pestañas (aprovecha el ancho) y botones abajo ===== */
+.obs-live-preview { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "tabs prev" "tabs head"; column-gap: 24px; row-gap: 6px; align-items: center; }
+.obs-live-preview .dz-tabs { grid-area: tabs; margin-bottom: 0; align-self: center; }
+.obs-live-preview .panel-preview, .obs-live-preview .design-preview-wrap { grid-area: prev; }
+.obs-live-preview .obs-live-head { grid-area: head; margin: 0; }
+.obs-live-preview .design-preview-wrap { margin: 0 auto; max-width: 560px; width: 100%; }
+.obs-live-preview .panel-preview { max-width: 620px; width: 100%; margin: 0 auto; }
+.obs-live-preview.collapsed { grid-template-areas: "tabs head"; }
+@media (max-width: 900px) { .obs-live-preview { grid-template-columns: 1fr; grid-template-areas: "tabs" "prev" "head"; } }
+
+/* ===== Selector visual de efectos ===== */
+.fx-picker { margin: -6px 0 14px; display: flex; flex-direction: column; gap: 10px; }
+.fx-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.fx-group-title { font-size: 0.78rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.fx-group-title small { font-weight: 500; color: var(--text-secondary); }
+.fx-tile { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; cursor: pointer; text-align: left; font-size: 0.8rem; font-weight: 600;
+    background: var(--bg-tertiary, rgba(255, 255, 255, 0.04)); border: 2px solid var(--border-color); color: var(--text-primary); min-width: 0; }
+.fx-tile i { color: var(--fc); font-size: 1.05rem; width: 20px; text-align: center; flex-shrink: 0; }
+.fx-tile span { line-height: 1.2; }
+.fx-tile:hover { border-color: color-mix(in srgb, var(--fc) 60%, transparent); }
+.fx-tile.active { border-color: var(--fc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fc) 25%, transparent); }
+.anim-tile-emoji i { font-size: 1.35rem; }

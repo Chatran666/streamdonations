@@ -5394,6 +5394,29 @@ document.addEventListener('DOMContentLoaded', () => {
         fiesta:     { label: 'Fiesta',          mode: 'dark', accent: '#FF4D6D', accent2: '#FFD60A', fx: 'fiesta',      anim: true, emoji: '🎉', desc: 'Papelitos y serpentinas de colores' }
     };
     const ANIM_KEYS = Object.keys(THEMES).filter(k => THEMES[k].anim);
+    // Íconos y nombres de los efectos (íconos de la app: se ven en cualquier Windows)
+    const FX_META = {
+        '': { n: 'El del tema', i: 'palette', c: '#9AA3B5' }, none: { n: 'Ninguno', i: 'ban', c: '#9AA3B5' },
+        lluvia: { n: 'Lluvia', i: 'cloud-rain', c: '#5DA9E9' }, lluviafuerte: { n: 'Lluvia fuerte', i: 'cloud-showers-heavy', c: '#3C8DDA' },
+        nieve: { n: 'Nieve', i: 'snowflake', c: '#9AD8FF' }, papelitos: { n: 'Papelitos', i: 'burst', c: '#FF4D6D' },
+        otono: { n: 'Hojas de otoño', i: 'leaf', c: '#F08C3A' }, primavera: { n: 'Pétalos', i: 'spa', c: '#FF8FB1' },
+        burbujas: { n: 'Burbujas', i: 'soap', c: '#5DE2FF' }, brillos: { n: 'Brillitos', i: 'wand-magic-sparkles', c: '#FFE08A' },
+        polvo: { n: 'Polvo flotando', i: 'feather', c: '#E9D8B4' }, bokeh: { n: 'Luces desenfocadas', i: 'circle-dot', c: '#C77DFF' },
+        fugaces: { n: 'Estrellas fugaces', i: 'meteor', c: '#FFD166' }, niebla: { n: 'Niebla', i: 'smog', c: '#C9D3DE' },
+        rayos: { n: 'Rayos', i: 'bolt', c: '#9DB4FF' }, corazones: { n: 'Corazones', i: 'heart', c: '#FF4D8D' },
+        plata: { n: 'Lluvia de plata', i: 'money-bill-wave', c: '#2ECC71' },
+        estrellas: { n: 'Cielo con estrellas', i: 'moon', c: '#8EA8FF' }, aurora: { n: 'Aurora boreal', i: 'star', c: '#3DFFB0' },
+        tormenta: { n: 'Tormenta', i: 'cloud-bolt', c: '#9DB4FF' }, luciernagas: { n: 'Luciérnagas', i: 'bug', c: '#C6FF4A' },
+        navidad: { n: 'Navidad', i: 'tree', c: '#2ECC71' }, halloween: { n: 'Halloween', i: 'ghost', c: '#FF7518' },
+        argentina: { n: 'Argentina', i: 'sun', c: '#F6B40E' }, julio4: { n: '4 de Julio', i: 'flag-usa', c: '#E63946' },
+        anionuevo: { n: 'Año Nuevo', i: 'champagne-glasses', c: '#F6C744' }, sanvalentin: { n: 'San Valentín', i: 'heart', c: '#FF4D8D' },
+        fiesta: { n: 'Fiesta', i: 'masks-theater', c: '#FFD60A' }, xfiles: { n: 'OVNI', i: 'shuttle-space', c: '#00FF41' }
+    };
+    const FX_GROUPS = [
+        { t: 'Dejan ver lo de atrás', d: 'van encima de tu imagen, tu juego o tu cámara', i: 'eye', k: ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata'] },
+        { t: 'Traen su propio cielo', d: 'pintan un fondo de noche y tapan lo de atrás', i: 'moon', k: ['estrellas', 'aurora', 'tormenta', 'luciernagas'] },
+        { t: 'De fechas especiales', d: '', i: 'calendar-days', k: ['navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'] }
+    ];
     // Luminancia (0 oscuro … 1 claro) para elegir sombra y textos que se lean
     function lumOf(hex) {
         const [r, g, b] = hexToRgb(hex).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
@@ -5534,7 +5557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         g.innerHTML = ANIM_KEYS.map(k => {
             const t = THEMES[k];
             return `<button type="button" class="anim-tile ${themeDraft === k ? 'active' : ''}" data-theme-key="${k}" style="--c1:${t.accent};--c2:${t.accent2}">
-                <span class="anim-tile-emoji">${t.emoji}</span><strong>${escapeHTML(t.label)}</strong><small>${escapeHTML(t.desc)}</small></button>`;
+                <span class="anim-tile-emoji">${FX_META[t.fx] ? `<i class="fa-solid fa-${FX_META[t.fx].i}" style="color:${FX_META[t.fx].c}"></i>` : t.emoji}</span><strong>${escapeHTML(t.label)}</strong><small>${escapeHTML(t.desc)}</small></button>`;
         }).join('');
     }
     var animPrevTheme = null;
@@ -5659,7 +5682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-bg-alpha').value = clampNum(lk.obsBg.alpha, 0, 100, 100);
         $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
         $('cfg-obs-bg-fx').value = OBS_BG_FX.includes(lk.obsBg.fx) ? lk.obsBg.fx : '';
-        try { syncBgFrontRow(); } catch (e) {}
+        try { syncBgFrontRow(); renderFxPicker(); } catch (e) {}
         $('cfg-obs-bg-front').value = clampNum(lk.obsBg.front, 0, 100, 0);
         $('lbl-obs-bg-front').textContent = $('cfg-obs-bg-front').value + '%';
         $('obs-bg-name').textContent = lk.obsBg.name || 'Sin imagen';
@@ -6209,13 +6232,14 @@ document.addEventListener('DOMContentLoaded', () => {
         $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
         document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-bg-alpha"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-bg-alpha').value));
         setSettingsDirty(true);
+        previewLook();
         sendObsStyle();
     };
     $('cfg-obs-bg-alpha').addEventListener('input', bgAlphaInput);
     $('cfg-obs-bg-front').addEventListener('input', () => {
         $('lbl-obs-bg-front').textContent = $('cfg-obs-bg-front').value + '%';
         document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-bg-front"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-bg-front').value));
-        setSettingsDirty(true); sendObsStyle();
+        setSettingsDirty(true); previewLook(); sendObsStyle();
     });
     // "Pasan por delante" solo tiene sentido si hay algún efecto
     function syncBgFrontRow() {
@@ -6224,7 +6248,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (v === '') { try { const lk = look(); const tk = (!lk.obsTheme || lk.obsTheme === 'same') ? (themeDraft || state.settings.theme) : lk.obsTheme; fx = (THEMES[tk] && THEMES[tk].fx) || ''; } catch (e) { fx = ''; } }
         $('row-obs-bg-front').classList.toggle('hidden', !fx || fx === 'none' || fx === 'xfiles');
     }
-    $('cfg-obs-bg-fx').addEventListener('change', () => { syncBgFrontRow(); setSettingsDirty(true); sendObsStyle(); });
+    $('cfg-obs-bg-fx').addEventListener('change', () => { syncBgFrontRow(); renderFxPicker(); setSettingsDirty(true); previewLook(); sendObsStyle(); });
+    // Selector visual de efectos (tarjetitas con ícono, en 3 grupos claros)
+    function renderFxPicker() {
+        const box = $('bgfx-picker'); if (!box) return;
+        const cur = $('cfg-obs-bg-fx').value;
+        const tile = k => { const m = FX_META[k]; return `<button type="button" class="fx-tile ${k === cur ? 'active' : ''}" data-fx="${k}" style="--fc:${m.c}"><i class="fa-solid fa-${m.i}"></i><span>${escapeHTML(m.n)}</span></button>`; };
+        box.innerHTML = `<div class="fx-row">${tile('')}${tile('none')}</div>` + FX_GROUPS.map(g => `<div class="fx-group"><div class="fx-group-title"><i class="fa-solid fa-${g.i}"></i> ${escapeHTML(g.t)} <small>${escapeHTML(g.d)}</small></div><div class="fx-row">${g.k.map(tile).join('')}</div></div>`).join('');
+    }
+    $('bgfx-picker').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-fx]'); if (!b) return;
+        $('cfg-obs-bg-fx').value = b.dataset.fx;
+        $('cfg-obs-bg-fx').dispatchEvent(new Event('change', { bubbles: true }));
+    });
     document.querySelectorAll('.alpha-quick[data-alpha-target]').forEach(q => q.addEventListener('click', (e) => {
         const b = e.target.closest('button[data-v]');
         if (!b) return;

@@ -1,2 +1,4 @@
-Novedades de la 2.3.6:
-- Al abrir la ventana "Modo OBS" (y al abrir la app) ya no se ve blanco unos segundos mientras carga: el fondo queda oscuro.
+Novedades de la 2.3.7:
+- Diseño: la vista previa va al lado de las pestañas Panel / OBS / Destacar (ocupa menos alto) y "Ver grande" / "Achicar" quedan abajo de la vista previa.
+- Efecto animado de fondo: ahora se elige tocando tarjetitas con íconos, en 3 grupos claros (Dejan ver lo de atrás · Traen su propio cielo · De fechas especiales), y se ve al instante en la vista previa sin tener que guardar.
+- Íconos nuevos para los efectos y los temas animados (antes algunos emojis no se veían en Windows, como el de Burbujas).

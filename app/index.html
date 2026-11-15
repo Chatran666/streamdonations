@@ -1231,8 +1231,8 @@
                             </div>
                         </div>
                         <div class="setting-row bg-extra-row">
-                            <div><strong>Efecto animado de fondo</strong><small>Se mueve detrás de las donaciones. Los de "Encima de tu fondo" no pintan nada: van sobre tu imagen, tu juego o tu cámara (por ejemplo, tu foto de fondo con lluvia).</small></div>
-                            <select id="cfg-obs-bg-fx">
+                            <div><strong>Efecto animado de fondo</strong><small>Se mueve detrás de las donaciones y se ve al instante en la vista previa. Tocá uno para probarlo.</small></div>
+                            <select id="cfg-obs-bg-fx" class="dz-hidden-select" aria-hidden="true" tabindex="-1">
                                 <option value="">El del tema</option>
                                 <option value="none">Ninguno</option>
                                 <optgroup label="Encima de tu fondo o tu juego (no tapan nada)"><option value="lluvia">🌧️ Lluvia</option><option value="lluviafuerte">🌊 Lluvia fuerte</option><option value="nieve">❄️ Nieve</option><option value="papelitos">🎊 Papelitos</option><option value="otono">🍁 Hojas de otoño</option><option value="primavera">🌸 Pétalos</option><option value="burbujas">🫧 Burbujas</option><option value="brillos">✨ Brillitos</option><option value="polvo">🌫️ Polvo flotando</option><option value="bokeh">🔆 Luces desenfocadas</option><option value="fugaces">☄️ Estrellas fugaces</option><option value="niebla">🌁 Niebla</option><option value="rayos">⚡ Rayos</option><option value="corazones">💗 Corazones</option><option value="plata">💸 Lluvia de plata</option></optgroup>
@@ -1240,6 +1240,7 @@
                                 <optgroup label="De fechas"><option value="navidad">🎄 Navidad</option><option value="halloween">🎃 Halloween</option><option value="argentina">🇦🇷 Argentina</option><option value="julio4">🎆 4 de Julio</option><option value="anionuevo">🥂 Año Nuevo</option><option value="sanvalentin">💖 San Valentín</option><option value="fiesta">🎉 Fiesta</option><option value="xfiles">🛸 OVNI</option></optgroup>
                             </select>
                         </div>
+                        <div class="fx-picker" id="bgfx-picker"></div>
                         <div class="setting-row bg-extra-row" id="row-obs-bg-front">
                             <div><strong>Pasan por delante de las tarjetas</strong><small>Qué parte del efecto (copos, hojas, papelitos…) cruza por encima de las donaciones. 0% = todo queda atrás.</small></div>
                             <div class="alpha-ctl">
