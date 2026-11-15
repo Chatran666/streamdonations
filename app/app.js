@@ -5413,8 +5413,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fiesta: { n: 'Fiesta', i: 'masks-theater', c: '#FFD60A' }, xfiles: { n: 'OVNI', i: 'shuttle-space', c: '#00FF41' }
     };
     const FX_GROUPS = [
-        { t: 'Dejan ver lo de atrás', d: 'van encima de tu imagen, tu juego o tu cámara', i: 'eye', k: ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata'] },
-        { t: 'Con cielo de noche', d: 'pintan un cielo encima de tu imagen de fondo (bajá la transparencia para ver un poco de ella)', i: 'moon', k: ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'] },
+        { t: 'Cosas que caen o flotan', d: '', i: 'cloud-rain', k: ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata'] },
+        { t: 'Cielos de noche', d: '', i: 'moon', k: ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'] },
         { t: 'De fechas especiales', d: '', i: 'calendar-days', k: ['navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta'] }
     ];
     // Luminancia (0 oscuro … 1 claro) para elegir sombra y textos que se lean
@@ -5683,7 +5683,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Antes había una sola barra: si no hay una propia del efecto, arranca igual que la del fondo
         $('cfg-obs-fx-alpha').value = clampNum(lk.obsBg.fxAlpha !== undefined ? lk.obsBg.fxAlpha : lk.obsBg.alpha, 0, 100, 100);
         $('lbl-obs-fx-alpha').textContent = $('cfg-obs-fx-alpha').value + '%';
-        setFxBgChoice(lk.obsBg.fxBg);
+        // Antes había "como viene": los que traían cielo quedan con fondo, el resto sin fondo (se ve igual que antes)
+        { let v = lk.obsBg.fxBg;
+          if (v !== 'on' && v !== 'off') { const f = lk.obsBg.fx || ''; v = ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'].includes(f) || (f === '' && ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'].includes((THEMES[(!lk.obsTheme || lk.obsTheme === 'same') ? state.settings.theme : lk.obsTheme] || {}).fx)) ? 'on' : 'off'; }
+          $('cfg-obs-fx-bg').checked = v === 'on'; }
         $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
         $('cfg-obs-bg-fx').value = OBS_BG_FX.includes(lk.obsBg.fx) ? lk.obsBg.fx : '';
         try { syncBgFrontRow(); renderFxPicker(); } catch (e) {}
@@ -5716,7 +5719,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dim: clampNum($('cfg-obs-bg-dim').value, 0, 0.85, 0.3),
                 alpha: Math.round(clampNum($('cfg-obs-bg-alpha').value, 0, 100, 100)),
                 fxAlpha: Math.round(clampNum($('cfg-obs-fx-alpha').value, 0, 100, 100)),
-                fxBg: ['on', 'off'].includes($('fxbg-choice').dataset.v) ? $('fxbg-choice').dataset.v : 'auto',
+                fxBg: $('cfg-obs-fx-bg').checked ? 'on' : 'off',
                 fx: OBS_BG_FX.includes($('cfg-obs-bg-fx').value) ? $('cfg-obs-bg-fx').value : '',
                 front: Math.round(clampNum($('cfg-obs-bg-front').value, 0, 100, 0)),
                 ver: parseInt($('obs-bg-name').dataset.ver) || 0,
@@ -6242,14 +6245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sendObsStyle();
     };
     $('cfg-obs-bg-alpha').addEventListener('input', bgAlphaInput);
-    function setFxBgChoice(v) {
-        const c = $('fxbg-choice'); c.dataset.v = ['on', 'off'].includes(v) ? v : 'auto';
-        c.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.v === c.dataset.v));
-    }
-    $('fxbg-choice').addEventListener('click', (e) => {
-        const b = e.target.closest('button[data-v]'); if (!b) return;
-        setFxBgChoice(b.dataset.v); setSettingsDirty(true); previewLook(); sendObsStyle();
-    });
+    $('cfg-obs-fx-bg').addEventListener('change', () => { setSettingsDirty(true); previewLook(); sendObsStyle(); });
     $('cfg-obs-fx-alpha').addEventListener('input', () => {
         $('lbl-obs-fx-alpha').textContent = $('cfg-obs-fx-alpha').value + '%';
         document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-fx-alpha"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-fx-alpha').value));

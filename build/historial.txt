@@ -1,3 +1,6 @@
+Novedades de la 2.3.11:
+- "Fondo del efecto" ahora es un solo interruptor: "Mostrar el fondo del efecto". Todos los efectos traen su fondo y vos decidís si se ve (prendido) o si queda solo lo que cae o flota (apagado). Lo que tenías antes se ve igual.
+
 Novedades de la 2.3.10:
 - Nueva opción "Fondo del efecto" (Diseño → OBS): "Como viene" (cada efecto con lo suyo), "Con fondo" (todos traen un fondo que combina: cielo de noche, día de otoño, fondo de mar, día de primavera…) o "Sin fondo" (solo lo que cae o flota; por ejemplo, Tormenta sin las nubes oscuras o Estrellas sin el cielo, encima de tu imagen o tu juego).
 
