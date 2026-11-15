@@ -10,7 +10,7 @@
 (function () {
     'use strict';
     var back = null, bctx = null, front = null, fctx = null, g = null;
-    var raf = null, kind = '', W = 0, H = 0, DPR = 1, last = 0, acc = 0, T = 0, frontFrac = 0;
+    var raf = null, kind = '', W = 0, H = 0, DPR = 1, last = 0, acc = 0, T = 0, frontFrac = 0, TOP = 0;
     var parts = [], extra = {};
     var SPR = {};
 
@@ -346,10 +346,10 @@
                 for (var i = 0; i < parts.length; i++) if (!stepSnow(parts[i], dt, Math.sin(T * 0.2) * 15)) parts[i] = newSnow(false);
                 g = bctx;
                 extra.spark.forEach(function (s) { var a = Math.max(0, Math.sin(T * s.sp + s.ph)); if (a > 0.05) { g.globalAlpha = a * 0.8; g.drawImage(sparkle('#FFD54A'), s.x - 10, s.y - 10, 20, 20); } });
-                function yAt(u) { var x = u * W, sw = extra.swags[Math.min(extra.swags.length - 1, Math.floor(u * extra.swags.length))], t = (x - sw.x0) / (sw.x1 - sw.x0); return { x: x, y: 8 + Math.sin(t * Math.PI) * sw.sag }; }
+                function yAt(u) { var x = u * W, sw = extra.swags[Math.min(extra.swags.length - 1, Math.floor(u * extra.swags.length))], t = (x - sw.x0) / (sw.x1 - sw.x0); return { x: x, y: TOP + 8 + Math.sin(t * Math.PI) * sw.sag }; }
                 // Bolas colgando del punto más bajo de cada tramo
                 extra.balls.forEach(function (b) {
-                    var sw = extra.swags[b.s], mx = (sw.x0 + sw.x1) / 2, my = 8 + sw.sag, ang = Math.sin(T * 1.3 + b.ph) * 0.12;
+                    var sw = extra.swags[b.s], mx = (sw.x0 + sw.x1) / 2, my = TOP + 8 + sw.sag, ang = Math.sin(T * 1.3 + b.ph) * 0.12;
                     var bx = mx + Math.sin(ang) * b.len, by = my + Math.cos(ang) * b.len;
                     g.globalAlpha = 0.8; g.strokeStyle = '#C9A227'; g.lineWidth = 1; g.beginPath(); g.moveTo(mx, my); g.lineTo(bx, by); g.stroke();
                     draw(ornament(b.c), bx, by + 22, 30, 37, ang, 1);
@@ -415,8 +415,11 @@
             }
         },
         julio4: {
-            init: function () { makeStars(70); extra.rockets = []; extra.sparks = []; extra.nextRocket = 0.3; },
-            step: function (dt) { drawStars(); stepFireworks(['#E63946', '#FFFFFF', '#3C6EF0', '#7FA8FF'], dt); }
+            init: function () { makeStars(70); extra.rockets = []; extra.sparks = []; extra.nextRocket = 0.3; for (var i = 0; i < scaleN(45); i++) parts.push(newConfetti(USA, true)); },
+            step: function (dt) {
+                drawStars(); stepFireworks(['#E63946', '#FFFFFF', '#3C6EF0', '#7FA8FF'], dt);
+                for (var i = 0; i < parts.length; i++) if (!stepConfetti(parts[i], dt)) parts[i] = newConfetti(USA, false);
+            }
         },
         anionuevo: {
             init: function () { makeStars(40); extra.rockets = []; extra.sparks = []; extra.nextRocket = 0.3; for (var i = 0; i < scaleN(40); i++) parts.push(newConfetti(['#F6C744', '#FFFFFF', '#C0C0C0', '#FFE8A3'], true)); },
@@ -585,6 +588,7 @@
             }
         }
     };
+    var USA = ['#E63946', '#FFFFFF', '#3C6EF0', '#FFFFFF', '#B22234'];
     var PARTY = ['#FF4D6D', '#FFD60A', '#3A86FF', '#06D6A0', '#FF8FAB', '#8338EC', '#FB5607'];
 
     function newBat(initial) {
@@ -719,5 +723,7 @@
         ensureFront();
         if (kind) build();
     }
-    window.SDAnimFX = { start: start, stop: stop, setFront: setFront, kinds: Object.keys(KINDS) };
+    // Alto de la barra de arriba (en OBS): la guirnalda se cuelga debajo
+    function setTop(px) { TOP = Math.max(0, Math.min(400, Number(px) || 0)); }
+    window.SDAnimFX = { start: start, stop: stop, setFront: setFront, setTop: setTop, kinds: Object.keys(KINDS) };
 })();

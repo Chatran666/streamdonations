@@ -1,5 +1,4 @@
-Novedades de la 2.3.0:
-- Efectos animados rehechos con gráficos nuevos (sin emojis): copos de cristal con profundidad, guirnalda de luces en cadena con bolas que se hamacan, murciélagos que aletean, fantasmas, luna y niebla, fuegos artificiales con brillo, pétalos y flores que giran, billetes y monedas, Sol de Mayo, y más.
-- 8 efectos nuevos: Cielo con estrellas, Aurora boreal, Lluvia, Tormenta (con relámpagos), Otoño, Burbujas, Luciérnagas y Fiesta. Están como temas animados y como fondo de OBS.
-- Nueva opción en Diseño → OBS: "Pasan por delante de las tarjetas" (0 a 100 %): una parte de los copos, hojas o papelitos cruza por encima de las donaciones.
-- 2 diseños nuevos de tarjeta, para panel y OBS: Pixel (retro de 8 bits) y HUD (pantalla de nave).
+Novedades de la 2.3.1:
+- 3 diseños nuevos de tarjeta (panel y OBS): Zócalo (estilo noticiero: nick en etiqueta amarilla, mensaje en banda y monto en placa dorada con la punta despegada), Calcomanía (sticker con borde blanco y la esquina despegada) y Nota (papelito pegado con cinta).
+- Navidad: la guirnalda ahora cuelga debajo de la barra de arriba de OBS (antes quedaba tapada).
+- 4 de Julio: además de los fuegos artificiales, caen papelitos rojos, blancos y azules.

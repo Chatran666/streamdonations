@@ -149,6 +149,66 @@
 :root[data-design="hud"] .obs-avatar img { border-radius: 0 !important; }
 :root[data-design="hud"] .obs-btn-dismiss { border-radius: 0; }
 
+/* ===================== ZÓCALO (de noticiero: nick en etiqueta, mensaje en banda y monto en placa dorada) ===================== */
+:root[data-design="zocalo"] #alerts-container { padding-left: 8px; }
+:root[data-design="zocalo"] .obs-alert { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "av nick" "av msg"; align-items: center;
+    background: none; border: none; box-shadow: none; backdrop-filter: none; overflow: visible; padding: 4px 0 calc(26px * var(--obs-scale)) 0; gap: 0; }
+:root[data-design="zocalo"] .obs-header, :root[data-design="zocalo"] .obs-donor, :root[data-design="zocalo"] .obs-header-right { display: contents; }
+:root[data-design="zocalo"] .obs-avatar { grid-area: av; position: relative; z-index: 3; width: calc(92px * var(--obs-scale)) !important; height: calc(92px * var(--obs-scale)) !important;
+    font-size: calc(2rem * var(--obs-scale)) !important; border-radius: 50% !important; margin-right: calc(-22px * var(--obs-scale));
+    border: 3px solid #D4B455; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5); }
+:root[data-design="zocalo"] .obs-donor-text { grid-area: nick; align-self: end; position: relative; z-index: 2; padding-left: calc(22px * var(--obs-scale)); }
+:root[data-design="zocalo"] .obs-nick { gap: 6px; }
+:root[data-design="zocalo"] .obs-nick > span:first-child { display: inline-block; background: #FFD60A; color: #111 !important; padding: 3px 14px; font-weight: 800; text-shadow: none !important; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35); }
+:root[data-design="zocalo"] .obs-msg { grid-area: msg; position: relative; z-index: 1; margin: 0; border: none; border-radius: 0;
+    background: rgba(var(--obs-card-rgb, 11, 79, 179), var(--obs-card-alpha, 0.96)) !important; color: var(--obs-text-custom, #fff) !important;
+    padding: 10px 24px 10px calc(40px * var(--obs-scale)); font-weight: 800; font-size: calc(1.3rem * var(--obs-scale)) !important; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4); }
+:root[data-design="zocalo"] .obs-amount { position: absolute; z-index: 4; left: calc(-4px * var(--obs-scale)); bottom: 0; transform: rotate(-4deg); min-width: calc(100px * var(--obs-scale));
+    display: flex; flex-direction: column; align-items: center; padding: 4px 12px 5px !important; border: none !important; border-radius: 3px !important;
+    background: linear-gradient(160deg, #F9E7A6, #D4AF37 45%, #A8812A) !important; color: #3B2A05 !important; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.45); font-size: calc(1rem * var(--obs-scale)) !important; }
+:root[data-design="zocalo"] .obs-amount::before { content: 'DONACIÓN'; font-size: 0.55em; font-weight: 800; letter-spacing: 0.08em; opacity: 0.8; }
+/* Esquina de la placa despegándose */
+:root[data-design="zocalo"] .obs-amount::after { content: ''; position: absolute; right: 0; bottom: 0; width: 14px; height: 14px;
+    background: linear-gradient(315deg, transparent 50%, #FFF4C7 50%, #C9A43A 100%); box-shadow: -2px -2px 3px rgba(0, 0, 0, 0.25); }
+:root[data-design="zocalo"] .obs-amount.has-amt-color { color: var(--amt-color) !important; }
+:root[data-design="zocalo"] .obs-tag { position: absolute; z-index: 4; right: 8px; top: calc(100% - 22px * var(--obs-scale) - 4px); transform: translateY(-100%); }
+:root[data-design="zocalo"] .obs-btn-dismiss { position: absolute; z-index: 4; right: 6px; top: 2px; width: 26px; height: 26px; }
+:root[data-design="zocalo"] .obs-sub { display: none; }
+:root[data-design="zocalo"] .obs-accum, :root[data-design="zocalo"] .obs-nick > :not(span:first-child) { text-shadow: none; }
+
+/* ===================== CALCOMANÍA (sticker con borde blanco y la esquina despegada) ===================== */
+:root[data-design="sticker"] #alerts-container { filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45)); padding: 10px; }
+:root[data-design="sticker"] .obs-alert { border: 5px solid #FAFAFA; border-radius: 18px; backdrop-filter: none; box-shadow: none; transform: rotate(-1.2deg);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 38px), calc(100% - 38px) 100%, 0 100%); }
+:root[data-design="sticker"] .obs-alert:nth-child(even) { transform: rotate(1deg); }
+:root[data-design="sticker"] .obs-alert::before { content: ''; position: absolute; right: -5px; bottom: -5px; width: 43px; height: 43px; z-index: 5; pointer-events: none;
+    background: linear-gradient(to top left, transparent 50%, rgba(0, 0, 0, 0.28) 50%, #E4E4E4 54%, #FFFFFF 78%, #D2D2D2 100%); border-top-left-radius: 6px; }
+:root[data-design="sticker"] .obs-nick > span:first-child { color: var(--cur); font-weight: 900; }
+:root[data-design="sticker"] .obs-amount { border-radius: 999px !important; }
+:root[data-design="sticker"] .obs-msg { border-radius: 12px; }
+:root[data-design="sticker"] .obs-btn-dismiss { margin-right: 18px; }
+
+/* ===================== NOTA (papelito pegado con cinta, con la punta levantada) ===================== */
+:root[data-design="postit"] #alerts-container { gap: 18px; padding-top: 14px; }
+:root[data-design="postit"] .obs-alert { --obs-text: var(--obs-text-custom, #3A3000); --obs-ink-rgb: 58, 48, 0;
+    background: linear-gradient(170deg, rgba(var(--obs-card-rgb, 255, 240, 140), var(--obs-card-alpha, 1)), rgba(var(--obs-card-rgb, 255, 226, 100), var(--obs-card-alpha, 1)));
+    border: none; border-radius: 2px 2px 4px 30px / 2px 2px 4px 8px; backdrop-filter: none; overflow: visible; transform: rotate(0.8deg); text-shadow: none !important;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15), 6px 14px 14px -8px rgba(0, 0, 0, 0.55); font-family: 'Comic Sans MS', 'Segoe Print', 'Bradley Hand', cursive; }
+:root[data-design="postit"] .obs-alert * { text-shadow: none !important; }
+:root[data-design="postit"] .obs-alert:nth-child(even) { transform: rotate(-1deg); }
+/* Cinta arriba */
+:root[data-design="postit"] .obs-alert::before { content: ''; position: absolute; top: -12px; left: 50%; width: 110px; height: 26px; transform: translateX(-50%) rotate(-3deg); z-index: 3;
+    background: rgba(255, 255, 255, 0.55); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); backdrop-filter: blur(1px); }
+:root[data-design="postit"] .obs-nick, :root[data-design="postit"] .obs-nick > span:first-child { color: var(--obs-text-custom, #3A3000); font-weight: 800; }
+:root[data-design="postit"] .obs-amount { background: none !important; border: 2px solid currentColor !important; border-radius: 50% / 45% !important; color: #B42318 !important; transform: rotate(-6deg); }
+:root[data-design="postit"] .obs-amount.has-amt-color { color: var(--amt-color) !important; }
+:root[data-design="postit"] .obs-msg { background: none; border: none; color: var(--obs-text-custom, #3A3000); padding: 2px 0 0; font-size: calc(1.1rem * var(--obs-scale)) !important;
+    background-image: repeating-linear-gradient(transparent 0 1.45em, rgba(58, 48, 0, 0.14) 1.45em calc(1.45em + 1px)); line-height: 1.45em; }
+:root[data-design="postit"] .obs-avatar { box-shadow: 0 0 0 2px rgba(58, 48, 0, 0.35); }
+:root[data-design="postit"] .obs-btn-dismiss { background: rgba(58, 48, 0, 0.08); border-color: rgba(58, 48, 0, 0.25); color: #3A3000; }
+:root[data-design="postit"] .obs-accum { color: #6B4E00; background: rgba(255, 255, 255, 0.4); border-color: rgba(107, 78, 0, 0.4); }
+
 /* Vista previa dentro de Opciones: sin barras ni avisos */
 :root.obs-preview #obs-filter-bar, :root.obs-preview .obs-status-box, :root.obs-preview #obs-top, :root.obs-preview #obs-goal { display: none !important; }
 :root.obs-preview, :root.obs-preview body { overflow: hidden !important; }
@@ -162,3 +222,4 @@
 :root.obs-preview #obs-scroll-area { overflow: hidden !important; scrollbar-width: none; }
 :root.obs-preview #obs-scroll-area::-webkit-scrollbar { display: none !important; width: 0 !important; }
 :root.obs-preview .obs-alert { animation: none; opacity: 1; }
+:root[data-design="postit"] .obs-tag { background: rgba(58, 48, 0, 0.1) !important; color: #3A3000 !important; border-color: rgba(58, 48, 0, 0.35) !important; }

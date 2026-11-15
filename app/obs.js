@@ -192,6 +192,8 @@
             // Las alertas empiezan debajo de la barra (no pasan por detrás)
             const h = visible && top ? top.offsetHeight : 0;
             if (scrollArea) { scrollArea.style.top = h + 'px'; scrollArea.style.paddingTop = (visible ? 12 : 16) + 'px'; }
+            // Los efectos que van arriba (la guirnalda de Navidad) se corren debajo de la barra
+            if (window.SDAnimFX && SDAnimFX.setTop) SDAnimFX.setTop(h);
         }
         window.addEventListener('resize', layoutTop);
 
@@ -566,8 +568,8 @@
         const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
         let obsLayout = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
         // Diseños que necesitan cosas en un lugar fijo (en "Barra" el monto va siempre en su bloque de la izquierda)
-        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja', 'pixel', 'hud'];
-        const DESIGN_FORCE = { barra: { amount: 'right' } };
+        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja', 'pixel', 'hud', 'zocalo', 'sticker', 'postit'];
+        const DESIGN_FORCE = { barra: { amount: 'right' }, zocalo: { amount: 'right', platform: 'right' } };
         let obsDesign = 'tarjeta';
         function placeElements(card) {
             const zones = { name: card.querySelector('.obs-nick'), below: card.querySelector('.obs-sub'), right: card.querySelector('.obs-header-right') };

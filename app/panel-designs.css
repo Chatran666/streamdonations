@@ -92,3 +92,34 @@
 :root[data-pdesign="hud"] .amount-badge { border: none !important; border-radius: 0 !important; background: rgba(var(--pcur-rgb), 0.2) !important; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); padding-left: 12px; padding-right: 12px; }
 :root[data-pdesign="hud"] .card-message { border-radius: 0; border: none; border-left: 2px solid rgb(var(--pcur-rgb)); background: linear-gradient(90deg, rgba(var(--pcur-rgb), 0.1), transparent 80%); }
 :root[data-pdesign="hud"] .donor-avatar { border-radius: 4px; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); }
+
+/* ===== Zócalo: nick en etiqueta amarilla, mensaje en banda y monto en placa dorada ===== */
+:root[data-pdesign="zocalo"] .donation-card { background: none !important; border: none; box-shadow: none; padding-left: 4px; }
+:root[data-pdesign="zocalo"] .donation-card::before { display: none; }
+:root[data-pdesign="zocalo"] .donor-avatar { width: 52px; height: 52px; border: 3px solid #D4B455; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); }
+:root[data-pdesign="zocalo"] .donor-nick-text { background: #FFD60A; color: #111; padding: 2px 10px; font-weight: 800; }
+:root[data-pdesign="zocalo"] .amount-badge { background: linear-gradient(160deg, #F9E7A6, #D4AF37 45%, #A8812A) !important; color: #3B2A05 !important; border: none !important; border-radius: 3px !important; transform: rotate(-3deg); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4); }
+:root[data-pdesign="zocalo"] .card-message { background: var(--pcard-bg, #0B4FB3); color: var(--pcard-text, #fff); border: none; border-radius: 0; font-weight: 700; padding: 10px 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); }
+
+/* ===== Calcomanía: borde blanco y la esquina despegada ===== */
+:root[data-pdesign="sticker"] .donation-card { border: 4px solid #FAFAFA; border-radius: 16px; transform: rotate(-0.4deg);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%); }
+:root[data-pdesign="sticker"] .donation-card:nth-child(even) { transform: rotate(0.4deg); }
+:root[data-pdesign="sticker"] .donation-card::before { display: none; }
+:root[data-pdesign="sticker"] .donation-card::after { content: '' !important; display: block !important; position: absolute; inset: auto -4px -4px auto !important; width: 34px !important; height: 34px !important;
+    border: none !important; border-radius: 6px 0 0 0 !important; opacity: 1 !important; animation: none !important; pointer-events: none; z-index: 3;
+    background: linear-gradient(to top left, transparent 50%, rgba(0, 0, 0, 0.28) 50%, #E4E4E4 54%, #FFFFFF 78%, #D2D2D2 100%) !important; -webkit-mask: none !important; mask: none !important; }
+:root[data-pdesign="sticker"] .donor-nick-text { color: rgb(var(--pcur-rgb)); font-weight: 900; }
+:root[data-pdesign="sticker"] .card-actions, :root[data-pdesign="sticker"] .btn-card-action { margin-right: 6px; }
+
+/* ===== Nota: papelito amarillo pegado con cinta ===== */
+:root[data-pdesign="postit"] .donation-card { --ink-rgb: 58, 48, 0; background: linear-gradient(170deg, #FFF08C, #FFE264) !important; color: #3A3000; border: none; border-radius: 2px 2px 4px 24px / 2px 2px 4px 8px;
+    box-shadow: 4px 10px 12px -8px rgba(0, 0, 0, 0.55); transform: rotate(0.4deg); margin-top: 10px; font-family: 'Comic Sans MS', 'Segoe Print', cursive; overflow: visible; }
+:root[data-pdesign="postit"] .donation-card:nth-child(even) { transform: rotate(-0.5deg); }
+:root[data-pdesign="postit"] .donation-card::before { display: block; top: -10px; left: 50%; bottom: auto; width: 90px; height: 20px; border-radius: 0; transform: translateX(-50%) rotate(-3deg);
+    background: rgba(255, 255, 255, 0.6) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); }
+:root[data-pdesign="postit"] .donor-nick-text, :root[data-pdesign="postit"] .timestamp { color: #3A3000; }
+:root[data-pdesign="postit"] .card-message { background: none; border: none; color: #3A3000; padding: 0; font-size: 1.05em; }
+:root[data-pdesign="postit"] .amount-badge { background: none !important; border: 2px solid #B42318 !important; color: #B42318 !important; border-radius: 50% / 45% !important; transform: rotate(-5deg); }
+:root[data-pdesign="postit"] .btn-card-action { color: #3A3000; border-color: rgba(58, 48, 0, 0.3); background: rgba(58, 48, 0, 0.06); }
+:root[data-pdesign="postit"] .platform-tag { background: rgba(58, 48, 0, 0.1) !important; color: #3A3000 !important; border-color: rgba(58, 48, 0, 0.35) !important; }

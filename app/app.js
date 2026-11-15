@@ -5896,7 +5896,10 @@ document.addEventListener('DOMContentLoaded', () => {
         { k: 'subtitulo', label: 'Subtítulo', icon: 'fa-closed-captioning', desc: 'Sin tarjeta: solo texto con sombra' },
         { k: 'franja', label: 'Franja', icon: 'fa-tv', desc: 'Zócalo de noticiero con el nick en una franja' },
         { k: 'pixel', label: 'Pixel', icon: 'fa-gamepad', desc: 'Retro de 8 bits: bordes pixelados y monto en bloque' },
-        { k: 'hud', label: 'HUD', icon: 'fa-crosshairs', desc: 'Pantalla de nave: esquinas marcadas y líneas de escaneo' }
+        { k: 'hud', label: 'HUD', icon: 'fa-crosshairs', desc: 'Pantalla de nave: esquinas marcadas y líneas de escaneo' },
+        { k: 'zocalo', label: 'Zócalo', icon: 'fa-newspaper', desc: 'De noticiero: nick en etiqueta, mensaje en banda y monto en placa dorada' },
+        { k: 'sticker', label: 'Calcomanía', icon: 'fa-note-sticky', desc: 'Sticker con borde blanco y la esquina despegada' },
+        { k: 'postit', label: 'Nota', icon: 'fa-thumbtack', desc: 'Papelito pegado con cinta, con la punta levantada' }
     ];
     function currentDesign() { return obsDesignDraft || state.settings.obsDesign || 'tarjeta'; }
     // Diseño del panel: uno propio o "igual que OBS"
