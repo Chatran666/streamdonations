@@ -251,3 +251,7 @@
 
 /* OVNI como efecto de fondo: trae su propio cielo negro */
 :root.fx-xfiles:not(.fxbg-off) #xfiles-sky { background: #000; }
+
+/* Modo liviano: sin efectos ni animaciones decorativas en las tarjetas */
+:root.lite .obs-alert *, :root.lite .obs-alert::before, :root.lite .obs-alert::after { animation: none !important; }
+:root.lite #anim-fx, :root.lite #anim-fx-front, :root.lite #xfiles-sky { display: none !important; }

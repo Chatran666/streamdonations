@@ -368,6 +368,17 @@
         window.dismissAlert = dismissAlert;
         window.dismissAndMarkRead = dismissAndMarkRead;
 
+        // Late cada 5 segundos para que el panel sepa que OBS está conectado (puntito "OBS" del encabezado)
+        if (!PREVIEW) {
+            let aliveBc = null;
+            const beat = () => {
+                if (WS_MODE) { wsToPanel({ type: 'ALIVE' }); return; }
+                try { aliveBc = aliveBc || new BroadcastChannel('obs_overlay_channel'); aliveBc.postMessage({ type: 'OBS_ALIVE' }); } catch (e) {}
+            };
+            setTimeout(beat, 1500);
+            setInterval(beat, 5000);
+        }
+
         // --- CANALES DE COMUNICACIÓN ---
         const OBS_OPENED_AT = Date.now() - 2000;
 
@@ -618,6 +629,8 @@
                 });
             }
             themeOwn = !!st.themeOwn;
+            // Modo liviano: sin efectos animados ni animaciones decorativas
+            if (!!st.lite !== LITE) { LITE = !!st.lite; document.documentElement.classList.toggle('lite', LITE); applyFx(); }
             applyObsBg(st.obsBg);
             // Fondo detrás de cada donación: automático (según el diseño) o el que elijas
             const ca = parseFloat(st.cardAlpha);
@@ -691,11 +704,11 @@
             layoutTop();
         }
         // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
-        let themeFx = '', bgFx = '', themeOwn = false;
+        let themeFx = '', bgFx = '', themeOwn = false, LITE = false;
         const FX_KINDS = ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
         function applyFx() {
             const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
-            const fx = bgFx === 'none' ? '' : (own ? bgFx : themeFx);
+            const fx = LITE || bgFx === 'none' ? '' : (own ? bgFx : themeFx);
             // También se muestra (en la fuente de navegador) la del tema de OBS si lo elegiste a propósito
             document.documentElement.classList.toggle('own-fx', !!(own || (!bgFx && themeOwn && themeFx)));
             document.documentElement.classList.toggle('fx-xfiles', fx === 'xfiles');

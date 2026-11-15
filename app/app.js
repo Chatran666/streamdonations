@@ -161,7 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
             obsAmountScale: 0.8, // Tamaño de los montos ($) en OBS, relativo al texto
             bannedWords: '', // Palabras prohibidas (una por línea o con comas; * al final = variantes)
             censorObs: true, censorTts: true, censorPanel: false,
-            blockedUsers: '' // Usuarios bloqueados (uno por línea)
+            blockedUsers: '', // Usuarios bloqueados (uno por línea)
+            obsDelayOn: false, obsDelay: 5, // Retraso antes de mostrar en OBS (para descartar a tiempo)
+            lite: false // Modo liviano: sin efectos ni animaciones decorativas, voz de Windows
         },
         lastReadId: null
     };
@@ -382,10 +384,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función de persistencia automática en base de datos local
     function saveDonationsToStorage() {
+        // La prueba rápida (botón del frasquito) desaparece apenas la tildás y nunca se guarda
+        if (state.donations.some(d => d.quickTest && d.isRead)) state.donations = state.donations.filter(d => !(d.quickTest && d.isRead));
         if (typeof syncNoteChanges === 'function') { try { syncNoteChanges(); } catch (e) {} }
         if (state.settings.autoSaveDb !== false) {
             try {
-                localStorage.setItem('streamdonations_chats_db', JSON.stringify(state.donations));
+                localStorage.setItem('streamdonations_chats_db', JSON.stringify(state.donations.filter(d => !d.quickTest).map(d => d.holdUntil ? Object.assign({}, d, { holdUntil: undefined }) : d)));
             } catch (e) {
                 console.error('Error guardando en base de datos local:', e);
             }
@@ -924,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (interrupt) stopAllSpeech();
             const vname = currentVoiceName();
-            if (isLocalVoice(vname) && !localBroken) {
+            if (isLocalVoice(vname) && !localBroken && !state.settings.lite) {
                 speakLocal(text, vname.slice(6));
                 return;
             }
@@ -1508,7 +1512,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isRead: false,
             tier: tier,
             avatar: item.avatar || null,
-            isTest: !!item.isTest
+            isTest: !!item.isTest,
+            quickTest: !!item.quickTest
         };
 
         Object.assign(donation, safeDonation(donation));
@@ -1530,9 +1535,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Recuperada (llegó con la app cerrada): queda pendiente y va a OBS, pero sin sonido, voz ni cartel
         if (item.recovered) { pushToOverlay(donation); render(); return; }
 
-        playDonationSound(donation.tier, donation);
-        speakDonation(donation);
-        pushToOverlay(donation);
+        // Retraso: primero se ve en el panel y recién después sale en OBS, con sonido y voz
+        const delay = !donation.quickTest && state.settings.obsDelayOn ? Math.min(60, Math.max(1, parseInt(state.settings.obsDelay, 10) || 5)) : 0;
+        if (delay) {
+            donation.holdUntil = Date.now() + delay * 1000;
+            holdTimers.set(donation.id, setTimeout(() => releaseHold(donation.id), delay * 1000));
+        } else {
+            playDonationSound(donation.tier, donation);
+            speakDonation(donation);
+            pushToOverlay(donation);
+        }
         if (!donation.isTest) noteNewWhileInSettings();
         
         if (state.settings.donationToasts !== false) showToast(
@@ -1719,6 +1731,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="donor-nick-text user-link${nickFx.cls}" data-act="user" data-id="${item.id}" role="button" tabindex="0" title="Opciones de este usuario"${nickFx.style ? ` style="${nickFx.style}"` : ''}>${escapeHTML(panelNick(item.nick))}</span>
                                 ${rankBadgeHTML(rk, sty.rank)}
                                 ${item.isTest ? '<span class="test-tag">PRUEBA</span>' : ''}
+                                ${item.holdUntil && !item.isRead ? `<span class="hold-tag"><i class="fa-solid fa-hourglass-half"></i> En espera <button type="button" data-act="release" data-id="${item.id}">Mostrar ya</button></span>` : ''}
                                 ${item.blocked ? '<span class="test-tag blocked-tag"><i class="fa-solid fa-user-slash"></i> BLOQUEADO</span>' : ''}
                                 <span class="platform-tag ${platformBadgeClass}">
                                     <i class="${platformIcon}"></i> ${platformInfo(item.platform).label}
@@ -2170,6 +2183,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Si el tutorial está abierto, el aviso de versión nueva espera a que termine
         const showWhenFree = () => {
             if (!$('tour').classList.contains('hidden')) { setTimeout(showWhenFree, 1000); return; }
+            // En pleno directo no salta la ventana: queda un botoncito arriba y se muestra cuando termina
+            if (isLiveNow()) {
+                const pill = $('update-pill');
+                pill.classList.remove('hidden');
+                pill.onclick = () => { pill.classList.add('hidden'); $('modal-update').classList.remove('hidden'); };
+                setTimeout(showWhenFree, 60000);
+                return;
+            }
+            $('update-pill').classList.add('hidden');
             $('modal-update').classList.remove('hidden');
         };
         showWhenFree();
@@ -2599,6 +2621,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (state.obsChannel) {
         state.obsChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'OBS_ALIVE') { noteObsAlive(); return; }
             if (event.data && event.data.type === 'MARK_READ') {
                 if (event.data.id === 'all') {
                     state.donations.forEach(d => { d.isRead = true; });
@@ -2912,6 +2935,7 @@ document.addEventListener('DOMContentLoaded', () => {
             items = ['SIN CONEXIÓN'];
         }
         badge.className = 'badge-live ' + cls + (badge.classList.contains('fading') ? ' fading' : '');
+        try { updateConnAttention(); } catch (e) {}
         badge.title = rows.length
             ? rows.map(r => `${r.label}: ${r.text}`).join('\n') + (state.isSimulating ? '\nSimulador encendido' : '')
             : 'No hay conexiones configuradas (Opciones → Conexión)';
@@ -3373,6 +3397,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // 4. Fuente de navegador de OBS (modo transparente real)
         obsWsSend(msg);
     }
+
+    // ---- Donaciones en espera (retraso antes de OBS) ----
+    const holdTimers = new Map();
+    function releaseHold(id) {
+        clearTimeout(holdTimers.get(id)); holdTimers.delete(id);
+        const d = state.donations.find(x => x.id === id);
+        if (!d || !d.holdUntil) return;
+        delete d.holdUntil;
+        if (d.isRead || d.blocked) { render(); return; } // la descartaste: no sale
+        playDonationSound(d.tier, d);
+        speakDonation(d);
+        pushToOverlay(d);
+        render();
+    }
+    window.releaseHoldNow = releaseHold;
 
     function dismissOverlayAlert(id) {
         const msg = { type: 'DISMISS_ALERT', id: id };
@@ -4401,6 +4440,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ol.innerHTML = top.length
             ? top.map(t => `<li><span class="session-top-nick">${escapeHTML(t.nick)} <span class="platform-tag ${platformKey(t.platform)}">${platformInfo(t.platform).label}</span></span><span class="session-top-amount">${escapeHTML(formatSummary(t.sum))}</span></li>`).join('')
             : '<li class="session-empty">Todavía no hay donaciones en este directo.</li>';
+        // La donación más grande del directo
+        const big = list.filter(d => !d.blocked).reduce((m, d) => (toARS(d) || 0) > (m ? toARS(m) || 0 : -1) ? d : m, null);
+        const bEl = document.getElementById('session-biggest');
+        if (bEl) bEl.innerHTML = big ? `<i class="fa-solid fa-trophy"></i> Donación más grande: <strong>${escapeHTML(big.nick)}</strong> · ${escapeHTML(big.formattedAmount)}` : '';
     }
 
     function sessionSummaryText() {
@@ -4719,6 +4762,10 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-language').value = window.SD_LANG === 'en' ? 'en' : 'es';
         $('cfg-hotkeys').checked = !!st.hotkeys;
         $('cfg-global-hotkeys').checked = !!st.globalHotkeys;
+        $('cfg-obs-delay-on').checked = !!st.obsDelayOn;
+        $('cfg-obs-delay').value = String([3, 5, 10, 15, 20, 30].includes(Number(st.obsDelay)) ? Number(st.obsDelay) : 5);
+        $('row-obs-delay').classList.toggle('hidden', !st.obsDelayOn);
+        $('cfg-lite').checked = !!st.lite;
         $('cfg-close-tray').checked = !!st.closeToTray;
         if (TAURI) { TAURI.autostart.isEnabled().then(on => { $('cfg-autostart').checked = !!on; }).catch(() => {}); refreshVoz(); }
         $('cfg-banned-words').value = st.bannedWords || '';
@@ -4781,6 +4828,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fillSettingsForm();
         switchSettingsPane(pane || 'conexion');
         els.modalSettings.classList.remove('hidden');
+        try { updateConnAttention(); applyExpertMode(); renderQuickStyles(); } catch (e) {}
         try { syncAlphaQuick(); bgAlphaInputUi(); } catch (e) {}
     }
 
@@ -4854,6 +4902,9 @@ document.addEventListener('DOMContentLoaded', () => {
         st.language = $('cfg-language').value === 'en' ? 'en' : 'es';
         st.hotkeys = $('cfg-hotkeys').checked;
         st.globalHotkeys = $('cfg-global-hotkeys').checked;
+        st.obsDelayOn = $('cfg-obs-delay-on').checked;
+        st.obsDelay = parseInt($('cfg-obs-delay').value, 10) || 5;
+        st.lite = $('cfg-lite').checked;
         st.closeToTray = $('cfg-close-tray').checked;
         applyTauriSettings();
         document.documentElement.classList.toggle('hotkeys-off', !st.hotkeys);
@@ -5142,7 +5193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault(); // evita que la barra "aprete" el último botón tocado
                 hotkeyAction('next');
             } else {
-                const k = { r: 'repeat', m: 'mark', s: 'stop', v: 'voice', b: 'sound' }[String(e.key).toLowerCase()];
+                const k = { r: 'repeat', m: 'mark', s: 'stop', v: 'voice', b: 'sound', x: 'panic' }[String(e.key).toLowerCase()];
                 if (k) hotkeyAction(k);
             }
         });
@@ -5161,6 +5212,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (k === 'stop') {
             stopAllSpeech(); if (typeof stopLocalSpeech === 'function') stopLocalSpeech();
             showToast('Voz callada', 'info');
+        } else if (k === 'panic') {
+            // Limpia la pantalla de OBS y calla la voz de un golpe (las que están en espera no salen hasta que pase su tiempo)
+            dismissOverlayAlert('all');
+            stopAllSpeech(); if (typeof stopLocalSpeech === 'function') stopLocalSpeech();
+            showToast('Pantalla de OBS limpia y voz callada', 'info');
         } else if (k === 'voice') els.btnToggleTts.click();
         else if (k === 'sound') els.btnToggleSound.click();
     }
@@ -6260,7 +6316,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const on = open ? $('cfg-panel-fx').checked : !!state.settings.panelFx;
         let fx = '', bgOn = false;
         try { const ob = open ? readLookForm().obsBg : look().obsBg; fx = ob.fx || ''; bgOn = ob.fxBg === 'on'; } catch (e) {}
-        const show = on && fx && fx !== 'none';
+        const lite = open ? $('cfg-lite').checked : !!state.settings.lite;
+        document.documentElement.classList.toggle('lite', !!lite);
+        const show = on && fx && fx !== 'none' && !lite;
         document.documentElement.classList.toggle('panel-fx', !!show);
         document.documentElement.classList.toggle('panel-fx-xfiles', show && fx === 'xfiles' && bgOn);
         if (window.SDAnimFX) { if (SDAnimFX.setBgMode) SDAnimFX.setBgMode(bgOn ? 'on' : 'off'); if (SDAnimFX.setFront) SDAnimFX.setFront(0); }
@@ -6382,6 +6440,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsBg: lk.obsBg,
             // El tema de OBS elegido a propósito (no "igual que el panel"): su animación también va en la fuente de navegador
             themeOwn: !!(lk.obsTheme && lk.obsTheme !== 'same'),
+            lite: !els.modalSettings.classList.contains('hidden') && $('cfg-lite') ? $('cfg-lite').checked : !!state.settings.lite,
             filterBar: state.settings.obsFilterBar !== false,
             platforms: visiblePlatforms(),
             layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),
@@ -7083,7 +7142,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Lo que manda la fuente de navegador (por OBS o por el servidor interno)
     function handleFromSource(msg, via) {
+        if (msg.type === 'ALIVE') { noteObsAlive(); return; }
         if (msg.type === 'HELLO') {
+            noteObsAlive();
             if (via === 'obs') obsWs.sentIcons = new Set(); else sdRelay.sentIcons = new Set();
             obsWsSyncAll(via);
         } else if (msg.type === 'MARK_READ' && typeof msg.id === 'string') markReadFromObs(msg.id.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) || 'x');
@@ -7178,7 +7239,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Atajos globales: Ctrl+Alt + la misma letra (y Ctrl+Alt+N para leer la siguiente)
     const GLOBAL_KEYS = { 'CommandOrControl+Alt+N': 'next', 'CommandOrControl+Alt+R': 'repeat', 'CommandOrControl+Alt+M': 'mark',
-        'CommandOrControl+Alt+S': 'stop', 'CommandOrControl+Alt+V': 'voice', 'CommandOrControl+Alt+B': 'sound' };
+        'CommandOrControl+Alt+S': 'stop', 'CommandOrControl+Alt+V': 'voice', 'CommandOrControl+Alt+B': 'sound', 'CommandOrControl+Alt+X': 'panic' };
     let globalKeysOn = false;
     function applyGlobalHotkeys() {
         if (!TAURI || !TAURI.globalShortcut) return;
@@ -7360,6 +7421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = el.dataset.id;
         switch (el.dataset.act) {
             case 'toggle-read': e.stopPropagation(); window.toggleReadState(id); break;
+            case 'release': e.stopPropagation(); releaseHold(id); break;
             case 'user': e.stopPropagation(); openUserMenu(id, el); break;
             case 'focus': if (!e.target.closest('.card-read-action, .msg-link')) window.openFocusModal(id); break;
             case 'db-toggle': window.dbToggleRead(id); break;
@@ -7367,6 +7429,156 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'db-delete': window.dbDeleteChat(id); break;
         }
     });
+
+    // ==========================================================================
+    // 2.4.0: OBS conectado, prueba rápida, primeros pasos, modo experto, estilos rápidos
+    // ==========================================================================
+    var obsAliveAt = 0;
+    function noteObsAlive() {
+        obsAliveAt = Date.now();
+        try { if (localStorage.getItem('sd_obs_seen') !== '1') localStorage.setItem('sd_obs_seen', '1'); } catch (e) {}
+        updateObsPill();
+    }
+    function updateObsPill() {
+        const pill = $('obs-live-pill'); if (!pill) return;
+        const ok = Date.now() - obsAliveAt < 13000;
+        pill.classList.toggle('ok', ok); pill.classList.toggle('off', !ok);
+        pill.title = ok ? 'OBS conectado: la fuente está recibiendo las donaciones' : 'OBS todavía no se conectó (o está cerrado). Tocá para ver cómo agregarlo.';
+        if (!$('modal-guide').classList.contains('hidden')) renderGuide();
+    }
+    setInterval(updateObsPill, 3000);
+    $('obs-live-pill').addEventListener('click', () => openSettings('obs'));
+    $('live-badge').addEventListener('click', () => { if (!connectionDetails().length || !connectionDetails().some(r => r.status === 'connected')) openSettings('conexion'); });
+    // "En vivo": OBS conectado o una donación real en los últimos 20 minutos
+    function isLiveNow() {
+        if (Date.now() - obsAliveAt < 30000) return true;
+        return state.donations.some(d => !d.isTest && Date.now() - (d.timestamp || 0) < 20 * 60000);
+    }
+    // Conexión late suave mientras no haya ninguna clave cargada
+    function updateConnAttention() {
+        const tab = document.querySelector('#settings-nav .settings-tab[data-pane="conexion"]');
+        if (tab) tab.classList.toggle('attention', !connectionDetails().length);
+    }
+
+    // ---- Prueba rápida ----
+    function sendQuickTest() {
+        const pk = activePlatforms()[0] || 'ceneka';
+        addDonation({ platform: pk, nick: 'Prueba', amount: 1000, currency: 'ARS', message: '¡Esto es una prueba! Si la ves en OBS, está todo listo.', isTest: true, quickTest: true });
+        try { localStorage.setItem('sd_quicktest_done', '1'); } catch (e) {}
+        if (!$('modal-guide').classList.contains('hidden')) renderGuide();
+    }
+    $('btn-quick-test').addEventListener('click', sendQuickTest);
+
+    // ---- Primeros pasos ----
+    function renderGuide() {
+        let seen = false, tested = false;
+        try { seen = localStorage.getItem('sd_obs_seen') === '1'; tested = localStorage.getItem('sd_quicktest_done') === '1'; } catch (e) {}
+        const done = { 1: connectionDetails().length > 0, 2: seen || Date.now() - obsAliveAt < 13000, 3: tested };
+        document.querySelectorAll('#modal-guide .guide-step').forEach(li => li.classList.toggle('done', !!done[li.dataset.step]));
+    }
+    function openGuide() { renderGuide(); $('modal-guide').classList.remove('hidden'); }
+    function closeGuide() {
+        $('modal-guide').classList.add('hidden');
+        if ($('guide-never').checked) { try { localStorage.setItem('sd_guide_off', '1'); } catch (e) {} }
+    }
+    $('btn-close-guide').addEventListener('click', closeGuide);
+    $('btn-guide-done').addEventListener('click', closeGuide);
+    $('btn-open-guide').addEventListener('click', async () => { await requestCloseSettings(); if (els.modalSettings.classList.contains('hidden')) openGuide(); });
+    $('modal-guide').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-guide]'); if (!b) return;
+        if (b.dataset.guide === 'test') { sendQuickTest(); return; }
+        $('modal-guide').classList.add('hidden');
+        openSettings(b.dataset.guide);
+    });
+    // Se ofrece sola la primera vez (sin conexiones), cuando no hay otra ventana abierta
+    function maybeShowGuide(tries) {
+        let off = false; try { off = localStorage.getItem('sd_guide_off') === '1'; } catch (e) {}
+        if (off || connectionDetails().length) return;
+        const busy = ['tour', 'modal-update', 'modal-settings', 'modal-welcome'].some(id => $(id) && !$(id).classList.contains('hidden'));
+        if (busy) { if ((tries || 0) < 120) setTimeout(() => maybeShowGuide((tries || 0) + 1), 2000); return; }
+        openGuide();
+    }
+    setTimeout(maybeShowGuide, 4000);
+
+    // ---- Retraso y modo liviano en el formulario ----
+    $('cfg-obs-delay-on').addEventListener('change', () => { $('row-obs-delay').classList.toggle('hidden', !$('cfg-obs-delay-on').checked); setSettingsDirty(true); });
+    $('cfg-obs-delay').addEventListener('change', () => setSettingsDirty(true));
+    $('cfg-lite').addEventListener('change', () => { setSettingsDirty(true); applyPanelFx(); sendObsStyle(); });
+
+    // ---- Modo experto ----
+    const ADV_PANES = ['pantalla', 'filtros', 'datos', 'pruebas', 'reset'];
+    const ADV_IDS = ['cfg-panel-fx', 'cfg-panel-card-color', 'cfg-panel-card-alpha', 'cfg-panel-pstyle', 'cfg-panel-head',
+        'cfg-obs-card-color', 'cfg-obs-card-alpha', 'cfg-obs-textshadow', 'cfg-obs-hide-message', 'cfg-obs-accum',
+        'cfg-obs-fx-bg', 'cfg-obs-fx-alpha', 'cfg-obs-bg-front', 'cfg-obs-bg-alpha', 'cfg-big-sound-enabled'];
+    (function markAdvanced() {
+        ADV_PANES.forEach(p => { const t = document.querySelector(`#settings-nav .settings-tab[data-pane="${p}"]`); if (t) t.classList.add('adv-pane'); });
+        ADV_IDS.forEach(id => { const el = $(id); const row = el && el.closest('.setting-row'); if (row) row.classList.add('adv'); });
+        const big = $('big-sound-picker'); if (big) big.classList.add('adv');
+        const lay = document.querySelector('.layout-box'); if (lay) { lay.classList.add('adv'); const sub = lay.previousElementSibling; if (sub && sub.classList.contains('pane-subtitle')) sub.classList.add('adv'); }
+    })();
+    function expertOn() { return state.settings.expertMode !== false; }
+    function advancedActive() {
+        const st = state.settings, out = [];
+        if ((st.bannedWords || '').trim() || (st.blockedUsers || '').trim() || (st.minDisplayAmount || 0) > 0 || (st.obsMinAmount || 0) > 0 || (st.minTts || 0) > 100 || st.obsDelayOn) out.push('Filtros');
+        if (st.fxEnabled || st.amtColorsEnabled || st.ranksEnabled) out.push('Destacar');
+        return out;
+    }
+    function applyExpertMode() {
+        const on = expertOn();
+        $('cfg-expert').checked = on;
+        els.modalSettings.classList.toggle('simple-mode', !on);
+        // Si estabas en algo que ahora se oculta, vuelve a un lugar visible
+        const cur = document.querySelector('#settings-nav .settings-tab.active');
+        if (!on && cur && ADV_PANES.includes(cur.dataset.pane)) switchSettingsPane('conexion');
+        if (!on && typeof dzSide !== 'undefined' && dzSide === 'destacar') setDzSide('panel');
+        const act = on ? [] : advancedActive();
+        const note = $('adv-active-note');
+        note.classList.toggle('hidden', !act.length);
+        if (act.length) note.innerHTML = `<i class="fa-solid fa-circle-info"></i> Tenés ajustes avanzados funcionando: <strong>${act.join(', ')}</strong>. Siguen activos aunque no se vean.<button type="button" id="adv-show">Ver todo</button>`;
+        const b = $('adv-show'); if (b) b.onclick = () => { state.settings.expertMode = true; persistSettings(); applyExpertMode(); };
+    }
+    $('cfg-expert').addEventListener('change', () => { state.settings.expertMode = $('cfg-expert').checked; persistSettings(); applyExpertMode(); });
+    // Primera vez con esta versión: a quien ya usaba la app se le deja todo a la vista; quien instala de cero arranca en simple
+    if (state.settings.expertMode === undefined) {
+        const existing = !!state.settings.tutorialDone || state.donations.length > 0 || connectionDetails().length > 0;
+        state.settings.expertMode = existing;
+        persistSettings();
+    }
+
+    // ---- Estilos rápidos ----
+    const QUICK_STYLES = [
+        { k: 'clasico', n: 'Clásico', d: 'Tarjeta de siempre, sin efecto', i: 'id-card', c: '#8B5CF6', design: 'tarjeta', fx: 'none' },
+        { k: 'gamer', n: 'Gamer', d: 'HUD con brillitos', i: 'gamepad', c: '#22C55E', design: 'hud', fx: 'brillos' },
+        { k: 'neon', n: 'Neón', d: 'Neón con luces de fondo', i: 'bolt', c: '#FF2E9A', design: 'neon', fx: 'bokeh' },
+        { k: 'noticiero', n: 'Noticiero', d: 'Zócalo de TV, limpio', i: 'newspaper', c: '#0B4FB3', design: 'zocalo', fx: 'none' },
+        { k: 'minimal', n: 'Minimalista', d: 'Solo texto, sin tarjeta', i: 'minus', c: '#9AA3B5', design: 'subtitulo', fx: 'none' },
+        { k: 'divertido', n: 'Divertido', d: 'Calcomanía con papelitos', i: 'face-laugh-beam', c: '#F59E0B', design: 'sticker', fx: 'papelitos' }
+    ];
+    function currentQuickStyle() {
+        const des = $('cfg-obs-design').value, fx = $('cfg-obs-bg-fx').value || 'none';
+        const q = QUICK_STYLES.find(x => x.design === des && x.fx === fx);
+        return q ? q.k : 'custom';
+    }
+    function renderQuickStyles() {
+        const box = $('quick-styles'); if (!box) return;
+        const cur = currentQuickStyle();
+        box.innerHTML = QUICK_STYLES.map(q => `<button type="button" class="qs-tile ${cur === q.k ? 'active' : ''}" data-qs="${q.k}" style="--qc:${q.c}"><i class="fa-solid fa-${q.i}"></i><strong>${escapeHTML(q.n)}</strong><small>${escapeHTML(q.d)}</small></button>`).join('') +
+            `<div class="qs-tile custom ${cur === 'custom' ? 'active' : ''}" style="--qc:#9AA3B5"><i class="fa-solid fa-sliders"></i><strong>Personalizado</strong><small>${cur === 'custom' ? 'Lo armaste a tu gusto' : 'Cambiá cualquier opción'}</small></div>`;
+    }
+    $('quick-styles').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-qs]'); if (!b) return;
+        const q = QUICK_STYLES.find(x => x.k === b.dataset.qs); if (!q) return;
+        const ds = $('cfg-obs-design'); ds.value = q.design; ds.dispatchEvent(new Event('change', { bubbles: true }));
+        const ps = $('cfg-panel-design'); if (ps.value !== 'same') { ps.value = 'same'; ps.dispatchEvent(new Event('change', { bubbles: true })); }
+        const fs = $('cfg-obs-bg-fx'); fs.value = q.fx; fs.dispatchEvent(new Event('change', { bubbles: true }));
+        $('cfg-obs-fx-bg').checked = false;
+        $('cfg-obs-fx-alpha').value = 100; $('cfg-obs-fx-alpha').dispatchEvent(new Event('input', { bubbles: true }));
+        $('cfg-obs-bg-front').value = 0; $('cfg-obs-bg-front').dispatchEvent(new Event('input', { bubbles: true }));
+        const ca = $('cfg-obs-card-auto'); if (!ca.checked) { ca.checked = true; ca.dispatchEvent(new Event('change', { bubbles: true })); }
+        setSettingsDirty(true); previewLook(); sendObsStyle(); renderQuickStyles();
+        if (dzSide !== 'obs') setDzSide('obs');
+    });
+    ['cfg-obs-design', 'cfg-obs-bg-fx'].forEach(id => $(id).addEventListener('change', () => setTimeout(renderQuickStyles, 0)));
 
     syncHeaderToggles();
     updateLiveBadge();

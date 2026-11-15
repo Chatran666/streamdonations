@@ -1,3 +1,16 @@
+Novedades de la 2.4.0:
+- Modo experto (arriba de todo en Opciones): apagado muestra solo lo esencial; prendido, todo (Filtros, Destacar, transparencias, efectos, etc.). Si algo avanzado sigue funcionando oculto, te avisa. A quien ya usaba la app le queda prendido.
+- Estilos rápidos en Diseño: Clásico, Gamer, Neón, Noticiero, Minimalista y Divertido arman diseño, efecto y transparencia de un toque.
+- Puntito "OBS" arriba del panel: en verde cuando la fuente de OBS está conectada y recibiendo.
+- Botón de prueba rápida (frasquito) arriba: manda una donación de prueba que se borra sola al tildarla y nunca se guarda.
+- Primeros pasos: guía de 3 pasos la primera vez (conectar, agregar a OBS, probar). También en Opciones → Conexión.
+- "Conexión" late cuando todavía no cargaste ninguna clave, y el "SIN CONEXIÓN" de arriba te lleva ahí.
+- Retraso opcional antes de mostrar en OBS (Filtros): la donación aparece primero en tu panel con "En espera" y sale en OBS (con sonido y voz) unos segundos después.
+- Nuevo atajo X (o Ctrl+Alt+X desde cualquier lado): limpia la pantalla de OBS y calla la voz de un golpe.
+- Modo liviano (Programa): sin efectos ni animaciones y con la voz de Windows, para PC con pocos recursos.
+- El aviso de versión nueva no salta en pleno directo: queda un botoncito arriba y aparece cuando terminás.
+- Resumen del directo: ahora muestra la donación más grande.
+
 Novedades de la 2.3.12:
 - Los temas ahora son solo colores. Los que antes eran "Animados" pasan a "Temas especiales" (Navidad, Halloween, Aurora, etc.): mismos colores, sin animación, así el panel gasta menos PC.
 - Las animaciones se eligen en un solo lugar: Diseño → OBS → Efecto animado de fondo. Si tenías un tema animado elegido para OBS, su animación pasa sola a ser el efecto.

@@ -21,7 +21,7 @@
             <div class="brand">
                 <div class="brand-logo brand-logo-img"><img src="icon.png" alt=""></div>
                 <div class="brand-info">
-                    <h1>StreamDonations <span class="badge-live idle" id="live-badge" title="Estado de la conexión con Streamlabs"><i class="fa-solid fa-circle"></i> <span>DESCONECTADO</span></span><span class="sync-badge hidden" id="sync-badge" title="Sincronizado con otra PC"><i class="fa-solid fa-people-arrows"></i></span></h1>
+                    <h1>StreamDonations <span class="badge-live idle" id="live-badge" title="Estado de la conexión con Streamlabs"><i class="fa-solid fa-circle"></i> <span>DESCONECTADO</span></span><span class="sync-badge hidden" id="sync-badge" title="Sincronizado con otra PC"><i class="fa-solid fa-people-arrows"></i></span><button type="button" class="obs-live-pill off" id="obs-live-pill" title="OBS todavía no se conectó. Tocá para ver cómo agregarlo."><span class="dot"></span> OBS</button></h1>
                     <p>Donaciones de Ceneka, YouTube, Twitch y Kick en un solo panel</p>
                 </div>
             </div>
@@ -57,6 +57,9 @@
                     <button class="btn-icon active" id="btn-toggle-toolbar" title="Barra de filtros: visible">
                         <i class="fa-solid fa-filter" id="toolbar-icon"></i>
                     </button>
+                    <button class="btn-icon" id="btn-quick-test" title="Mandar una donación de prueba (se borra sola al tildarla)">
+                        <i class="fa-solid fa-flask"></i>
+                    </button>
                 </div>
                 <button class="btn btn-outline" id="btn-open-session" title="Resumen del directo y empezar uno nuevo">
                     <i class="fa-solid fa-tower-broadcast"></i> <span class="btn-label">Directo</span>
@@ -65,6 +68,7 @@
                     <i class="fa-solid fa-database"></i> <span class="btn-label">Base de datos</span>
                 </button>
                 <div class="settings-btn-wrap">
+                    <button type="button" class="update-pill hidden" id="update-pill" title="Hay una versión nueva. Te avisamos cuando termines el directo (o tocá para verla ahora)."><i class="fa-solid fa-circle-arrow-up"></i> <span>Actualización</span></button>
                     <button type="button" class="sim-indicator hidden" id="sim-indicator" title="El simulador está generando donaciones de prueba. Tocá para ir a Pruebas.">
                         <span class="sim-dot"></span> Simulación activada
                     </button>
@@ -437,6 +441,27 @@
     </div>
 
     <!-- MODAL HAY UNA VERSIÓN NUEVA -->
+    <div class="modal-overlay hidden" id="modal-guide">
+        <div class="modal-card guide-card" role="dialog" aria-labelledby="guide-title">
+            <div class="modal-header">
+                <h2 id="guide-title"><i class="fa-solid fa-list-check"></i> Primeros pasos</h2>
+                <button class="btn-close" id="btn-close-guide" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="section-desc">Tres pasos y queda lista para tu directo.</p>
+                <ol class="guide-steps">
+                    <li class="guide-step" data-step="1"><span class="guide-num">1</span><div><strong>Conectá tus donaciones</strong><small>Pegá tu clave de StreamElements o Streamlabs.</small></div><button type="button" class="btn btn-outline btn-sm" data-guide="conexion">Ir a Conexión</button></li>
+                    <li class="guide-step" data-step="2"><span class="guide-num">2</span><div><strong>Agregá StreamDonations a OBS</strong><small>Copiá el link como fuente de navegador. Arriba vas a ver el puntito "OBS" en verde.</small></div><button type="button" class="btn btn-outline btn-sm" data-guide="obs">Ir a OBS</button></li>
+                    <li class="guide-step" data-step="3"><span class="guide-num">3</span><div><strong>Mandá una prueba</strong><small>Fijate que salga en OBS con sonido y voz. Se borra sola al tildarla.</small></div><button type="button" class="btn btn-outline btn-sm" data-guide="test">Mandar prueba</button></li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <label class="rank-check"><input type="checkbox" id="guide-never"> <span>No mostrar más</span></label>
+                <button type="button" class="btn btn-primary" id="btn-guide-done">Listo</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay hidden" id="modal-update">
         <div class="modal-card update-card">
             <div class="update-body">
@@ -476,6 +501,7 @@
                 <div>
                     <h3 class="session-subtitle"><i class="fa-solid fa-crown"></i> Top donadores</h3>
                     <ol class="session-top" id="session-top"></ol>
+                    <p class="session-biggest" id="session-biggest"></p>
                 </div>
                 <div class="info-help-box">
                     <i class="fa-solid fa-circle-info help-icon"></i>
@@ -513,6 +539,10 @@
 
             <div class="settings-layout">
                 <nav class="settings-nav" id="settings-nav">
+                    <label class="expert-toggle" title="Muestra todas las opciones (filtros, destacar, transparencias, efectos…)">
+                        <span><i class="fa-solid fa-user-gear"></i> Modo experto</span>
+                        <span class="toggle-switch"><input type="checkbox" id="cfg-expert"><span class="toggle-slider"></span></span>
+                    </label>
                     <button class="settings-tab active" data-pane="conexion"><i class="fa-solid fa-plug"></i> <span>Conexión</span></button>
                     <button class="settings-tab" data-pane="obs"><i class="fa-solid fa-video"></i> <span>OBS</span></button>
                     <button class="settings-tab" data-pane="programa"><i class="fa-solid fa-sliders"></i> <span>Programa</span></button>
@@ -530,11 +560,13 @@
                 </nav>
 
                 <div class="settings-panes">
+                    <div class="adv-active-note hidden" id="adv-active-note"></div>
 
                     <!-- CONEXIÓN -->
                     <section class="settings-pane active" data-pane="conexion">
                         <h3 class="pane-title">Conexiones</h3>
                         <p class="pane-desc">Las donaciones llegan por <strong>StreamElements</strong> (recomendado) y/o <strong>Streamlabs</strong>. Podés usar uno solo o los dos a la vez. ¿Primera vez? Seguí la <a href="AYUDA.html" target="_blank" class="help-link">guía paso a paso</a>.</p>
+                        <button type="button" class="btn btn-outline btn-sm" id="btn-open-guide"><i class="fa-solid fa-list-check"></i> Primeros pasos</button>
 
                         <div class="service-block">
                         <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> StreamElements <span class="pill-rec">Recomendado</span></div>
@@ -604,6 +636,14 @@
                     <section class="settings-pane" data-pane="filtros">
                         <h3 class="pane-title">Filtros</h3>
                         <p class="pane-desc">Qué donaciones se muestran, cuáles se leen en voz alta y qué palabras o personas se tapan.</p>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Retraso antes de mostrar en OBS</strong><small>Cada donación aparece primero en tu panel y sale en OBS (con sonido y voz) unos segundos después, así podés descartarla antes de que la vea tu audiencia.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-delay-on"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="setting-row" id="row-obs-delay">
+                            <div><strong>Segundos de espera</strong><small>Mientras espera, la tarjeta del panel dice "En espera" y tiene "Mostrar ya". Si la marcás como leída, no sale.</small></div>
+                            <select id="cfg-obs-delay"><option value="3">3 segundos</option><option value="5">5 segundos</option><option value="10">10 segundos</option><option value="15">15 segundos</option><option value="20">20 segundos</option><option value="30">30 segundos</option></select>
+                        </div>
                         <div class="sub-tabs" data-subtabs="filtros">
                             <button type="button" class="sub-tab active" data-sub="montos"><i class="fa-solid fa-coins"></i> Montos mínimos</button>
                             <button type="button" class="sub-tab" data-sub="palabras"><i class="fa-solid fa-ban"></i> Palabras</button>
@@ -899,6 +939,10 @@
                                 <option value="en">English</option>
                             </select>
                         </div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Modo liviano (PC con pocos recursos)</strong><small>Apaga los efectos animados (en el panel y en OBS), las animaciones de las tarjetas y usa la voz de Windows en lugar de Daniela. Ideal si la PC se pone lenta mientras transmitís.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-lite"><span class="toggle-slider"></span></span>
+                        </label>
 
 
                         <div class="tauri-only">
@@ -927,6 +971,7 @@
                             <div class="sc-row"><span>Repetir la última</span><span><kbd>R</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd></span></div>
                             <div class="sc-row"><span>Marcar como leída (o restaurar)</span><span><kbd>M</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd></span></div>
                             <div class="sc-row"><span>Callar la voz ahora</span><span><kbd>S</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd></span></div>
+                            <div class="sc-row"><span>Limpiar la pantalla de OBS y callar la voz</span><span><kbd>X</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>X</kbd></span></div>
                             <div class="sc-row"><span>Prender / apagar la voz</span><span><kbd>V</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd></span></div>
                             <div class="sc-row"><span>Prender / apagar el sonido</span><span><kbd>B</kbd></span><span class="tauri-only"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>B</kbd></span></div>
                             <div class="sc-row"><span>Cerrar ventanas</span><span><kbd>Esc</kbd></span><span class="tauri-only">—</span></div>
@@ -941,6 +986,10 @@
                         <p class="pane-desc">Cómo se ven las donaciones: el <strong>panel</strong> (lo que ves vos), <strong>OBS</strong> (lo que ve tu audiencia) y cómo <strong>destacar</strong> a quien dona más. Todo se ve en vivo en la vista previa y se confirma con "Guardar cambios".</p>
 
 
+                        <div class="quick-styles-wrap">
+                            <div class="pane-subtitle"><i class="fa-solid fa-wand-magic-sparkles"></i> Estilos rápidos <small>un toque arma el diseño, el efecto y la transparencia</small></div>
+                            <div class="quick-styles" id="quick-styles"></div>
+                        </div>
                         <!-- Vista previa fija arriba: muestra el panel o OBS según la pestaña -->
                         <div class="obs-live-preview" id="obs-live-preview">
                             <div class="dz-tabs" role="tablist">
