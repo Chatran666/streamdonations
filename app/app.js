@@ -4662,7 +4662,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-textshadow').checked = st.obsTextShadow !== false;
         $('cfg-obs-accum').value = ['session', 'today', '30'].includes(st.obsAccum) ? st.obsAccum : 'off';
         { const ca = Number(st.obsCardAlpha); const auto = !(ca >= 0 && ca <= 100);
-          $('cfg-obs-card-auto').checked = auto; $('cfg-obs-card-alpha').value = auto ? 90 : ca; $('cfg-obs-card-alpha').disabled = auto;
+          $('cfg-obs-card-auto').checked = auto; $('cfg-obs-card-alpha').value = auto ? 90 : ca;
           $('lbl-obs-card-alpha').textContent = auto ? 'Auto' : ca + '%'; }
         renderDesignPicker();
         renderPanelDesignSelect(st.panelDesign || 'tarjeta');
@@ -4780,7 +4780,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fillSettingsForm();
         switchSettingsPane(pane || 'conexion');
         els.modalSettings.classList.remove('hidden');
-        try { syncAlphaQuick(); } catch (e) {}
+        try { syncAlphaQuick(); bgAlphaInputUi(); } catch (e) {}
     }
 
     let settingsDirty = false;
@@ -5570,7 +5570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsCustomAccent: cleanColor(st.obsCustomAccent, '#00E676'),
             obsCustomText: cleanColor(st.obsCustomText, ''),
             obsCardColor: cleanColor(st.obsCardColor, ''),
-            obsBg: Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '' }, st.obsBg || {})
+            obsBg: Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '', alpha: 100, fx: '' }, st.obsBg || {})
         };
         return Object.assign(base, lookDraft || {});
     }
@@ -5644,6 +5644,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-bg-fit').value = lk.obsBg.fit || 'cover';
         $('cfg-obs-chroma').value = CHROMA_COLORS.includes(lk.obsBg.chroma) ? lk.obsBg.chroma : '#FF00FF';
         $('cfg-obs-bg-dim').value = clampNum(lk.obsBg.dim, 0, 0.85, 0.3);
+        $('cfg-obs-bg-alpha').value = clampNum(lk.obsBg.alpha, 0, 100, 100);
+        $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
+        $('cfg-obs-bg-fx').value = OBS_BG_FX.includes(lk.obsBg.fx) ? lk.obsBg.fx : '';
         $('obs-bg-name').textContent = lk.obsBg.name || 'Sin imagen';
         $('obs-bg-name').dataset.ver = lk.obsBg.ver || 0;
         updateLookFormState();
@@ -5669,12 +5672,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 fit: $('cfg-obs-bg-fit').value || 'cover',
                 chroma: CHROMA_COLORS.includes($('cfg-obs-chroma').value) ? $('cfg-obs-chroma').value : '#FF00FF',
                 dim: clampNum($('cfg-obs-bg-dim').value, 0, 0.85, 0.3),
+                alpha: Math.round(clampNum($('cfg-obs-bg-alpha').value, 0, 100, 100)),
+                fx: OBS_BG_FX.includes($('cfg-obs-bg-fx').value) ? $('cfg-obs-bg-fx').value : '',
                 ver: parseInt($('obs-bg-name').dataset.ver) || 0,
                 name: $('obs-bg-name').textContent === 'Sin imagen' ? '' : $('obs-bg-name').textContent
             }
         };
     }
 
+    const OBS_BG_FX = ['', 'none', 'estrellas', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata', 'xfiles'];
     function updateLookFormState() {
         const pt = $('cfg-panel-bg-type').value, ot = $('cfg-obs-bg-type').value;
         $('cfg-panel-bg-color').classList.toggle('hidden', pt !== 'color');
@@ -5936,7 +5942,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function syncPanelCardUi() {
         $('cfg-panel-card-color').disabled = $('cfg-panel-card-color-auto').checked;
         $('cfg-panel-card-text').disabled = $('cfg-panel-card-text-auto').checked;
-        $('cfg-panel-card-alpha').disabled = $('cfg-panel-card-auto').checked;
         $('lbl-panel-card-alpha').textContent = $('cfg-panel-card-auto').checked ? 'Auto' : $('cfg-panel-card-alpha').value + '%';
     }
     ['cfg-panel-card-color', 'cfg-panel-card-color-auto', 'cfg-panel-card-text', 'cfg-panel-card-text-auto', 'cfg-panel-card-alpha', 'cfg-panel-card-auto'].forEach(id => {
@@ -6127,21 +6132,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     const cardAlphaInput = () => {
         const auto = $('cfg-obs-card-auto').checked;
-        $('cfg-obs-card-alpha').disabled = auto;
         $('lbl-obs-card-alpha').textContent = auto ? 'Auto' : $('cfg-obs-card-alpha').value + '%';
         cardAlphaDraft = auto ? -1 : parseInt($('cfg-obs-card-alpha').value, 10);
         setSettingsDirty(true);
         sendObsStyle();
     };
+    // Mover la barra ya elige ese porcentaje (apaga "Automático")
+    ['obs', 'panel'].forEach(side => $('cfg-' + side + '-card-alpha').addEventListener('input', () => { $('cfg-' + side + '-card-auto').checked = false; }, true));
     $('cfg-obs-card-alpha').addEventListener('input', cardAlphaInput);
+    // Transparencia del fondo de OBS (barra 0–100 + botones rápidos) y efecto animado
+    function bgAlphaInputUi() {
+        $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
+        document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-bg-alpha"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-bg-alpha').value));
+    }
+    const bgAlphaInput = () => {
+        $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
+        document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-bg-alpha"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-bg-alpha').value));
+        setSettingsDirty(true);
+        sendObsStyle();
+    };
+    $('cfg-obs-bg-alpha').addEventListener('input', bgAlphaInput);
+    $('cfg-obs-bg-fx').addEventListener('change', () => { setSettingsDirty(true); sendObsStyle(); });
+    document.querySelectorAll('.alpha-quick[data-alpha-target]').forEach(q => q.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]');
+        if (!b) return;
+        const r = $(q.dataset.alphaTarget); r.value = b.dataset.v;
+        r.dispatchEvent(new Event('input', { bubbles: true }));
+    }));
     // Botones rápidos de transparencia (Auto / 100 / 75 / 50 / 25 %)
     function syncAlphaQuick() {
-        document.querySelectorAll('.alpha-quick').forEach(q => {
+        document.querySelectorAll('.alpha-quick[data-alpha]').forEach(q => {
             const side = q.dataset.alpha, auto = $('cfg-' + side + '-card-auto').checked, v = $('cfg-' + side + '-card-alpha').value;
             q.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.v === 'auto' ? auto : (!auto && b.dataset.v === String(v))));
         });
     }
-    document.querySelectorAll('.alpha-quick').forEach(q => q.addEventListener('click', (e) => {
+    document.querySelectorAll('.alpha-quick[data-alpha]').forEach(q => q.addEventListener('click', (e) => {
         const b = e.target.closest('button[data-v]');
         if (!b) return;
         const side = q.dataset.alpha, chk = $('cfg-' + side + '-card-auto'), rng = $('cfg-' + side + '-card-alpha');
@@ -6834,7 +6859,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return SDStore.get('icon:' + m[1]).then(b => b && blobToBase64(b).then(data =>
                     tp.send({ sd: 1, from: 'panel', msg: { type: 'ICON', id: m[1], mime: b.type, data } }))).catch(() => {});
             };
-            Promise.all(icons.map(sendIcon)).then(() => tp.send({ sd: 1, from: 'panel', msg }));
+            // La imagen o GIF de fondo también viaja una vez por conexión (y cada vez que cambiás de imagen)
+            const sendBg = () => {
+                const bg = msg.type === 'STYLE_UPDATE' && msg.data && msg.data.obsBg;
+                if (!bg || bg.type !== 'image' || !window.SDStore || tp.sent.has('bg:' + bg.ver)) return Promise.resolve();
+                tp.sent.add('bg:' + bg.ver);
+                return SDStore.get('obsBg').then(b => b && /^image\/(png|gif|webp|jpeg)$/.test(b.type) && blobToBase64(b).then(data =>
+                    tp.send({ sd: 1, from: 'panel', msg: { type: 'BG_IMAGE', ver: bg.ver, mime: b.type, data } }))).catch(() => {});
+            };
+            Promise.all(icons.map(sendIcon).concat(sendBg())).then(() => tp.send({ sd: 1, from: 'panel', msg }));
         });
     }
     // Manda a la fuente todo lo que tiene que mostrar ahora (al conectar o cuando la fuente recién arranca)

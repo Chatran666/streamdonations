@@ -71,6 +71,18 @@
             sock.onerror = () => {};
         }
         function handleWsMsg(msg) {
+            if (msg.type === 'BG_IMAGE') {
+                if (/^image\/(png|gif|webp|jpeg)$/.test(msg.mime || '') && typeof msg.data === 'string' && msg.data.length < 12 * 1024 * 1024 && /^[A-Za-z0-9+/=]+$/.test(msg.data.slice(0, 4096))) {
+                    try {
+                        const bin = atob(msg.data), arr = new Uint8Array(bin.length);
+                        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+                        if (wsBg.url) URL.revokeObjectURL(wsBg.url);
+                        wsBg.url = URL.createObjectURL(new Blob([arr], { type: msg.mime })); wsBg.ver = msg.ver;
+                        if (lastBgCfg) applyObsBg(lastBgCfg);
+                    } catch (e) {}
+                }
+                return;
+            }
             if (msg.type === 'ICON') {
                 if (/^[a-z0-9]{6,24}$/.test(msg.id || '') && /^image\/(png|gif|webp|jpeg|svg\+xml)$/.test(msg.mime || '') && /^[A-Za-z0-9+/=]+$/.test(msg.data || '') && msg.data.length < 300000) {
                     obsIconUrls[msg.id] = 'data:' + msg.mime + ';base64,' + msg.data;
@@ -638,8 +650,8 @@
                 document.documentElement.dataset.mode = t.mode === 'light' ? 'light' : 'dark';
                 document.documentElement.dataset.fx = t.fx || '';
                 if (t.fx) document.documentElement.dataset.anim = t.fx; else delete document.documentElement.dataset.anim;
-                if (window.XFilesFX) { if (t.fx === 'xfiles') window.XFilesFX.start(); else window.XFilesFX.stop(); }
-                if (window.SDAnimFX) { if (t.fx && t.fx !== 'xfiles') window.SDAnimFX.start(t.fx); else window.SDAnimFX.stop(); }
+                themeFx = t.fx || '';
+                applyFx();
             }
             // Colores propios de la tarjeta (fondo y letras), en cualquier diseño
             {
@@ -659,11 +671,30 @@
             }
             layoutTop();
         }
+        // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
+        let themeFx = '', bgFx = '';
+        const FX_KINDS = ['xfiles', 'estrellas', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata'];
+        function applyFx() {
+            const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
+            const fx = bgFx === 'none' ? '' : (own ? bgFx : themeFx);
+            document.documentElement.classList.toggle('own-fx', !!own);
+            if (window.XFilesFX) { if (fx === 'xfiles') window.XFilesFX.start(); else window.XFilesFX.stop(); }
+            if (window.SDAnimFX) { if (fx && fx !== 'xfiles') window.SDAnimFX.start(fx); else window.SDAnimFX.stop(); }
+        }
+        // Imagen de fondo que manda el panel (la fuente de navegador no ve los archivos de la app)
+        const wsBg = { ver: -1, url: null };
+        let lastBgCfg = null;
         // Fondo de la ventana: el del tema, un color o una imagen/GIF (guardada en IndexedDB)
         let obsBgUrl = null, obsBgVer = -1;
         function applyObsBg(bg) {
             const root = document.documentElement, el = document.getElementById('obs-bg');
             if (!el) return;
+            lastBgCfg = bg || null;
+            // Transparencia del fondo (en la fuente de navegador y la vista previa) y efecto propio
+            const al = bg ? parseFloat(bg.alpha) : NaN;
+            root.style.setProperty('--obs-bg-alpha', String(Number.isFinite(al) ? Math.min(100, Math.max(0, al)) / 100 : 1));
+            const nfx = bg && typeof bg.fx === 'string' ? bg.fx : '';
+            if (nfx !== bgFx) { bgFx = nfx; applyFx(); }
             const chroma = !!bg && bg.type === 'chroma';
             root.classList.toggle('obs-chroma', chroma);
             if (chroma) {
@@ -686,6 +717,7 @@
                 root.style.setProperty('--obs-bg-dim', Math.min(0.85, Math.max(0, parseFloat(bg.dim) || 0)));
                 root.classList.add('has-obs-bg');
             };
+            if (WS_MODE) { obsBgUrl = wsBg.ver === bg.ver ? wsBg.url : null; paint(); return; }
             if (bg.ver === obsBgVer && obsBgUrl) { paint(); return; }
             obsBgVer = bg.ver;
             if (!window.SDStore) return;

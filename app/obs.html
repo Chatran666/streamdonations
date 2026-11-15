@@ -574,7 +574,9 @@
            Sin sombras, brillos ni transparencias, así el recorte queda limpio. */
         /* Fuente de navegador de OBS (modo transparente real): sin fondo, sin botones ni carteles de estado */
         :root.obs-ws, :root.obs-ws body { background: transparent !important; }
-        :root.obs-ws #obs-bg, :root.obs-ws .obs-btn-dismiss, :root.obs-ws .obs-status-box, :root.obs-ws #xfiles-fx, :root.obs-ws canvas { display: none !important; }
+        :root.obs-ws:not(.has-obs-bg) #obs-bg, :root.obs-ws .obs-btn-dismiss, :root.obs-ws .obs-status-box, :root.obs-ws:not(.own-fx) #xfiles-fx, :root.obs-ws canvas:not(#anim-fx):not(#xfiles-sky), :root.obs-ws:not(.own-fx) #anim-fx, :root.obs-ws:not(.own-fx) #xfiles-sky { display: none !important; }
+        /* Fondo (color, imagen o GIF) y efecto animado elegidos: con su propia transparencia */
+        :root.obs-ws #obs-bg, :root.obs-ws #anim-fx, :root.obs-ws #xfiles-sky, :root.obs-ws #xfiles-fx { opacity: var(--obs-bg-alpha, 1); }
         :root.obs-ws #obs-scroll-area { scrollbar-width: none; }
         /* Sombra suave en las letras claras para que se lean sobre cualquier escena (los efectos propios del texto la reemplazan) */
         :root.obs-ws.text-shadow .obs-alert,

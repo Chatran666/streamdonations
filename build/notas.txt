@@ -1,3 +1,4 @@
-Novedades de la 2.2.1:
-- Vista previa de Diseño: hacé clic y se ve al doble de tamaño (clic afuera o Esc para volver). Funciona en Panel, OBS y Destacar.
-- Arreglado: la vista previa de OBS a veces quedaba vacía (por ejemplo si tocabas el ✓ del ejemplo, si la red del ejemplo no estaba conectada o si las alertas se ocultaban solas). Ahora el ejemplo siempre se ve y sin barra de scroll.
+Novedades de la 2.2.2:
+- Fondo para OBS en la fuente de navegador (el link): ahora se ve tu color, imagen o GIF de fondo, con su propia transparencia de 0 a 100 % (barra y botones rápidos), así se ve tu juego o tu cámara detrás.
+- Efecto animado de fondo, elegible aparte del tema: Cielo con estrellas (nuevo, con estrellas fugaces), Nieve, Navidad, Halloween, Argentina, 4 de Julio, Año Nuevo, San Valentín, Primavera, Lluvia de plata y OVNI.
+- Transparencia de las tarjetas con barra libre de 0 a 100 % (de a 1). Mover la barra ya elige ese valor; los botones rápidos siguen estando.

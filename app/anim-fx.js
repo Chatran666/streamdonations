@@ -7,7 +7,7 @@
 (function () {
     'use strict';
     var canvas = null, ctx = null, raf = null, kind = '', W = 0, H = 0, DPR = 1, last = 0, acc = 0, T = 0;
-    var parts = [], rockets = [], sparks = [], bulbs = [], nextRocket = 0, nextSpawn = 0;
+    var parts = [], rockets = [], sparks = [], bulbs = [], nextRocket = 0, nextSpawn = 0, shoot = null, nextShoot = 1.5;
     var sprites = {};
     function rand(a, b) { return a + Math.random() * (b - a); }
     function pick(a) { return a[(Math.random() * a.length) | 0]; }
@@ -33,6 +33,7 @@
         anionuevo: { fireworks: ['#F6C744', '#FFFFFF', '#FF5DA2', '#5DE2FF', '#B388FF'], fall: { n: 35, type: 'confetti', colors: ['#F6C744', '#FFFFFF', '#C0C0C0'] } },
         sanvalentin: { emoji: { set: ['❤️', '💖', '💕', '💗'], n: 16, mode: 'rise', size: [14, 30], alpha: 0.6 } },
         primavera: { emoji: { set: ['🌸', '🌼', '🌸', '🍃'], n: 18, mode: 'fall', size: [14, 26], alpha: 0.75 } },
+        estrellas: { sky: true, stars: 170, starsFull: true, shooting: true },
         plata: { emoji: { set: ['💵', '💸', '🪙', '💰'], n: 18, mode: 'fall', size: [18, 32], alpha: 0.8 } }
     };
 
@@ -64,7 +65,7 @@
         if (!k) return;
         if (k.fall) for (var i = 0; i < scaleN(k.fall.n); i++) parts.push(newFall(k.fall, true));
         if (k.emoji) for (var j = 0; j < scaleN(k.emoji.n); j++) parts.push(Object.assign(newEmoji(k.emoji, true), { emoji: true }));
-        if (k.stars) for (var s = 0; s < scaleN(k.stars); s++) parts.push({ star: true, x: rand(0, W), y: rand(0, H * 0.7), r: rand(0.5, 1.5), ph: rand(0, 6.28), sp: rand(0.5, 1.5) });
+        if (k.stars) for (var s = 0; s < scaleN(k.stars); s++) parts.push({ star: true, x: rand(0, W), y: rand(0, H * (k.starsFull ? 1 : 0.7)), r: rand(0.5, k.starsFull ? 1.9 : 1.5), ph: rand(0, 6.28), sp: rand(0.5, 1.5) });
         if (k.bulbs) { var n = Math.max(8, Math.round(W / 46)); for (var b = 0; b < n; b++) bulbs.push({ x: (b + 0.5) * W / n, c: ['#FF3B3B', '#2ECC71', '#FFD43B', '#4DABF7'][b % 4], ph: rand(0, 6.28) }); }
     }
 
@@ -111,6 +112,12 @@
         dt = acc; acc = 0; T += dt;
         var k = KINDS[kind]; if (!k) return;
         ctx.clearRect(0, 0, W, H);
+        if (k.sky) {
+            // Cielo de noche (así es un fondo de verdad; su transparencia se elige en la app)
+            var sk = ctx.createLinearGradient(0, 0, 0, H);
+            sk.addColorStop(0, '#050816'); sk.addColorStop(0.6, '#0b1233'); sk.addColorStop(1, '#1a1440');
+            ctx.fillStyle = sk; ctx.fillRect(0, 0, W, H);
+        }
         if (k.fog) {
             var g = ctx.createLinearGradient(0, H * 0.65, 0, H);
             g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, k.fog + '55');
@@ -176,6 +183,18 @@
             ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
         }
         if (k.bulbs) drawBulbs(T);
+        if (k.shooting) {
+            // Una estrella fugaz cada tanto
+            if (!shoot && T > nextShoot) { var a0 = rand(0.35, 0.7); shoot = { x: rand(W * 0.1, W * 0.9), y: rand(0, H * 0.4), vx: Math.cos(a0) * rand(500, 800) * (Math.random() < 0.5 ? -1 : 1), vy: Math.sin(a0) * rand(500, 800), life: 0, max: rand(0.6, 1.1) }; }
+            if (shoot) {
+                shoot.life += dt; shoot.x += shoot.vx * dt; shoot.y += shoot.vy * dt;
+                var fade = 1 - shoot.life / shoot.max, tl = 0.12;
+                var gr = ctx.createLinearGradient(shoot.x, shoot.y, shoot.x - shoot.vx * tl, shoot.y - shoot.vy * tl);
+                gr.addColorStop(0, 'rgba(255,255,255,' + Math.max(0, fade) + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.strokeStyle = gr; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(shoot.x, shoot.y); ctx.lineTo(shoot.x - shoot.vx * tl, shoot.y - shoot.vy * tl); ctx.stroke();
+                if (shoot.life > shoot.max) { shoot = null; nextShoot = T + rand(2.5, 6); }
+            }
+        }
     }
 
     function start(k) {

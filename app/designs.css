@@ -117,7 +117,10 @@
 :root.obs-preview #obs-filter-bar, :root.obs-preview .obs-status-box, :root.obs-preview #obs-top, :root.obs-preview #obs-goal { display: none !important; }
 :root.obs-preview, :root.obs-preview body { overflow: hidden !important; }
 :root.obs-preview, :root.obs-preview body, :root.obs-preview #obs-scroll-area { background: transparent !important; color-scheme: normal; }
-:root.obs-preview #obs-bg, :root.obs-preview canvas, :root.obs-preview .obs-preview-bar { display: none !important; }
+:root.obs-preview .obs-preview-bar, :root.obs-preview canvas:not(#anim-fx):not(#xfiles-sky), :root.obs-preview:not(.own-fx) #anim-fx, :root.obs-preview:not(.own-fx) #xfiles-sky, :root.obs-preview:not(.own-fx) #xfiles-fx { display: none !important; }
+/* La vista previa muestra el fondo como en la fuente de navegador: con su transparencia sobre los cuadraditos */
+:root.obs-preview:not(.has-obs-bg) #obs-bg { display: none !important; }
+:root.obs-preview #obs-bg, :root.obs-preview #anim-fx, :root.obs-preview #xfiles-sky, :root.obs-preview #xfiles-fx { opacity: var(--obs-bg-alpha, 1); }
 :root.obs-preview #alerts-container { padding-top: 6px; }
 /* Vista previa: el ejemplo aparece de una (sin la entrada animada), sin barra de scroll, y siempre visible */
 :root.obs-preview #obs-scroll-area { overflow: hidden !important; scrollbar-width: none; }

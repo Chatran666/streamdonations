@@ -989,7 +989,7 @@
                         <div class="setting-row">
                             <div><strong>Fondo detrás de cada donación</strong><small>Qué tan tapado queda el fondo de la ventana detrás de cada donación.</small></div>
                             <div class="range-row">
-                                <input type="range" id="cfg-panel-card-alpha" min="0" max="100" step="5" value="90">
+                                <input type="range" id="cfg-panel-card-alpha" min="0" max="100" step="1" value="90">
                                 <span class="range-value" id="lbl-panel-card-alpha">Auto</span>
                                 <label class="inline-check"><input type="checkbox" id="cfg-panel-card-auto" checked> Automático</label>
                             </div>
@@ -1103,7 +1103,7 @@
                         <div class="setting-row">
                             <div><strong>Fondo detrás de cada donación</strong><small>Qué tan tapado queda lo de atrás. Subilo si sobre tu escena no se lee bien; bajalo para que se vea más el juego o la cámara.</small></div>
                             <div class="range-row">
-                                <input type="range" id="cfg-obs-card-alpha" min="0" max="100" step="5" value="90">
+                                <input type="range" id="cfg-obs-card-alpha" min="0" max="100" step="1" value="90">
                                 <span class="range-value" id="lbl-obs-card-alpha">90%</span>
                                 <label class="inline-check"><input type="checkbox" id="cfg-obs-card-auto" checked> Automático</label>
                             </div>
@@ -1226,6 +1226,31 @@
                                 <label for="cfg-obs-bg-dim">Oscurecer la imagen</label>
                                 <input type="range" id="cfg-obs-bg-dim" min="0" max="0.85" step="0.05">
                                 <span class="range-value" id="lbl-obs-bg-dim">30%</span>
+                            </div>
+                        </div>
+                        <div class="setting-row bg-extra-row">
+                            <div><strong>Efecto animado de fondo</strong><small>Se mueve detrás de las donaciones. "El del tema" usa el de los temas animados (solo en captura de ventana).</small></div>
+                            <select id="cfg-obs-bg-fx">
+                                <option value="">El del tema</option>
+                                <option value="none">Ninguno</option>
+                                <option value="estrellas">✨ Cielo con estrellas</option>
+                                <option value="nieve">❄️ Nieve</option>
+                                <option value="navidad">🎄 Navidad</option>
+                                <option value="halloween">🎃 Halloween</option>
+                                <option value="argentina">🇦🇷 Argentina</option>
+                                <option value="julio4">🎆 4 de Julio</option>
+                                <option value="anionuevo">🥂 Año Nuevo</option>
+                                <option value="sanvalentin">💖 San Valentín</option>
+                                <option value="primavera">🌸 Primavera</option>
+                                <option value="plata">💸 Lluvia de plata</option>
+                                <option value="xfiles">🛸 OVNI</option>
+                            </select>
+                        </div>
+                        <div class="setting-row bg-extra-row">
+                            <div><strong>Transparencia del fondo</strong><small>Para el fondo (color, imagen o GIF) y el efecto animado. Deja ver tu juego o tu cámara detrás. Funciona con la fuente de navegador (el link); en captura de ventana el fondo tapa todo.</small></div>
+                            <div class="alpha-ctl">
+                                <div class="alpha-ctl-row"><input type="range" id="cfg-obs-bg-alpha" min="0" max="100" step="1" value="100"><span class="range-value" id="lbl-obs-bg-alpha">100%</span></div>
+                                <div class="alpha-quick" data-alpha-target="cfg-obs-bg-alpha"><button type="button" data-v="100">100%</button><button type="button" data-v="75">75%</button><button type="button" data-v="50">50%</button><button type="button" data-v="25">25%</button></div>
                             </div>
                         </div>
                         <div class="pane-note chroma-help hidden" id="obs-chroma-help"><i class="fa-solid fa-wand-magic-sparkles"></i> <strong>Cómo dejarlo transparente en OBS:</strong> clic derecho en la captura de la ventana → <em>Filtros</em> → <strong>+</strong> → <em>Clave cromática</em> (Chroma Key) → elegí el mismo color de acá (Magenta, Verde o Azul). Las tarjetas quedan flotando sobre tu escena. Si mostrás donaciones de Kick (verde), usá Magenta.</div>
