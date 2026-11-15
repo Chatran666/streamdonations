@@ -576,7 +576,9 @@
         :root.obs-ws, :root.obs-ws body { background: transparent !important; }
         :root.obs-ws:not(.has-obs-bg) #obs-bg, :root.obs-ws .obs-btn-dismiss, :root.obs-ws .obs-status-box, :root.obs-ws:not(.own-fx) #xfiles-fx, :root.obs-ws canvas:not(#anim-fx):not(#anim-fx-front):not(#xfiles-sky), :root.obs-ws:not(.own-fx) #anim-fx, :root.obs-ws:not(.own-fx) #anim-fx-front, :root.obs-ws:not(.own-fx) #xfiles-sky { display: none !important; }
         /* Fondo (color, imagen o GIF) y efecto animado elegidos: con su propia transparencia */
-        :root.obs-ws #obs-bg, :root.obs-ws #anim-fx, :root.obs-ws #anim-fx-front, :root.obs-ws #xfiles-sky, :root.obs-ws #xfiles-fx { opacity: var(--obs-bg-alpha, 1); }
+        :root.obs-ws #obs-bg { opacity: var(--obs-bg-alpha, 1); }
+        /* El efecto animado tiene su propia transparencia (vale también en captura de ventana) */
+        #anim-fx, #anim-fx-front, #xfiles-sky { opacity: var(--obs-fx-alpha, 1); }
         :root.obs-ws #obs-scroll-area { scrollbar-width: none; }
         /* Sombra suave en las letras claras para que se lean sobre cualquier escena (los efectos propios del texto la reemplazan) */
         :root.obs-ws.text-shadow .obs-alert,

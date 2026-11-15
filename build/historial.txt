@@ -1,3 +1,6 @@
+Novedades de la 2.3.9:
+- La transparencia del fondo se separó en dos barras: una para tu imagen, GIF o color de fondo y otra para el efecto animado. Ej.: tu imagen al 100 % con el cielo de estrellas al 30 % encima. La del efecto vale también en captura de ventana.
+
 Novedades de la 2.3.8:
 - OVNI como efecto de fondo de OBS: ahora trae su cielo negro y el ovni aparece enseguida (antes casi no se veía).
 - Si elegís un tema animado para OBS (no "igual que el panel"), su animación ahora también se ve en la fuente de navegador.

@@ -714,6 +714,10 @@
             // Transparencia del fondo (en la fuente de navegador y la vista previa) y efecto propio
             const al = bg ? parseFloat(bg.alpha) : NaN;
             root.style.setProperty('--obs-bg-alpha', String(Number.isFinite(al) ? Math.min(100, Math.max(0, al)) / 100 : 1));
+            // Transparencia del efecto (si no hay una propia, la misma del fondo, como antes)
+            let fa = bg ? parseFloat(bg.fxAlpha) : NaN;
+            if (!Number.isFinite(fa)) fa = Number.isFinite(al) ? al : 100;
+            root.style.setProperty('--obs-fx-alpha', String(Math.min(100, Math.max(0, fa)) / 100));
             const fr = bg ? parseFloat(bg.front) : 0;
             if (window.SDAnimFX && SDAnimFX.setFront) SDAnimFX.setFront(Number.isFinite(fr) ? fr / 100 : 0);
             const nfx = bg && typeof bg.fx === 'string' ? bg.fx : '';

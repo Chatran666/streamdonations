@@ -1241,6 +1241,13 @@
                             </select>
                         </div>
                         <div class="fx-picker" id="bgfx-picker"></div>
+                        <div class="setting-row bg-extra-row" id="row-obs-fx-alpha">
+                            <div><strong>Transparencia del efecto animado</strong><small>Solo el efecto (lluvia, cielo de estrellas…). Por ejemplo: tu imagen al 100% y el cielo al 30% deja ver tu imagen con un velo de estrellas.</small></div>
+                            <div class="alpha-ctl">
+                                <div class="alpha-ctl-row"><input type="range" id="cfg-obs-fx-alpha" min="0" max="100" step="1" value="100"><span class="range-value" id="lbl-obs-fx-alpha">100%</span></div>
+                                <div class="alpha-quick" data-alpha-target="cfg-obs-fx-alpha"><button type="button" data-v="100">100%</button><button type="button" data-v="75">75%</button><button type="button" data-v="50">50%</button><button type="button" data-v="25">25%</button></div>
+                            </div>
+                        </div>
                         <div class="setting-row bg-extra-row" id="row-obs-bg-front">
                             <div><strong>Pasan por delante de las tarjetas</strong><small>Qué parte del efecto (copos, hojas, papelitos…) cruza por encima de las donaciones. 0% = todo queda atrás.</small></div>
                             <div class="alpha-ctl">
@@ -1249,7 +1256,7 @@
                             </div>
                         </div>
                         <div class="setting-row bg-extra-row">
-                            <div><strong>Transparencia del fondo</strong><small>Para el fondo (color, imagen o GIF) y el efecto animado. Deja ver tu juego o tu cámara detrás. Funciona con la fuente de navegador (el link); en captura de ventana el fondo tapa todo.</small></div>
+                            <div><strong>Transparencia de la imagen o color de fondo</strong><small>Solo tu imagen, GIF o color (el efecto tiene su propia barra). Deja ver tu juego o tu cámara detrás. Funciona con la fuente de navegador (el link); en captura de ventana el fondo tapa todo.</small></div>
                             <div class="alpha-ctl">
                                 <div class="alpha-ctl-row"><input type="range" id="cfg-obs-bg-alpha" min="0" max="100" step="1" value="100"><span class="range-value" id="lbl-obs-bg-alpha">100%</span></div>
                                 <div class="alpha-quick" data-alpha-target="cfg-obs-bg-alpha"><button type="button" data-v="100">100%</button><button type="button" data-v="75">75%</button><button type="button" data-v="50">50%</button><button type="button" data-v="25">25%</button></div>
