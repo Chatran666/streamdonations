@@ -202,7 +202,7 @@
     }
     // Papelitos con giro en 3D
     function newConfetti(colors, initial, circles) {
-        return tagFront({ t: 'conf', x: rand(0, W), y: initial ? rand(-H, H) : rand(-60, -10), w: rand(6, 11), h: rand(10, 16), vy: rand(45, 95), vx: rand(-20, 20),
+        return tagFront({ t: 'conf', x: rand(0, W), y: initial ? rand(-H * 0.2, H) : rand(-60, -10), w: rand(6, 11), h: rand(10, 16), vy: rand(45, 95), vx: rand(-20, 20),
             ph: rand(0, 6.28), fs: rand(4, 9), rot: rand(0, 6.28), vr: rand(-3, 3), c: pick(colors), round: circles && Math.random() < 0.3, a: rand(0.8, 1) });
     }
     function stepConfetti(p, dt) {
@@ -588,6 +588,102 @@
             }
         }
     };
+    // ---- Efectos "sin fondo": no pintan nada de fondo, van encima de tu imagen, tu juego o tu cámara ----
+    var OVERLAY = {
+        lluviafuerte: {
+            init: function () { for (var i = 0; i < scaleN(320); i++) parts.push(newDrop(true, true)); extra.splash = []; },
+            step: function (dt) { stepRain(dt, true); }
+        },
+        papelitos: {
+            init: function () { for (var i = 0; i < scaleN(110); i++) parts.push(newConfetti(PARTY, true, true)); },
+            step: function (dt) { for (var i = 0; i < parts.length; i++) if (!stepConfetti(parts[i], dt)) parts[i] = newConfetti(PARTY, false, true); }
+        },
+        brillos: {
+            init: function () { for (var i = 0; i < scaleN(40); i++) parts.push(newTwinkle()); },
+            step: function (dt) {
+                for (var i = 0; i < parts.length; i++) {
+                    var p = parts[i]; p.life += dt;
+                    if (p.life > p.max) { parts[i] = newTwinkle(); continue; }
+                    var k = Math.sin(p.life / p.max * Math.PI);
+                    use(p); g.globalCompositeOperation = 'lighter';
+                    draw(sparkle(p.c), p.x, p.y, p.s * (0.4 + k * 0.6), p.s * (0.4 + k * 0.6), p.life * 1.5, k);
+                    g.globalCompositeOperation = 'source-over';
+                }
+            }
+        },
+        polvo: {
+            init: function () { for (var i = 0; i < scaleN(70); i++) parts.push(tagFront({ x: rand(0, W), y: rand(0, H), r: rand(1.5, 4), vx: rand(-6, 6), vy: rand(-10, -2), ph: rand(0, 6.28), a: rand(0.4, 0.85) })); },
+            step: function (dt) {
+                for (var i = 0; i < parts.length; i++) {
+                    var p = parts[i];
+                    p.x += (p.vx + Math.sin(T * 0.5 + p.ph) * 8) * dt; p.y += p.vy * dt;
+                    if (p.y < -10) { p.y = H + 10; p.x = rand(0, W); } if (p.x < -10) p.x = W + 10; if (p.x > W + 10) p.x = -10;
+                    use(p); g.globalAlpha = p.a * (0.6 + 0.4 * Math.sin(T * 1.3 + p.ph)); g.drawImage(glow('#FFF3D6', 6), p.x - p.r * 2, p.y - p.r * 2, p.r * 4, p.r * 4);
+                }
+                g = bctx; g.globalAlpha = 1;
+            }
+        },
+        bokeh: {
+            init: function () { for (var i = 0; i < scaleN(22); i++) parts.push(tagFront({ x: rand(0, W), y: rand(0, H), r: rand(18, 60), vx: rand(-8, 8), vy: rand(-8, 8), ph: rand(0, 6.28), c: pick(['#FFD166', '#EF476F', '#06D6A0', '#118AB2', '#F78C6B', '#C77DFF']) })); },
+            step: function (dt) {
+                for (var i = 0; i < parts.length; i++) {
+                    var p = parts[i];
+                    p.x += p.vx * dt; p.y += p.vy * dt;
+                    if (p.x < -70) p.x = W + 70; if (p.x > W + 70) p.x = -70; if (p.y < -70) p.y = H + 70; if (p.y > H + 70) p.y = -70;
+                    use(p); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.3 + 0.14 * Math.sin(T * 0.8 + p.ph);
+                    g.drawImage(glow(p.c, 60), p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+                    g.globalCompositeOperation = 'source-over';
+                }
+                g = bctx; g.globalAlpha = 1;
+            }
+        },
+        fugaces: {
+            init: function () { extra.shoot = null; extra.next = 0.6; },
+            step: function (dt) { shooting(dt); if (!extra.shoot && extra.next - T > 2.2) extra.next = T + rand(0.8, 2.2); }
+        },
+        niebla: {
+            init: function () { extra.fog = []; for (var i = 0; i < 7; i++) extra.fog.push({ x: rand(-300, W), y: rand(H * 0.35, H * 0.95), r: rand(220, 380), v: rand(8, 22) * (Math.random() < 0.5 ? -1 : 1), ph: rand(0, 6.28) }); },
+            step: function (dt) {
+                g = bctx;
+                extra.fog.forEach(function (f) {
+                    f.x += f.v * dt; if (f.x > W + f.r) f.x = -f.r; if (f.x < -f.r) f.x = W + f.r;
+                    g.globalAlpha = 0.16 + 0.06 * Math.sin(T * 0.4 + f.ph); g.drawImage(glow('#DDE6F0', 200), f.x - f.r, f.y - f.r * 0.45, f.r * 2, f.r * 0.9);
+                });
+                g.globalAlpha = 1;
+            }
+        },
+        rayos: {
+            init: function () { extra.bolt = null; extra.next = rand(1, 2.5); extra.flash = 0; },
+            step: function (dt) {
+                if (T > extra.next) { extra.bolt = bolt(rand(W * 0.1, W * 0.9), 0, rand(H * 0.4, H * 0.8)); extra.life = 0; extra.flash = 0.35; extra.next = T + rand(2.5, 6); }
+                if (extra.bolt) {
+                    extra.life += dt;
+                    if (extra.life < 0.08 || (extra.life > 0.14 && extra.life < 0.22)) {
+                        g = bctx; g.globalCompositeOperation = 'lighter';
+                        strokePath(extra.bolt.main, 10, 0.18, '#9DB4FF'); strokePath(extra.bolt.main, 4, 0.5, '#C9D6FF'); strokePath(extra.bolt.main, 1.6, 1, '#FFFFFF');
+                        extra.bolt.branches.forEach(function (b) { strokePath(b, 4, 0.25, '#9DB4FF'); strokePath(b, 1, 0.8, '#FFFFFF'); });
+                        g.globalCompositeOperation = 'source-over';
+                    }
+                    if (extra.life > 0.35) extra.bolt = null;
+                }
+                if (extra.flash > 0) { bctx.globalAlpha = extra.flash * 0.25; bctx.fillStyle = '#E8EEFF'; bctx.fillRect(0, 0, W, H); extra.flash -= dt * 2; }
+                bctx.globalAlpha = 1;
+            }
+        },
+        corazones: {
+            init: function () { for (var i = 0; i < scaleN(34); i++) parts.push(newHeart(true)); },
+            step: function (dt) {
+                for (var i = 0; i < parts.length; i++) {
+                    var p = parts[i];
+                    p.y -= p.vy * dt; p.x += Math.sin(T * 1.3 + p.ph) * 20 * dt;
+                    if (p.y < -50) { parts[i] = newHeart(false); continue; }
+                    use(p); draw(heart(p.c), p.x, p.y, p.s, p.s, Math.sin(T + p.ph) * 0.25, p.a);
+                }
+            }
+        }
+    };
+    function newTwinkle() { return tagFront({ x: rand(0, W), y: rand(0, H), s: rand(10, 26), life: 0, max: rand(0.8, 2.2), c: pick(['#FFFFFF', '#FFE9A8', '#CDE7FF', '#FFD1F0']) }); }
+    Object.keys(OVERLAY).forEach(function (k) { KINDS[k] = OVERLAY[k]; });
     var USA = ['#E63946', '#FFFFFF', '#3C6EF0', '#FFFFFF', '#B22234'];
     var PARTY = ['#FF4D6D', '#FFD60A', '#3A86FF', '#06D6A0', '#FF8FAB', '#8338EC', '#FB5607'];
 

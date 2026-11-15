@@ -5659,6 +5659,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-bg-alpha').value = clampNum(lk.obsBg.alpha, 0, 100, 100);
         $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
         $('cfg-obs-bg-fx').value = OBS_BG_FX.includes(lk.obsBg.fx) ? lk.obsBg.fx : '';
+        try { syncBgFrontRow(); } catch (e) {}
         $('cfg-obs-bg-front').value = clampNum(lk.obsBg.front, 0, 100, 0);
         $('lbl-obs-bg-front').textContent = $('cfg-obs-bg-front').value + '%';
         $('obs-bg-name').textContent = lk.obsBg.name || 'Sin imagen';
@@ -5695,7 +5696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const OBS_BG_FX = ['', 'none', 'estrellas', 'aurora', 'lluvia', 'tormenta', 'otono', 'burbujas', 'luciernagas', 'fiesta', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata', 'xfiles'];
+    const OBS_BG_FX = ['', 'none', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
     function updateLookFormState() {
         const pt = $('cfg-panel-bg-type').value, ot = $('cfg-obs-bg-type').value;
         $('cfg-panel-bg-color').classList.toggle('hidden', pt !== 'color');
@@ -5914,6 +5915,42 @@ document.addEventListener('DOMContentLoaded', () => {
         else document.documentElement.dataset.pdesign = k;
         return k;
     }
+    // ---- Selector visual de diseños: tarjetitas con un dibujo de cada diseño, de a 5 y con flechas ----
+    function dzItems(selId) {
+        const list = OBS_DESIGNS.map(d => ({ k: d.k, label: d.label, desc: d.desc }));
+        if (selId === 'cfg-panel-design') list.unshift({ k: 'same', label: 'Igual que OBS', desc: 'Usa el mismo diseño que elijas para OBS' });
+        return list;
+    }
+    function dzMini(k) {
+        return `<span class="dzm dzm-${k}"><i class="dzm-av"></i><i class="dzm-nick"></i><i class="dzm-amt"></i><i class="dzm-msg"></i></span>`;
+    }
+    var dzPage;
+    function renderDzCarousel(box) {
+        dzPage = dzPage || {};
+        const sel = $(box.dataset.for);
+        if (!sel) return;
+        const items = dzItems(sel.id);
+        const per = Math.max(2, Math.min(5, Math.floor((box.clientWidth || 800) / 150)));
+        const pages = Math.ceil(items.length / per);
+        const curIdx = Math.max(0, items.findIndex(x => x.k === sel.value));
+        if (dzPage[sel.id] === undefined) dzPage[sel.id] = Math.floor(curIdx / per);
+        let pg = Math.min(pages - 1, Math.max(0, dzPage[sel.id]));
+        dzPage[sel.id] = pg;
+        const view = items.slice(pg * per, pg * per + per);
+        box.innerHTML = `<button type="button" class="dz-nav" data-dir="-1" ${pg === 0 ? 'disabled' : ''} aria-label="Anteriores"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="dz-tiles" style="grid-template-columns:repeat(${per},minmax(0,1fr))">${view.map(d => `<button type="button" class="dz-tile ${d.k === sel.value ? 'active' : ''}" data-k="${d.k}" title="${escapeHTML(d.desc)}">${dzMini(d.k)}<strong>${escapeHTML(d.label)}</strong><small>${escapeHTML(d.desc)}</small></button>`).join('')}</div>
+            <button type="button" class="dz-nav" data-dir="1" ${pg >= pages - 1 ? 'disabled' : ''} aria-label="Siguientes"><i class="fa-solid fa-chevron-right"></i></button>
+            <div class="dz-dots">${Array.from({ length: pages }, (_, i) => `<i class="${i === pg ? 'on' : ''}" data-pg="${i}"></i>`).join('')}</div>`;
+    }
+    function syncDzCarousels() { document.querySelectorAll('.dz-carousel').forEach(renderDzCarousel); }
+    document.querySelectorAll('.dz-carousel').forEach(box => box.addEventListener('click', (e) => {
+        const sel = $(box.dataset.for);
+        const nav = e.target.closest('.dz-nav'), dot = e.target.closest('[data-pg]'), tile = e.target.closest('.dz-tile');
+        if (nav && !nav.disabled) { dzPage[sel.id] += parseInt(nav.dataset.dir, 10); renderDzCarousel(box); }
+        else if (dot) { dzPage[sel.id] = parseInt(dot.dataset.pg, 10); renderDzCarousel(box); }
+        else if (tile) { sel.value = tile.dataset.k; sel.dispatchEvent(new Event('change', { bubbles: true })); renderDzCarousel(box); }
+    }));
+    window.addEventListener('resize', () => { if (!els.modalSettings.classList.contains('hidden')) syncDzCarousels(); });
     function renderPanelDesignSelect(v) {
         const sel = $('cfg-panel-design');
         if (!sel) return;
@@ -5922,6 +5959,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const k = sel.value === 'same' ? currentDesign() : sel.value;
         const d = OBS_DESIGNS.find(x => x.k === k) || OBS_DESIGNS[0];
         $('pdesign-desc').textContent = (sel.value === 'same' ? 'Ahora: ' + d.label + '. ' : '') + d.desc;
+        const box = document.querySelector('.dz-carousel[data-for="cfg-panel-design"]'); if (box) renderDzCarousel(box);
     }
     applyPanelDesign(state.settings.panelDesign);
 
@@ -6020,6 +6058,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('panel-preview').classList.toggle('hidden', v !== 'panel');
         document.querySelector('#obs-live-preview .design-preview-wrap').classList.toggle('dz-hide', v !== 'obs');
         if (v === 'panel') renderPanelPreview(); else setTimeout(refreshDesignPreview, 50);
+        setTimeout(syncDzCarousels, 0);
     }
     $('btn-preview-where').addEventListener('click', () => { dzDestacarView = dzDestacarView === 'obs' ? 'panel' : 'obs'; setDzSide('destacar'); });
     // Cambios en Destacar: la vista previa se actualiza sola (un instante después de tocar)
@@ -6061,6 +6100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sel.value = cur;
         const d = OBS_DESIGNS.find(x => x.k === cur) || OBS_DESIGNS[0];
         $('design-desc').textContent = d.desc;
+        const box = document.querySelector('.dz-carousel[data-for="cfg-obs-design"]'); if (box) renderDzCarousel(box);
     }
     // Vista previa: la misma página de OBS dentro de Opciones, con dos donaciones de ejemplo
     let previewN = 0, previewBig = false;
@@ -6177,7 +6217,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-bg-front"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-bg-front').value));
         setSettingsDirty(true); sendObsStyle();
     });
-    $('cfg-obs-bg-fx').addEventListener('change', () => { setSettingsDirty(true); sendObsStyle(); });
+    // "Pasan por delante" solo tiene sentido si hay algún efecto
+    function syncBgFrontRow() {
+        const v = $('cfg-obs-bg-fx').value;
+        let fx = v;
+        if (v === '') { try { const lk = look(); const tk = (!lk.obsTheme || lk.obsTheme === 'same') ? (themeDraft || state.settings.theme) : lk.obsTheme; fx = (THEMES[tk] && THEMES[tk].fx) || ''; } catch (e) { fx = ''; } }
+        $('row-obs-bg-front').classList.toggle('hidden', !fx || fx === 'none' || fx === 'xfiles');
+    }
+    $('cfg-obs-bg-fx').addEventListener('change', () => { syncBgFrontRow(); setSettingsDirty(true); sendObsStyle(); });
     document.querySelectorAll('.alpha-quick[data-alpha-target]').forEach(q => q.addEventListener('click', (e) => {
         const b = e.target.closest('button[data-v]');
         if (!b) return;

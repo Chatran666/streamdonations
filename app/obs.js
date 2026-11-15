@@ -691,7 +691,7 @@
         }
         // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
         let themeFx = '', bgFx = '';
-        const FX_KINDS = ['xfiles', 'estrellas', 'aurora', 'lluvia', 'tormenta', 'otono', 'burbujas', 'luciernagas', 'fiesta', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata'];
+        const FX_KINDS = ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
         function applyFx() {
             const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
             const fx = bgFx === 'none' ? '' : (own ? bgFx : themeFx);

@@ -968,8 +968,9 @@
                         <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones</div>
                         <div class="setting-row">
                             <div><strong>Diseño</strong><small id="pdesign-desc">La de siempre: foto, nick, monto y mensaje</small></div>
-                            <select id="cfg-panel-design" class="input-field"></select>
+                            <select id="cfg-panel-design" class="input-field dz-hidden-select" aria-hidden="true" tabindex="-1"></select>
                         </div>
+                        <div class="dz-carousel" data-for="cfg-panel-design"></div>
 
                         <div class="setting-row">
                             <div><strong>Colores de la tarjeta</strong><small>El fondo de cada donación y el color de las letras. "Automático" usa los del diseño y el tema.</small></div>
@@ -1083,8 +1084,9 @@
                         <div class="pane-subtitle"><i class="fa-solid fa-shapes"></i> Diseño de las donaciones</div>
                         <div class="setting-row">
                             <div><strong>Diseño</strong><small id="design-desc">La de siempre: foto, nick, monto y mensaje</small></div>
-                            <select id="cfg-obs-design" class="input-field"></select>
+                            <select id="cfg-obs-design" class="input-field dz-hidden-select" aria-hidden="true" tabindex="-1"></select>
                         </div>
+                        <div class="dz-carousel" data-for="cfg-obs-design"></div>
                         <div class="setting-row">
                             <div><strong>Colores de la tarjeta</strong><small>El fondo de cada donación y el color de las letras, en cualquier diseño. "Automático" usa los del diseño y el tema.</small></div>
                             <div class="card-colors">
@@ -1229,31 +1231,16 @@
                             </div>
                         </div>
                         <div class="setting-row bg-extra-row">
-                            <div><strong>Efecto animado de fondo</strong><small>Se mueve detrás de las donaciones. "El del tema" usa el de los temas animados (solo en captura de ventana).</small></div>
+                            <div><strong>Efecto animado de fondo</strong><small>Se mueve detrás de las donaciones. Los de "Encima de tu fondo" no pintan nada: van sobre tu imagen, tu juego o tu cámara (por ejemplo, tu foto de fondo con lluvia).</small></div>
                             <select id="cfg-obs-bg-fx">
                                 <option value="">El del tema</option>
                                 <option value="none">Ninguno</option>
-                                <option value="estrellas">✨ Cielo con estrellas</option>
-                                <option value="aurora">🌌 Aurora boreal</option>
-                                <option value="lluvia">🌧️ Lluvia</option>
-                                <option value="tormenta">⛈️ Tormenta</option>
-                                <option value="otono">🍁 Otoño</option>
-                                <option value="burbujas">🫧 Burbujas</option>
-                                <option value="luciernagas">🌙 Luciérnagas</option>
-                                <option value="fiesta">🎉 Fiesta</option>
-                                <option value="nieve">❄️ Nieve</option>
-                                <option value="navidad">🎄 Navidad</option>
-                                <option value="halloween">🎃 Halloween</option>
-                                <option value="argentina">🇦🇷 Argentina</option>
-                                <option value="julio4">🎆 4 de Julio</option>
-                                <option value="anionuevo">🥂 Año Nuevo</option>
-                                <option value="sanvalentin">💖 San Valentín</option>
-                                <option value="primavera">🌸 Primavera</option>
-                                <option value="plata">💸 Lluvia de plata</option>
-                                <option value="xfiles">🛸 OVNI</option>
+                                <optgroup label="Encima de tu fondo o tu juego (no tapan nada)"><option value="lluvia">🌧️ Lluvia</option><option value="lluviafuerte">🌊 Lluvia fuerte</option><option value="nieve">❄️ Nieve</option><option value="papelitos">🎊 Papelitos</option><option value="otono">🍁 Hojas de otoño</option><option value="primavera">🌸 Pétalos</option><option value="burbujas">🫧 Burbujas</option><option value="brillos">✨ Brillitos</option><option value="polvo">🌫️ Polvo flotando</option><option value="bokeh">🔆 Luces desenfocadas</option><option value="fugaces">☄️ Estrellas fugaces</option><option value="niebla">🌁 Niebla</option><option value="rayos">⚡ Rayos</option><option value="corazones">💗 Corazones</option><option value="plata">💸 Lluvia de plata</option></optgroup>
+                                <optgroup label="Con cielo propio (tapan el fondo)"><option value="estrellas">🌌 Cielo con estrellas</option><option value="aurora">🌠 Aurora boreal</option><option value="tormenta">⛈️ Tormenta</option><option value="luciernagas">🌙 Luciérnagas</option></optgroup>
+                                <optgroup label="De fechas"><option value="navidad">🎄 Navidad</option><option value="halloween">🎃 Halloween</option><option value="argentina">🇦🇷 Argentina</option><option value="julio4">🎆 4 de Julio</option><option value="anionuevo">🥂 Año Nuevo</option><option value="sanvalentin">💖 San Valentín</option><option value="fiesta">🎉 Fiesta</option><option value="xfiles">🛸 OVNI</option></optgroup>
                             </select>
                         </div>
-                        <div class="setting-row bg-extra-row">
+                        <div class="setting-row bg-extra-row" id="row-obs-bg-front">
                             <div><strong>Pasan por delante de las tarjetas</strong><small>Qué parte del efecto (copos, hojas, papelitos…) cruza por encima de las donaciones. 0% = todo queda atrás.</small></div>
                             <div class="alpha-ctl">
                                 <div class="alpha-ctl-row"><input type="range" id="cfg-obs-bg-front" min="0" max="100" step="1" value="0"><span class="range-value" id="lbl-obs-bg-front">0%</span></div>

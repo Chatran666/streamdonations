@@ -172,7 +172,8 @@
 :root[data-design="zocalo"] .obs-amount::after { content: ''; position: absolute; right: 0; bottom: 0; width: 14px; height: 14px;
     background: linear-gradient(315deg, transparent 50%, #FFF4C7 50%, #C9A43A 100%); box-shadow: -2px -2px 3px rgba(0, 0, 0, 0.25); }
 :root[data-design="zocalo"] .obs-amount.has-amt-color { color: var(--amt-color) !important; }
-:root[data-design="zocalo"] .obs-tag { position: absolute; z-index: 4; right: 8px; top: calc(100% - 22px * var(--obs-scale) - 4px); transform: translateY(-100%); }
+:root[data-design="zocalo"] .obs-tag { position: absolute; z-index: 4; right: 8px; top: 8px; }
+:root:not(.obs-ws)[data-design="zocalo"] .obs-tag { right: 40px; }
 :root[data-design="zocalo"] .obs-btn-dismiss { position: absolute; z-index: 4; right: 6px; top: 2px; width: 26px; height: 26px; }
 :root[data-design="zocalo"] .obs-sub { display: none; }
 :root[data-design="zocalo"] .obs-accum, :root[data-design="zocalo"] .obs-nick > :not(span:first-child) { text-shadow: none; }
@@ -182,8 +183,10 @@
 :root[data-design="sticker"] .obs-alert { border: 5px solid #FAFAFA; border-radius: 18px; backdrop-filter: none; box-shadow: none; transform: rotate(-1.2deg);
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 38px), calc(100% - 38px) 100%, 0 100%); }
 :root[data-design="sticker"] .obs-alert:nth-child(even) { transform: rotate(1deg); }
-:root[data-design="sticker"] .obs-alert::before { content: ''; position: absolute; right: -5px; bottom: -5px; width: 43px; height: 43px; z-index: 5; pointer-events: none;
-    background: linear-gradient(to top left, transparent 50%, rgba(0, 0, 0, 0.28) 50%, #E4E4E4 54%, #FFFFFF 78%, #D2D2D2 100%); border-top-left-radius: 6px; }
+:root[data-design="sticker"] .obs-alert::before { content: ''; position: absolute; right: -5px; bottom: -5px; width: 38px; height: 38px; z-index: 5; pointer-events: none;
+    /* Mismo tamaño que el corte: el pliegue cae justo sobre la línea, con el dorso blanco como el borde */
+    background: linear-gradient(to top left, transparent calc(50% - 0.5px), rgba(0, 0, 0, 0.35) 50%, #EDEDED calc(50% + 2px), #FFFFFF 75%, #DCDCDC 100%);
+    filter: drop-shadow(-2px -2px 2px rgba(0, 0, 0, 0.3)); }
 :root[data-design="sticker"] .obs-nick > span:first-child { color: var(--cur); font-weight: 900; }
 :root[data-design="sticker"] .obs-amount { border-radius: 999px !important; }
 :root[data-design="sticker"] .obs-msg { border-radius: 12px; }

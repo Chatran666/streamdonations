@@ -106,9 +106,9 @@
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%); }
 :root[data-pdesign="sticker"] .donation-card:nth-child(even) { transform: rotate(0.4deg); }
 :root[data-pdesign="sticker"] .donation-card::before { display: none; }
-:root[data-pdesign="sticker"] .donation-card::after { content: '' !important; display: block !important; position: absolute; inset: auto -4px -4px auto !important; width: 34px !important; height: 34px !important;
+:root[data-pdesign="sticker"] .donation-card::after { content: '' !important; display: block !important; position: absolute; inset: auto -4px -4px auto !important; width: 30px !important; height: 30px !important;
     border: none !important; border-radius: 6px 0 0 0 !important; opacity: 1 !important; animation: none !important; pointer-events: none; z-index: 3;
-    background: linear-gradient(to top left, transparent 50%, rgba(0, 0, 0, 0.28) 50%, #E4E4E4 54%, #FFFFFF 78%, #D2D2D2 100%) !important; -webkit-mask: none !important; mask: none !important; }
+    background: linear-gradient(to top left, transparent calc(50% - 0.5px), rgba(0, 0, 0, 0.35) 50%, #EDEDED calc(50% + 2px), #FFFFFF 75%, #DCDCDC 100%) !important; -webkit-mask: none !important; mask: none !important; }
 :root[data-pdesign="sticker"] .donor-nick-text { color: rgb(var(--pcur-rgb)); font-weight: 900; }
 :root[data-pdesign="sticker"] .card-actions, :root[data-pdesign="sticker"] .btn-card-action { margin-right: 6px; }
 
