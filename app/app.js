@@ -5555,7 +5555,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     // APARIENCIA: colores por plataforma, fondo del panel, tema y fondo de OBS
     // ==========================================================================
-    const PLATFORM_COLOR_DEFAULTS = { ceneka: '#8B5CF6', youtube: '#FF2E4D', twitch: '#9146FF', kick: '#53FC18' };
+    // Ceneka pasó a amarillo (antes violeta, casi igual al de Twitch)
+    const PLATFORM_COLOR_DEFAULTS = { ceneka: '#FFC400', youtube: '#FF2E4D', twitch: '#9146FF', kick: '#53FC18' };
     const PLATFORM_COLOR_VARS = { ceneka: '--ceneka-purple', youtube: '--youtube-red', twitch: '--twitch-purple', kick: '--kick-green' };
     const MAX_BG_BYTES = 8 * 1024 * 1024;
     const CHROMA_COLORS = ['#FF00FF', '#00FF00', '#0000FF'];
@@ -5567,6 +5568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const pc = src || {};
         const out = {};
         PLATFORM_KEYS.forEach(k => { out[k] = cleanColor(pc[k], PLATFORM_COLOR_DEFAULTS[k]); });
+        if (String(out.ceneka).toUpperCase() === '#8B5CF6') out.ceneka = PLATFORM_COLOR_DEFAULTS.ceneka; // el violeta viejo de fábrica
         return out;
     }
     function look() {
@@ -5588,6 +5590,8 @@ document.addEventListener('DOMContentLoaded', () => {
         PLATFORM_KEYS.forEach(k => {
             r.setProperty(PLATFORM_COLOR_VARS[k], pc[k]);
             r.setProperty('--pc-' + k + '-rgb', rgbStr(pc[k]));
+            // Letra que se lee encima de ese color (oscura sobre amarillo o verde claro, blanca sobre el resto)
+            r.setProperty('--pc-' + k + '-ink', lumOf(pc[k]) > 0.45 ? '#111111' : '#FFFFFF');
         });
     }
 

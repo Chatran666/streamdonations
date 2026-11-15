@@ -244,7 +244,7 @@
                         </div>
                     </div>
                     <div class="obs-header-right">
-                        <span class="obs-tag ${d.platform || 'ceneka'}" data-el="platform">${({ youtube: '<i class="fa-brands fa-youtube"></i>', twitch: '<i class="fa-brands fa-twitch"></i>', kick: '<b class="tag-k">K</b>' })[d.platform] || '<i class="fa-solid fa-heart"></i>'}${platformLabel}</span>
+                        <span class="obs-tag ${d.platform || 'ceneka'}" data-el="platform">${({ youtube: '<i class="fa-brands fa-youtube"></i>', twitch: '<i class="fa-brands fa-twitch"></i>', kick: '<i class="fa-solid fa-bolt"></i>' })[d.platform] || '<i class="fa-solid fa-mug-hot"></i>'}${platformLabel}</span>
                         <div class="obs-amount${amtColor ? ' has-amt-color' : ''}${sty.amount ? ' tfx tfx-' + sty.amount.fx : ''}" data-el="amount" style="${amtColor ? '--amt-color:' + amtColor + ';' : ''}${sty.amount ? vars(sty.amount) : ''}"><span class="amt-full">${formattedAmt}</span><span class="amt-split"><b>${numPart}</b><small>${escapeHTML(curLabel)}</small></span></div>
                         <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar como leído y ocultar">
                             <i class="fa-solid fa-check"></i>
@@ -610,7 +610,11 @@
                     if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
                     const n = parseInt(hex.slice(1), 16);
                     document.documentElement.style.setProperty('--pc-' + k, hex);
-                    document.documentElement.style.setProperty('--pc-' + k + '-rgb', ((n >> 16) & 255) + ', ' + ((n >> 8) & 255) + ', ' + (n & 255));
+                    const rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+                    document.documentElement.style.setProperty('--pc-' + k + '-rgb', rgb.join(', '));
+                    // Letra que se lee encima de ese color
+                    const L = rgb.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+                    document.documentElement.style.setProperty('--pc-' + k + '-ink', 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.45 ? '#111111' : '#FFFFFF');
                 });
             }
             applyObsBg(st.obsBg);
@@ -660,6 +664,7 @@
                 const r = document.documentElement.style;
                 const hex = c => /^#[0-9a-fA-F]{6}$/.test(c || '') ? [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)) : null;
                 const cc = hex(st.cardColor);
+                let light = false;
                 if (cc) { r.setProperty('--obs-card-rgb', cc.join(', ')); r.setProperty('--obs-card-custom', st.cardColor); }
                 else { r.removeProperty('--obs-card-rgb'); r.removeProperty('--obs-card-custom'); }
                 const tc = hex(st.textColor);
@@ -669,7 +674,18 @@
                     r.setProperty('--obs-ink-rgb', tc.join(', '));
                     r.setProperty('--obs-text-custom', st.textColor);
                     r.setProperty('--obs-shadow-rgb', 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.35 ? '0, 0, 0' : '255, 255, 255');
-                } else r.removeProperty('--obs-text-custom');
+                } else {
+                    r.removeProperty('--obs-text-custom');
+                    // Tarjeta de color claro (amarillo, blanco…) con letras automáticas: letras oscuras para que se lean
+                    if (cc) {
+                        const L = cc.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+                        light = 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.45;
+                        if (light) {
+                            r.setProperty('--obs-text', '#111827'); r.setProperty('--obs-ink-rgb', '17, 24, 39'); r.setProperty('--obs-shadow-rgb', '255, 255, 255');
+                        }
+                    }
+                }
+                document.documentElement.classList.toggle('light-card', light);
             }
             layoutTop();
         }

@@ -1,11 +1,11 @@
 /* StreamDonations - diseños de las donaciones en el panel (Opciones → Pantalla → Diseño del panel)
  * Mismos nombres que los de OBS, adaptados para trabajar: los botones y el menú del nick siguen ahí. */
 
-.donation-card { --pcur-rgb: var(--accent-rgb); }
-.donation-card.pf-ceneka { --pcur-rgb: var(--pc-ceneka-rgb, 139, 92, 246); }
-.donation-card.pf-youtube { --pcur-rgb: var(--pc-youtube-rgb, 255, 46, 77); }
-.donation-card.pf-twitch { --pcur-rgb: var(--pc-twitch-rgb, 145, 70, 255); }
-.donation-card.pf-kick { --pcur-rgb: var(--pc-kick-rgb, 83, 252, 24); }
+.donation-card { --pcur-rgb: var(--accent-rgb); --pcur-ink: #fff; }
+.donation-card.pf-ceneka { --pcur-rgb: var(--pc-ceneka-rgb, 255, 196, 0); --pcur-ink: var(--pc-ceneka-ink, #111); }
+.donation-card.pf-youtube { --pcur-rgb: var(--pc-youtube-rgb, 255, 46, 77); --pcur-ink: var(--pc-youtube-ink, #fff); }
+.donation-card.pf-twitch { --pcur-rgb: var(--pc-twitch-rgb, 145, 70, 255); --pcur-ink: var(--pc-twitch-ink, #fff); }
+.donation-card.pf-kick { --pcur-rgb: var(--pc-kick-rgb, 83, 252, 24); --pcur-ink: var(--pc-kick-ink, #111); }
 
 /* ===== Barra: monto grande en un bloque a la izquierda ===== */
 :root[data-pdesign="barra"] .donation-card { padding-left: 118px; min-height: 76px; border-radius: 6px; justify-content: center; }
@@ -65,8 +65,8 @@
 :root[data-pdesign="franja"] .donation-card { padding: 0 0 10px; border: none; border-left: 6px solid rgb(var(--pcur-rgb)); border-radius: 0 10px 10px 0; overflow: hidden; }
 :root[data-pdesign="franja"] .donation-card::before { display: none; }
 :root[data-pdesign="franja"] .card-header { background: linear-gradient(90deg, rgba(var(--pcur-rgb), 0.85), rgba(var(--pcur-rgb), 0.35)); padding: 7px 12px; }
-:root[data-pdesign="franja"] .donor-nick-text { color: #fff; text-transform: uppercase; letter-spacing: 0.03em; }
-:root[data-pdesign="franja"] .timestamp { color: rgba(255, 255, 255, 0.8); }
+:root[data-pdesign="franja"] .donor-nick-text { color: var(--pcur-ink); text-transform: uppercase; letter-spacing: 0.03em; }
+:root[data-pdesign="franja"] .timestamp { color: var(--pcur-ink); opacity: 0.8; }
 :root[data-pdesign="franja"] .card-message { background: none; border: none; margin: 0 12px; padding: 0; }
 
 /* ===== Pixel: retro de 8 bits ===== */

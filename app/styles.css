@@ -29,7 +29,7 @@
     --text-muted: #6B7280;
 
     /* Brand Colors */
-    --ceneka-purple: #8B5CF6;
+    --ceneka-purple: #FFC400; /* (se llama así por historia: ahora es amarillo) */
     --ceneka-glow: rgba(139, 92, 246, 0.35);
     --youtube-red: #FF2E4D;
     --youtube-glow: rgba(255, 46, 77, 0.35);
@@ -239,7 +239,7 @@ body {
 }
 
 .total-donations .stat-icon { background: rgba(16, 185, 129, 0.15); color: #10B981; }
-.ceneka-stat .stat-icon { background: rgba(139, 92, 246, 0.15); color: var(--ceneka-purple); }
+.ceneka-stat .stat-icon { background: rgba(var(--pc-ceneka-rgb), 0.15); color: var(--ceneka-purple); }
 .youtube-stat .stat-icon { background: rgba(255, 46, 77, 0.15); color: var(--youtube-red); }
 .top-donor-stat .stat-icon { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
 
@@ -1379,9 +1379,9 @@ body {
 }
 
 .db-item-platform-tag.ceneka {
-    background: rgba(139, 92, 246, 0.2);
-    color: #C4B5FD;
-    border: 1px solid rgba(139, 92, 246, 0.4);
+    background: rgba(var(--pc-ceneka-rgb), 0.2);
+    color: color-mix(in srgb, var(--ceneka-purple) 60%, #fff);
+    border: 1px solid rgba(var(--pc-ceneka-rgb), 0.4);
 }
 
 .db-item-platform-tag.youtube {
@@ -2130,7 +2130,7 @@ kbd {
 }
 .col-chip:hover { color: var(--text-primary); border-color: var(--border-highlight); }
 .col-chip.active { color: #fff; }
-.col-chip.ceneka.active { background: rgba(139, 92, 246, 0.25); border-color: var(--ceneka-purple); }
+.col-chip.ceneka.active { background: rgba(var(--pc-ceneka-rgb), 0.25); border-color: var(--ceneka-purple); }
 .col-chip.youtube.active { background: rgba(255, 46, 77, 0.22); border-color: var(--youtube-red); }
 .col-chip.twitch.active { background: rgba(145, 70, 255, 0.25); border-color: var(--twitch-purple); }
 .col-chip.kick.active { background: rgba(83, 252, 24, 0.14); border-color: var(--kick-green); }
@@ -2373,7 +2373,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
    COLOR POR PLATAFORMA (se elige en Opciones → Pantalla)
    ========================================================================== */
 :root {
-    --pc-ceneka-rgb: 139, 92, 246; --pc-youtube-rgb: 255, 46, 77;
+    --pc-ceneka-rgb: 255, 196, 0; --pc-youtube-rgb: 255, 46, 77;
     --pc-twitch-rgb: 145, 70, 255; --pc-kick-rgb: 83, 252, 24;
 }
 .platform-tag.ceneka  { background: rgba(var(--pc-ceneka-rgb), 0.22);  color: color-mix(in srgb, var(--ceneka-purple) 60%, #fff); }

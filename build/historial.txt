@@ -1,3 +1,9 @@
+Novedades de la 2.3.3:
+- Ceneka ahora es amarilla (antes violeta, casi igual a Twitch). Si nunca cambiaste el color, se actualiza sola; se puede elegir otro en Diseño → Panel → Color de cada plataforma.
+- La letra de las etiquetas y franjas se elige sola según el color (oscura sobre amarillo o verde claro, blanca sobre el resto), y las etiquetas tienen un filete que las separa de la tarjeta aunque sean del mismo color.
+- Si elegís una tarjeta de color claro (amarillo, blanco…) con letras en Automático, las letras pasan a oscuras y los recuadros a claros, para que todo se lea.
+- Íconos de Ceneka (tacita) y Kick (rayo) iguales en el panel y en OBS.
+
 Novedades de la 2.3.2:
 - Etiqueta de la plataforma en OBS (Ceneka, YouTube, Twitch, Kick) con su logo y en un bloque de color sólido: ahora se lee bien en todos los diseños (antes en Cristal, Ticket, Subtítulo, Neón y Zócalo quedaba muy pálida).
 

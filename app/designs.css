@@ -3,11 +3,11 @@
  * Cada diseño cambia solo la forma: los colores salen del tema, del color por monto y de la plataforma. */
 
 /* Color de la plataforma de cada donación (para bordes, franjas y triangulitos) */
-.obs-alert { --cur: var(--obs-accent); --cur-rgb: var(--obs-accent-rgb); }
-.obs-alert.ceneka { --cur: var(--pc-ceneka, #8B5CF6); --cur-rgb: var(--pc-ceneka-rgb, 139, 92, 246); }
-.obs-alert.youtube { --cur: var(--pc-youtube, #FF2E4D); --cur-rgb: var(--pc-youtube-rgb, 255, 46, 77); }
-.obs-alert.twitch { --cur: var(--pc-twitch, #9146FF); --cur-rgb: var(--pc-twitch-rgb, 145, 70, 255); }
-.obs-alert.kick { --cur: var(--pc-kick, #53FC18); --cur-rgb: var(--pc-kick-rgb, 83, 252, 24); }
+.obs-alert { --cur: var(--obs-accent); --cur-rgb: var(--obs-accent-rgb); --cur-ink: #fff; }
+.obs-alert.ceneka { --cur: var(--pc-ceneka, #FFC400); --cur-rgb: var(--pc-ceneka-rgb, 255, 196, 0); --cur-ink: var(--pc-ceneka-ink, #111); }
+.obs-alert.youtube { --cur: var(--pc-youtube, #FF2E4D); --cur-rgb: var(--pc-youtube-rgb, 255, 46, 77); --cur-ink: var(--pc-youtube-ink, #fff); }
+.obs-alert.twitch { --cur: var(--pc-twitch, #9146FF); --cur-rgb: var(--pc-twitch-rgb, 145, 70, 255); --cur-ink: var(--pc-twitch-ink, #fff); }
+.obs-alert.kick { --cur: var(--pc-kick, #53FC18); --cur-rgb: var(--pc-kick-rgb, 83, 252, 24); --cur-ink: var(--pc-kick-ink, #111); }
 
 /* Monto partido (número grande y moneda abajo): solo lo usan algunos diseños */
 .amt-split { display: none; }
@@ -106,7 +106,7 @@
 :root[data-design="franja"] .obs-alert { border: none; border-left: 8px solid var(--cur); border-radius: 0 10px 10px 0; padding: 0 0 12px; gap: 10px;
     background: linear-gradient(90deg, rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.96)), rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), calc(var(--obs-card-alpha, 0.96) * 0.85))); }
 :root[data-design="franja"] .obs-header { background: linear-gradient(90deg, var(--cur), rgba(var(--cur-rgb), 0.55)); padding: 8px 14px; }
-:root[data-design="franja"] .obs-nick, :root[data-design="franja"] .obs-nick > span:first-child { color: #fff; text-transform: uppercase; letter-spacing: 0.04em; }
+:root[data-design="franja"] .obs-nick, :root[data-design="franja"] .obs-nick > span:first-child { color: var(--cur-ink); text-transform: uppercase; letter-spacing: 0.04em; }
 :root[data-design="franja"] .obs-amount { background: #fff !important; color: #111827; border: none !important; border-radius: 4px !important; }
 :root[data-design="franja"] .obs-amount.has-amt-color { background: #fff !important; }
 :root[data-design="franja"] .obs-msg { background: none; border: none; padding: 0 16px; }
@@ -222,11 +222,18 @@
 :root.obs-preview #obs-scroll-area { overflow: hidden !important; scrollbar-width: none; }
 :root.obs-preview #obs-scroll-area::-webkit-scrollbar { display: none !important; width: 0 !important; }
 :root.obs-preview .obs-alert { animation: none; opacity: 1; }
-:root[data-design="postit"] .obs-tag { background: rgba(58, 48, 0, 0.1) !important; color: #3A3000 !important; border-color: rgba(58, 48, 0, 0.35) !important; }
 
 /* Etiqueta de la plataforma: bloque de color sólido con su logo, se lee igual sobre cualquier diseño y fondo */
 :root .obs-alert .obs-tag { display: inline-flex; align-items: center; gap: 4px; font-size: calc(0.66rem * var(--obs-head-scale, 0.75) / 0.75); padding: 2px 7px; border-radius: 4px;
-    background: var(--cur) !important; color: #fff !important; border: none !important; text-shadow: none !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); letter-spacing: 0.04em; }
-:root .obs-alert .obs-tag.kick { color: #06200A !important; }
+    background: var(--cur) !important; color: var(--cur-ink) !important; border: none !important; text-shadow: none !important; letter-spacing: 0.04em;
+    /* Doble filete (oscuro y claro): se despega del fondo aunque la tarjeta sea del mismo color */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.35); }
 :root .obs-alert .obs-tag i { font-size: 1.1em; }
-:root .obs-alert .obs-tag .tag-k { display: inline-grid; place-items: center; width: 1.15em; height: 1.15em; background: #06200A; color: var(--cur); border-radius: 2px; font-size: 0.9em; font-weight: 900; }
+
+/* Tarjeta de color claro con letras automáticas: recuadros claros, letras oscuras y sin sombra */
+:root.light-card .obs-alert, :root.light-card .obs-alert * { text-shadow: none !important; }
+:root.light-card .obs-msg { background: rgba(255, 255, 255, 0.38) !important; color: #111827; }
+:root.light-card .obs-amount { background: rgba(255, 255, 255, 0.55) !important; color: #0B6B3A !important; border-color: rgba(17, 24, 39, 0.25) !important; }
+:root.light-card .obs-amount.has-amt-color { color: var(--amt-color) !important; }
+:root.light-card .obs-avatar { background: rgba(17, 24, 39, 0.12) !important; color: #111827 !important; }
+:root.light-card .obs-btn-dismiss { background: rgba(17, 24, 39, 0.08); border-color: rgba(17, 24, 39, 0.25); color: #111827; }
