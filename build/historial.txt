@@ -1,3 +1,9 @@
+Novedades de la 2.3.8:
+- OVNI como efecto de fondo de OBS: ahora trae su cielo negro y el ovni aparece enseguida (antes casi no se veía).
+- Si elegís un tema animado para OBS (no "igual que el panel"), su animación ahora también se ve en la fuente de navegador.
+- Diseño: "Vista previa · Ver grande · Achicar" pasó abajo de los botones Panel / OBS / Destacar, así la parte de arriba ocupa menos.
+- Efecto animado de fondo: se muestra el elegido y "Ver todos los efectos" despliega la lista (antes ocupaba toda la pantalla).
+
 Novedades de la 2.3.7:
 - Diseño: la vista previa va al lado de las pestañas Panel / OBS / Destacar (ocupa menos alto) y "Ver grande" / "Achicar" quedan abajo de la vista previa.
 - Efecto animado de fondo: ahora se elige tocando tarjetitas con íconos, en 3 grupos claros (Dejan ver lo de atrás · Traen su propio cielo · De fechas especiales), y se ve al instante en la vista previa sin tener que guardar.

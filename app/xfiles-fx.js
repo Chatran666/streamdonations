@@ -194,7 +194,7 @@
         running = true; last = 0;
         resize();
         nextComet = performance.now() / 1000 + rand(2, 5); // el primero aparece enseguida
-        nextUfo = performance.now() / 1000 + rand(8, 15);
+        nextUfo = performance.now() / 1000 + rand(3, 6);
         raf = requestAnimationFrame(frame);
     }
 

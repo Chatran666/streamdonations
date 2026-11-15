@@ -248,3 +248,6 @@
 :root[data-design="sticker"] #alerts-container { filter: drop-shadow(0 0 1px #000) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45)); }
 :root[data-design="zocalo"] .obs-avatar { background: rgb(var(--obs-card-rgb, 11, 79, 179)) !important; color: #fff !important; }
 :root[data-design="zocalo"] .obs-msg { outline: 1px solid rgba(0, 0, 0, 0.6); }
+
+/* OVNI como efecto de fondo: trae su propio cielo negro */
+:root.fx-xfiles #xfiles-sky { background: #000; }

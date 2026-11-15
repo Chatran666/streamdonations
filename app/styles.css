@@ -3004,13 +3004,14 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .anim-tile small { color: rgba(255, 255, 255, 0.78); }
 
 /* ===== Vista previa al lado de las pestañas (aprovecha el ancho) y botones abajo ===== */
-.obs-live-preview { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "tabs prev" "tabs head"; column-gap: 24px; row-gap: 6px; align-items: center; }
-.obs-live-preview .dz-tabs { grid-area: tabs; margin-bottom: 0; align-self: center; }
+.obs-live-preview { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; grid-template-areas: "tabs prev" "head prev"; column-gap: 24px; row-gap: 8px; align-items: center; }
+.obs-live-preview .dz-tabs { grid-area: tabs; margin-bottom: 0; align-self: end; }
+.obs-live-preview .obs-live-head { align-self: start; justify-content: flex-start; gap: 14px; flex-wrap: wrap; }
 .obs-live-preview .panel-preview, .obs-live-preview .design-preview-wrap { grid-area: prev; }
 .obs-live-preview .obs-live-head { grid-area: head; margin: 0; }
 .obs-live-preview .design-preview-wrap { margin: 0 auto; max-width: 560px; width: 100%; }
 .obs-live-preview .panel-preview { max-width: 620px; width: 100%; margin: 0 auto; }
-.obs-live-preview.collapsed { grid-template-areas: "tabs head"; }
+.obs-live-preview.collapsed { grid-template-areas: "tabs head"; grid-template-rows: auto; }
 @media (max-width: 900px) { .obs-live-preview { grid-template-columns: 1fr; grid-template-areas: "tabs" "prev" "head"; } }
 
 /* ===== Selector visual de efectos ===== */
@@ -3025,3 +3026,11 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .fx-tile:hover { border-color: color-mix(in srgb, var(--fc) 60%, transparent); }
 .fx-tile.active { border-color: var(--fc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fc) 25%, transparent); }
 .anim-tile-emoji i { font-size: 1.35rem; }
+
+/* Efectos: se despliegan con un botón (así no ocupan toda la pantalla) */
+.fx-current { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border-radius: 12px; cursor: pointer; text-align: left; font-weight: 700;
+    background: var(--bg-tertiary, rgba(255, 255, 255, 0.04)); border: 2px solid var(--fc); color: var(--text-primary); }
+.fx-current > i { color: var(--fc); font-size: 1.2rem; width: 22px; text-align: center; }
+.fx-current em { margin-left: auto; font-style: normal; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
+.fx-picker:not(.open) .fx-all { display: none; }
+.fx-all { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(0, 0, 0, 0.12); }

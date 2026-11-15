@@ -1031,6 +1031,7 @@ window.SD_I18N_EN = {
     'Se mueve detrás de las donaciones y se ve al instante en la vista previa. Tocá uno para probarlo.': 'It moves behind the donations and shows right away in the preview. Tap one to try it.',
     'Dejan ver lo de atrás': 'Let what is behind show', 'van encima de tu imagen, tu juego o tu cámara': 'they go over your image, game or camera', 'Traen su propio cielo': 'Bring their own sky', 'pintan un fondo de noche y tapan lo de atrás': 'they paint a night background and cover what is behind', 'De fechas especiales': 'Holidays',
     'Lluvia fuerte': 'Heavy rain', 'Papelitos': 'Confetti', 'Hojas de otoño': 'Autumn leaves', 'Pétalos': 'Petals', 'Brillitos': 'Sparkles', 'Polvo flotando': 'Floating dust', 'Luces desenfocadas': 'Bokeh lights', 'Estrellas fugaces': 'Shooting stars', 'Niebla': 'Fog', 'Rayos': 'Lightning', 'Corazones': 'Hearts',
+    'Con cielo de noche': 'With a night sky', 'pintan un cielo encima de tu imagen de fondo (bajá la transparencia para ver un poco de ella)': 'they paint a sky over your background image (lower the transparency to see some of it)', 'Ocultar efectos': 'Hide effects', 'Ver todos los efectos': 'See all effects',
     'Ver en el panel': 'Show in the panel', 'Ver en OBS': 'Show in OBS',
     'Volver al panel': 'Back to the panel', 'Volver al panel (Esc)': 'Back to the panel (Esc)', 'Volver al panel para verlas': 'Go back to the panel to see them',
     '1 donación nueva': '1 new donation', '{} donaciones nuevas': '{} new donations',

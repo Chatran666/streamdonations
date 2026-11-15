@@ -5414,8 +5414,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const FX_GROUPS = [
         { t: 'Dejan ver lo de atrás', d: 'van encima de tu imagen, tu juego o tu cámara', i: 'eye', k: ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata'] },
-        { t: 'Traen su propio cielo', d: 'pintan un fondo de noche y tapan lo de atrás', i: 'moon', k: ['estrellas', 'aurora', 'tormenta', 'luciernagas'] },
-        { t: 'De fechas especiales', d: '', i: 'calendar-days', k: ['navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'] }
+        { t: 'Con cielo de noche', d: 'pintan un cielo encima de tu imagen de fondo (bajá la transparencia para ver un poco de ella)', i: 'moon', k: ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'] },
+        { t: 'De fechas especiales', d: '', i: 'calendar-days', k: ['navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta'] }
     ];
     // Luminancia (0 oscuro … 1 claro) para elegir sombra y textos que se lean
     function lumOf(hex) {
@@ -6254,9 +6254,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const box = $('bgfx-picker'); if (!box) return;
         const cur = $('cfg-obs-bg-fx').value;
         const tile = k => { const m = FX_META[k]; return `<button type="button" class="fx-tile ${k === cur ? 'active' : ''}" data-fx="${k}" style="--fc:${m.c}"><i class="fa-solid fa-${m.i}"></i><span>${escapeHTML(m.n)}</span></button>`; };
-        box.innerHTML = `<div class="fx-row">${tile('')}${tile('none')}</div>` + FX_GROUPS.map(g => `<div class="fx-group"><div class="fx-group-title"><i class="fa-solid fa-${g.i}"></i> ${escapeHTML(g.t)} <small>${escapeHTML(g.d)}</small></div><div class="fx-row">${g.k.map(tile).join('')}</div></div>`).join('');
+        const m = FX_META[cur] || FX_META[''];
+        const open = box.classList.contains('open');
+        box.innerHTML = `<button type="button" class="fx-current" data-fx-toggle style="--fc:${m.c}"><i class="fa-solid fa-${m.i}"></i><span>${escapeHTML(m.n)}</span><em>${open ? 'Ocultar efectos' : 'Ver todos los efectos'} <i class="fa-solid fa-chevron-${open ? 'up' : 'down'}"></i></em></button>` +
+            `<div class="fx-all"><div class="fx-row">${tile('')}${tile('none')}</div>` + FX_GROUPS.map(g => `<div class="fx-group"><div class="fx-group-title"><i class="fa-solid fa-${g.i}"></i> ${escapeHTML(g.t)} <small>${escapeHTML(g.d)}</small></div><div class="fx-row">${g.k.map(tile).join('')}</div></div>`).join('') + '</div>';
     }
     $('bgfx-picker').addEventListener('click', (e) => {
+        if (e.target.closest('[data-fx-toggle]')) { $('bgfx-picker').classList.toggle('open'); renderFxPicker(); return; }
         const b = e.target.closest('[data-fx]'); if (!b) return;
         $('cfg-obs-bg-fx').value = b.dataset.fx;
         $('cfg-obs-bg-fx').dispatchEvent(new Event('change', { bubbles: true }));
@@ -6338,6 +6342,8 @@ document.addEventListener('DOMContentLoaded', () => {
             theme: (!lk.obsTheme || lk.obsTheme === 'same' || !THEMES[lk.obsTheme]) ? currentThemeForObs : resolveTheme(lk.obsTheme, lk.obsCustomAccent, lk.obsCustomText),
             platformColors: lk.platformColors,
             obsBg: lk.obsBg,
+            // El tema de OBS elegido a propósito (no "igual que el panel"): su animación también va en la fuente de navegador
+            themeOwn: !!(lk.obsTheme && lk.obsTheme !== 'same'),
             filterBar: state.settings.obsFilterBar !== false,
             platforms: visiblePlatforms(),
             layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),

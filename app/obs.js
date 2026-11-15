@@ -617,6 +617,7 @@
                     document.documentElement.style.setProperty('--pc-' + k + '-ink', 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.3 ? '#111111' : '#FFFFFF');
                 });
             }
+            themeOwn = !!st.themeOwn;
             applyObsBg(st.obsBg);
             // Fondo detrás de cada donación: automático (según el diseño) o el que elijas
             const ca = parseFloat(st.cardAlpha);
@@ -690,12 +691,14 @@
             layoutTop();
         }
         // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
-        let themeFx = '', bgFx = '';
+        let themeFx = '', bgFx = '', themeOwn = false;
         const FX_KINDS = ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
         function applyFx() {
             const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
             const fx = bgFx === 'none' ? '' : (own ? bgFx : themeFx);
-            document.documentElement.classList.toggle('own-fx', !!own);
+            // También se muestra (en la fuente de navegador) la del tema de OBS si lo elegiste a propósito
+            document.documentElement.classList.toggle('own-fx', !!(own || (!bgFx && themeOwn && themeFx)));
+            document.documentElement.classList.toggle('fx-xfiles', fx === 'xfiles');
             if (window.XFilesFX) { if (fx === 'xfiles') window.XFilesFX.start(); else window.XFilesFX.stop(); }
             if (window.SDAnimFX) { if (fx && fx !== 'xfiles') window.SDAnimFX.start(fx); else window.SDAnimFX.stop(); }
         }
