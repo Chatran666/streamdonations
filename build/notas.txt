@@ -1,4 +1,2 @@
-Novedades de la 2.3.1:
-- 3 diseños nuevos de tarjeta (panel y OBS): Zócalo (estilo noticiero: nick en etiqueta amarilla, mensaje en banda y monto en placa dorada con la punta despegada), Calcomanía (sticker con borde blanco y la esquina despegada) y Nota (papelito pegado con cinta).
-- Navidad: la guirnalda ahora cuelga debajo de la barra de arriba de OBS (antes quedaba tapada).
-- 4 de Julio: además de los fuegos artificiales, caen papelitos rojos, blancos y azules.
+Novedades de la 2.3.2:
+- Etiqueta de la plataforma en OBS (Ceneka, YouTube, Twitch, Kick) con su logo y en un bloque de color sólido: ahora se lee bien en todos los diseños (antes en Cristal, Ticket, Subtítulo, Neón y Zócalo quedaba muy pálida).

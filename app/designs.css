@@ -223,3 +223,10 @@
 :root.obs-preview #obs-scroll-area::-webkit-scrollbar { display: none !important; width: 0 !important; }
 :root.obs-preview .obs-alert { animation: none; opacity: 1; }
 :root[data-design="postit"] .obs-tag { background: rgba(58, 48, 0, 0.1) !important; color: #3A3000 !important; border-color: rgba(58, 48, 0, 0.35) !important; }
+
+/* Etiqueta de la plataforma: bloque de color sólido con su logo, se lee igual sobre cualquier diseño y fondo */
+:root .obs-alert .obs-tag { display: inline-flex; align-items: center; gap: 4px; font-size: calc(0.66rem * var(--obs-head-scale, 0.75) / 0.75); padding: 2px 7px; border-radius: 4px;
+    background: var(--cur) !important; color: #fff !important; border: none !important; text-shadow: none !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35); letter-spacing: 0.04em; }
+:root .obs-alert .obs-tag.kick { color: #06200A !important; }
+:root .obs-alert .obs-tag i { font-size: 1.1em; }
+:root .obs-alert .obs-tag .tag-k { display: inline-grid; place-items: center; width: 1.15em; height: 1.15em; background: #06200A; color: var(--cur); border-radius: 2px; font-size: 0.9em; font-weight: 900; }
