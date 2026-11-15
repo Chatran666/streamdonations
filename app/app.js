@@ -5683,6 +5683,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Antes había una sola barra: si no hay una propia del efecto, arranca igual que la del fondo
         $('cfg-obs-fx-alpha').value = clampNum(lk.obsBg.fxAlpha !== undefined ? lk.obsBg.fxAlpha : lk.obsBg.alpha, 0, 100, 100);
         $('lbl-obs-fx-alpha').textContent = $('cfg-obs-fx-alpha').value + '%';
+        setFxBgChoice(lk.obsBg.fxBg);
         $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
         $('cfg-obs-bg-fx').value = OBS_BG_FX.includes(lk.obsBg.fx) ? lk.obsBg.fx : '';
         try { syncBgFrontRow(); renderFxPicker(); } catch (e) {}
@@ -5715,6 +5716,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dim: clampNum($('cfg-obs-bg-dim').value, 0, 0.85, 0.3),
                 alpha: Math.round(clampNum($('cfg-obs-bg-alpha').value, 0, 100, 100)),
                 fxAlpha: Math.round(clampNum($('cfg-obs-fx-alpha').value, 0, 100, 100)),
+                fxBg: ['on', 'off'].includes($('fxbg-choice').dataset.v) ? $('fxbg-choice').dataset.v : 'auto',
                 fx: OBS_BG_FX.includes($('cfg-obs-bg-fx').value) ? $('cfg-obs-bg-fx').value : '',
                 front: Math.round(clampNum($('cfg-obs-bg-front').value, 0, 100, 0)),
                 ver: parseInt($('obs-bg-name').dataset.ver) || 0,
@@ -6240,6 +6242,14 @@ document.addEventListener('DOMContentLoaded', () => {
         sendObsStyle();
     };
     $('cfg-obs-bg-alpha').addEventListener('input', bgAlphaInput);
+    function setFxBgChoice(v) {
+        const c = $('fxbg-choice'); c.dataset.v = ['on', 'off'].includes(v) ? v : 'auto';
+        c.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.v === c.dataset.v));
+    }
+    $('fxbg-choice').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]'); if (!b) return;
+        setFxBgChoice(b.dataset.v); setSettingsDirty(true); previewLook(); sendObsStyle();
+    });
     $('cfg-obs-fx-alpha').addEventListener('input', () => {
         $('lbl-obs-fx-alpha').textContent = $('cfg-obs-fx-alpha').value + '%';
         document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-fx-alpha"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-fx-alpha').value));
@@ -6257,6 +6267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (v === '') { try { const lk = look(); const tk = (!lk.obsTheme || lk.obsTheme === 'same') ? (themeDraft || state.settings.theme) : lk.obsTheme; fx = (THEMES[tk] && THEMES[tk].fx) || ''; } catch (e) { fx = ''; } }
         $('row-obs-bg-front').classList.toggle('hidden', !fx || fx === 'none' || fx === 'xfiles');
         $('row-obs-fx-alpha').classList.toggle('hidden', !fx || fx === 'none');
+        $('row-obs-fx-bg').classList.toggle('hidden', !fx || fx === 'none');
     }
     $('cfg-obs-bg-fx').addEventListener('change', () => { syncBgFrontRow(); renderFxPicker(); setSettingsDirty(true); previewLook(); sendObsStyle(); });
     // Selector visual de efectos (tarjetitas con ícono, en 3 grupos claros)

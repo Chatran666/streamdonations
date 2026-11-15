@@ -720,6 +720,10 @@
             root.style.setProperty('--obs-fx-alpha', String(Math.min(100, Math.max(0, fa)) / 100));
             const fr = bg ? parseFloat(bg.front) : 0;
             if (window.SDAnimFX && SDAnimFX.setFront) SDAnimFX.setFront(Number.isFinite(fr) ? fr / 100 : 0);
+            // Fondo del efecto: como viene / todos con fondo / sin fondo
+            const fxBg = bg && ['on', 'off'].includes(bg.fxBg) ? bg.fxBg : 'auto';
+            if (window.SDAnimFX && SDAnimFX.setBgMode) SDAnimFX.setBgMode(fxBg);
+            root.classList.toggle('fxbg-off', fxBg === 'off');
             const nfx = bg && typeof bg.fx === 'string' ? bg.fx : '';
             if (nfx !== bgFx) { bgFx = nfx; applyFx(); }
             const chroma = !!bg && bg.type === 'chroma';

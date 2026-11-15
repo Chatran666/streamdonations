@@ -250,4 +250,4 @@
 :root[data-design="zocalo"] .obs-msg { outline: 1px solid rgba(0, 0, 0, 0.6); }
 
 /* OVNI como efecto de fondo: trae su propio cielo negro */
-:root.fx-xfiles #xfiles-sky { background: #000; }
+:root.fx-xfiles:not(.fxbg-off) #xfiles-sky { background: #000; }

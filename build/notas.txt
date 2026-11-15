@@ -1,2 +1,2 @@
-Novedades de la 2.3.9:
-- La transparencia del fondo se separó en dos barras: una para tu imagen, GIF o color de fondo y otra para el efecto animado. Ej.: tu imagen al 100 % con el cielo de estrellas al 30 % encima. La del efecto vale también en captura de ventana.
+Novedades de la 2.3.10:
+- Nueva opción "Fondo del efecto" (Diseño → OBS): "Como viene" (cada efecto con lo suyo), "Con fondo" (todos traen un fondo que combina: cielo de noche, día de otoño, fondo de mar, día de primavera…) o "Sin fondo" (solo lo que cae o flota; por ejemplo, Tormenta sin las nubes oscuras o Estrellas sin el cielo, encima de tu imagen o tu juego).
