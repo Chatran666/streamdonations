@@ -59,6 +59,8 @@ fn open_external(app: &AppHandle, url: &Url) {
     }
 }
 
+const DARK_BG: tauri::window::Color = tauri::window::Color(11, 14, 20, 255);
+
 fn with_handlers<'a>(
     b: WebviewWindowBuilder<'a, Wry, AppHandle>,
     app: &AppHandle,
@@ -91,6 +93,8 @@ fn new_window(app: &AppHandle, url: Url, features: NewWindowFeatures) -> NewWind
     )
     .window_features(features)
     .title("StreamDonations")
+    // Fondo oscuro mientras carga (si no, WebView2 muestra blanco unos segundos)
+    .background_color(DARK_BG)
     .on_document_title_changed(|w, t| {
         let _ = w.set_title(&t);
     });
@@ -414,7 +418,8 @@ pub fn run() {
                 .title("StreamDonations")
                 .inner_size(1280.0, 800.0)
                 .min_inner_size(820.0, 560.0)
-                .maximized(true);
+                .maximized(true)
+                .background_color(DARK_BG);
             #[cfg(windows)]
             let b = b.additional_browser_args(BROWSER_ARGS);
             let main = with_handlers(b, &handle).build()?;

@@ -1,3 +1,6 @@
+Novedades de la 2.3.6:
+- Al abrir la ventana "Modo OBS" (y al abrir la app) ya no se ve blanco unos segundos mientras carga: el fondo queda oscuro.
+
 Novedades de la 2.3.5:
 - Elegir el diseño es más fácil: en vez de una lista, tarjetitas con un dibujo de cada diseño, de a 5 y con flechas para pasar.
 - 9 efectos nuevos "encima de tu fondo" que no pintan nada (para usar sobre tu imagen, tu juego o tu cámara): Lluvia fuerte, Papelitos, Brillitos, Polvo flotando, Luces desenfocadas, Estrellas fugaces, Niebla, Rayos y Corazones. Los efectos ahora están ordenados en grupos.

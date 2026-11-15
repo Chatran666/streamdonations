@@ -1,7 +1,2 @@
-Novedades de la 2.3.5:
-- Elegir el diseño es más fácil: en vez de una lista, tarjetitas con un dibujo de cada diseño, de a 5 y con flechas para pasar.
-- 9 efectos nuevos "encima de tu fondo" que no pintan nada (para usar sobre tu imagen, tu juego o tu cámara): Lluvia fuerte, Papelitos, Brillitos, Polvo flotando, Luces desenfocadas, Estrellas fugaces, Niebla, Rayos y Corazones. Los efectos ahora están ordenados en grupos.
-- "Pasan por delante de las tarjetas" solo aparece cuando hay un efecto elegido.
-- Temas animados: los títulos se ven también con el tema claro.
-- Calcomanía: el pliegue de la esquina coincide con el borde blanco.
-- Zócalo: la etiqueta de la plataforma va arriba a la derecha (antes quedaba pegada abajo).
+Novedades de la 2.3.6:
+- Al abrir la ventana "Modo OBS" (y al abrir la app) ya no se ve blanco unos segundos mientras carga: el fondo queda oscuro.
