@@ -3034,3 +3034,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .fx-current em { margin-left: auto; font-style: normal; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
 .fx-picker:not(.open) .fx-all { display: none; }
 .fx-all { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(0, 0, 0, 0.12); }
+
+/* Efecto animado también en el panel (opcional) */
+:root.panel-fx body { background-color: transparent !important; }
+:root.panel-fx-xfiles #xfiles-sky { background: #000; }

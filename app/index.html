@@ -493,8 +493,8 @@
     <!-- Temas animados: se elige acá abajo y se ve en vivo en el panel -->
     <div class="anim-picker hidden" id="anim-picker" role="dialog" aria-labelledby="anim-title">
         <div class="anim-head">
-            <h3 id="anim-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Temas animados</h3>
-            <small>Tocá uno y miralo en vivo en el panel. Se confirma con "Guardar cambios".</small>
+            <h3 id="anim-title"><i class="fa-solid fa-palette"></i> Temas especiales</h3>
+            <small>Colores para fechas y ocasiones. Tocá uno y miralo en vivo. Las animaciones (nieve, lluvia…) se eligen en Diseño → OBS → Efecto animado de fondo.</small>
         </div>
         <div class="anim-grid" id="anim-grid"></div>
         <div class="anim-actions">
@@ -971,6 +971,10 @@
                             <select id="cfg-panel-design" class="input-field dz-hidden-select" aria-hidden="true" tabindex="-1"></select>
                         </div>
                         <div class="dz-carousel" data-for="cfg-panel-design"></div>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Mostrar en el panel el mismo efecto que en OBS</strong><small>El efecto animado que elijas en Diseño → OBS también detrás del panel. Apagado gasta menos PC.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-panel-fx"><span class="toggle-slider"></span></span>
+                        </label>
 
                         <div class="setting-row">
                             <div><strong>Colores de la tarjeta</strong><small>El fondo de cada donación y el color de las letras. "Automático" usa los del diseño y el tema.</small></div>

@@ -4666,6 +4666,7 @@ document.addEventListener('DOMContentLoaded', () => {
           $('lbl-obs-card-alpha').textContent = auto ? 'Auto' : ca + '%'; }
         renderDesignPicker();
         renderPanelDesignSelect(st.panelDesign || 'tarjeta');
+        $('cfg-panel-fx').checked = !!st.panelFx;
         fillPanelCardForm();
         setTimeout(() => setDzSide(dzSide), 0);
         setTimeout(refreshDesignPreview, 200);
@@ -4883,6 +4884,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsDesign = OBS_DESIGNS.some(d => d.k === currentDesign()) ? currentDesign() : 'tarjeta';
         st.obsAccum = $('cfg-obs-accum').value;
         st.panelDesign = $('cfg-panel-design').value || 'tarjeta';
+        st.panelFx = $('cfg-panel-fx').checked;
         { const f = panelCardForm(); st.panelCardColor = f.color; st.panelCardText = f.text; st.panelCardAlpha = f.alpha >= 0 && f.alpha <= 100 ? f.alpha : -1; }
         st.obsCardAlpha = $('cfg-obs-card-auto').checked ? -1 : Math.min(100, Math.max(0, parseInt($('cfg-obs-card-alpha').value, 10) || 0));
         cardAlphaDraft = null;
@@ -5374,29 +5376,29 @@ document.addEventListener('DOMContentLoaded', () => {
         cyan:    { label: 'Cyan / Azul',   mode: 'dark',  accent: '#00C2FF', accent2: '#00FFC8' },
         custom:  { label: 'Personalizado', mode: 'dark',  accent: null,      accent2: null },
         // Animados: se eligen en su propia ventana (tocando "Animados")
-        xfiles:     { label: 'OVNI',            mode: 'dark', accent: '#00FF41', accent2: '#39FF14', fx: 'xfiles',      anim: true, emoji: '🛸', desc: 'Estrellas, cometas y un ovni que pasa' },
-        navidad:    { label: 'Navidad',         mode: 'dark', accent: '#E53935', accent2: '#2ECC71', fx: 'navidad',     anim: true, emoji: '🎄', desc: 'Nieve y guirnalda de luces' },
-        nieve:      { label: 'Nieve',           mode: 'dark', accent: '#7FD6FF', accent2: '#E6F6FF', fx: 'nieve',       anim: true, emoji: '❄️', desc: 'Nevada tranquila con ráfagas de viento' },
-        anionuevo:  { label: 'Año Nuevo',       mode: 'dark', accent: '#F6C744', accent2: '#FF5DA2', fx: 'anionuevo',   anim: true, emoji: '🥂', desc: 'Fuegos artificiales y papelitos dorados' },
-        halloween:  { label: 'Halloween',       mode: 'dark', accent: '#FF7518', accent2: '#A55EEA', fx: 'halloween',   anim: true, emoji: '🎃', desc: 'Murciélagos, fantasmas y niebla' },
-        argentina:  { label: 'Argentina',       mode: 'dark', accent: '#74ACDF', accent2: '#F6B40E', fx: 'argentina',   anim: true, emoji: '☀️', desc: 'Papelitos celeste y blanco con el Sol de Mayo' },
-        julio4:     { label: '4 de Julio',      mode: 'dark', accent: '#3C6EF0', accent2: '#E63946', fx: 'julio4',      anim: true, emoji: '🎆', desc: 'Fuegos artificiales rojos, blancos y azules' },
-        sanvalentin:{ label: 'San Valentín',    mode: 'dark', accent: '#FF4D8D', accent2: '#FF99C2', fx: 'sanvalentin', anim: true, emoji: '💘', desc: 'Corazones que suben' },
-        primavera:  { label: 'Primavera',       mode: 'dark', accent: '#FF8FB1', accent2: '#8BD17C', fx: 'primavera',   anim: true, emoji: '🌸', desc: 'Flores y hojitas que caen' },
-        plata:      { label: 'Lluvia de plata', mode: 'dark', accent: '#2ECC71', accent2: '#F1C40F', fx: 'plata',       anim: true, emoji: '💸', desc: 'Billetes y monedas que caen' },
-        estrellas:  { label: 'Cielo con estrellas', mode: 'dark', accent: '#8EA8FF', accent2: '#FFE9B8', fx: 'estrellas', anim: true, emoji: '✨', desc: 'Noche estrellada con estrellas fugaces' },
-        aurora:     { label: 'Aurora boreal',   mode: 'dark', accent: '#3DFFB0', accent2: '#7A5CFF', fx: 'aurora',      anim: true, emoji: '🌌', desc: 'Luces del norte sobre un cielo estrellado' },
-        lluvia:     { label: 'Lluvia',          mode: 'dark', accent: '#5DA9E9', accent2: '#C9DDF2', fx: 'lluvia',      anim: true, emoji: '🌧️', desc: 'Lluvia con salpicaduras' },
-        tormenta:   { label: 'Tormenta',        mode: 'dark', accent: '#9DB4FF', accent2: '#FFD43B', fx: 'tormenta',    anim: true, emoji: '⛈️', desc: 'Lluvia fuerte, nubes y relámpagos' },
-        otono:      { label: 'Otoño',           mode: 'dark', accent: '#E8590C', accent2: '#FAB005', fx: 'otono',       anim: true, emoji: '🍁', desc: 'Hojas que caen con el viento' },
-        burbujas:   { label: 'Burbujas',        mode: 'dark', accent: '#5DE2FF', accent2: '#FF8FD8', fx: 'burbujas',    anim: true, emoji: '🫧', desc: 'Burbujas que suben y explotan' },
-        luciernagas:{ label: 'Luciérnagas',     mode: 'dark', accent: '#C6FF4A', accent2: '#2F9E44', fx: 'luciernagas', anim: true, emoji: '🌙', desc: 'Noche de campo con luciérnagas' },
-        fiesta:     { label: 'Fiesta',          mode: 'dark', accent: '#FF4D6D', accent2: '#FFD60A', fx: 'fiesta',      anim: true, emoji: '🎉', desc: 'Papelitos y serpentinas de colores' }
+        xfiles:     { label: 'OVNI',            mode: 'dark', accent: '#00FF41', accent2: '#39FF14', fx: 'xfiles',      anim: true, emoji: '🛸', desc: 'Negro con verde fosforescente' },
+        navidad:    { label: 'Navidad',         mode: 'dark', accent: '#E53935', accent2: '#2ECC71', fx: 'navidad',     anim: true, emoji: '🎄', desc: 'Rojo y verde navideño' },
+        nieve:      { label: 'Nieve',           mode: 'dark', accent: '#7FD6FF', accent2: '#E6F6FF', fx: 'nieve',       anim: true, emoji: '❄️', desc: 'Celeste helado' },
+        anionuevo:  { label: 'Año Nuevo',       mode: 'dark', accent: '#F6C744', accent2: '#FF5DA2', fx: 'anionuevo',   anim: true, emoji: '🥂', desc: 'Dorado y rosa de fiesta' },
+        halloween:  { label: 'Halloween',       mode: 'dark', accent: '#FF7518', accent2: '#A55EEA', fx: 'halloween',   anim: true, emoji: '🎃', desc: 'Naranja y violeta' },
+        argentina:  { label: 'Argentina',       mode: 'dark', accent: '#74ACDF', accent2: '#F6B40E', fx: 'argentina',   anim: true, emoji: '☀️', desc: 'Celeste y dorado' },
+        julio4:     { label: '4 de Julio',      mode: 'dark', accent: '#3C6EF0', accent2: '#E63946', fx: 'julio4',      anim: true, emoji: '🎆', desc: 'Azul y rojo' },
+        sanvalentin:{ label: 'San Valentín',    mode: 'dark', accent: '#FF4D8D', accent2: '#FF99C2', fx: 'sanvalentin', anim: true, emoji: '💘', desc: 'Rosa y fucsia' },
+        primavera:  { label: 'Primavera',       mode: 'dark', accent: '#FF8FB1', accent2: '#8BD17C', fx: 'primavera',   anim: true, emoji: '🌸', desc: 'Rosa y verde suave' },
+        plata:      { label: 'Lluvia de plata', mode: 'dark', accent: '#2ECC71', accent2: '#F1C40F', fx: 'plata',       anim: true, emoji: '💸', desc: 'Verde billete y dorado' },
+        estrellas:  { label: 'Cielo con estrellas', mode: 'dark', accent: '#8EA8FF', accent2: '#FFE9B8', fx: 'estrellas', anim: true, emoji: '✨', desc: 'Azul de noche y crema' },
+        aurora:     { label: 'Aurora boreal',   mode: 'dark', accent: '#3DFFB0', accent2: '#7A5CFF', fx: 'aurora',      anim: true, emoji: '🌌', desc: 'Verde aurora y violeta' },
+        lluvia:     { label: 'Lluvia',          mode: 'dark', accent: '#5DA9E9', accent2: '#C9DDF2', fx: 'lluvia',      anim: true, emoji: '🌧️', desc: 'Azul lluvia' },
+        tormenta:   { label: 'Tormenta',        mode: 'dark', accent: '#9DB4FF', accent2: '#FFD43B', fx: 'tormenta',    anim: true, emoji: '⛈️', desc: 'Azul tormenta y amarillo rayo' },
+        otono:      { label: 'Otoño',           mode: 'dark', accent: '#E8590C', accent2: '#FAB005', fx: 'otono',       anim: true, emoji: '🍁', desc: 'Naranja y ocre' },
+        burbujas:   { label: 'Burbujas',        mode: 'dark', accent: '#5DE2FF', accent2: '#FF8FD8', fx: 'burbujas',    anim: true, emoji: '🫧', desc: 'Celeste y rosa' },
+        luciernagas:{ label: 'Luciérnagas',     mode: 'dark', accent: '#C6FF4A', accent2: '#2F9E44', fx: 'luciernagas', anim: true, emoji: '🌙', desc: 'Verde lima' },
+        fiesta:     { label: 'Fiesta',          mode: 'dark', accent: '#FF4D6D', accent2: '#FFD60A', fx: 'fiesta',      anim: true, emoji: '🎉', desc: 'Rojo y amarillo' }
     };
     const ANIM_KEYS = Object.keys(THEMES).filter(k => THEMES[k].anim);
     // Íconos y nombres de los efectos (íconos de la app: se ven en cualquier Windows)
     const FX_META = {
-        '': { n: 'El del tema', i: 'palette', c: '#9AA3B5' }, none: { n: 'Ninguno', i: 'ban', c: '#9AA3B5' },
+        '': { n: 'Ninguno', i: 'ban', c: '#9AA3B5' }, none: { n: 'Ninguno', i: 'ban', c: '#9AA3B5' },
         lluvia: { n: 'Lluvia', i: 'cloud-rain', c: '#5DA9E9' }, lluviafuerte: { n: 'Lluvia fuerte', i: 'cloud-showers-heavy', c: '#3C8DDA' },
         nieve: { n: 'Nieve', i: 'snowflake', c: '#9AD8FF' }, papelitos: { n: 'Papelitos', i: 'burst', c: '#FF4D6D' },
         otono: { n: 'Hojas de otoño', i: 'leaf', c: '#F08C3A' }, primavera: { n: 'Pétalos', i: 'spa', c: '#FF8FB1' },
@@ -5485,10 +5487,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const th = resolveTheme(key ?? state.settings.theme, customAccent ?? state.settings.customAccent, customText ?? state.settings.customText);
         const r = document.documentElement;
         r.dataset.theme = th.mode;
-        r.dataset.fx = th.fx;
-        if (th.fx) r.dataset.anim = th.fx; else delete r.dataset.anim;
-        if (window.XFilesFX) { if (th.fx === 'xfiles') window.XFilesFX.start(); else window.XFilesFX.stop(); }
-        if (window.SDAnimFX) { if (th.fx && th.fx !== 'xfiles') window.SDAnimFX.start(th.fx); else window.SDAnimFX.stop(); }
+        // Los temas ahora son solo colores: las animaciones se eligen en Diseño → OBS → Efecto animado de fondo
+        r.dataset.fx = '';
+        delete r.dataset.anim;
+        setTimeout(() => { try { applyPanelFx(); } catch (e) {} }, 0);
         if (th.customText) {
             r.style.setProperty('--text-primary', th.text);
             r.style.setProperty('--text-secondary', th.textSecondary);
@@ -5531,9 +5533,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const wrap = $('theme-picker');
         if (!wrap) return;
         const animSel = THEMES[selected] && THEMES[selected].anim ? selected : '';
-        const animTile = `<button type="button" class="theme-swatch anim-swatch ${animSel ? 'active' : ''}" data-anim-open="1" title="Temas con animaciones">
-                <span class="swatch-preview anim-preview"><span class="anim-emojis">${animSel ? THEMES[animSel].emoji : '🎄🎃🛸'}</span></span>
-                <span class="swatch-label"><i class="fa-solid fa-wand-magic-sparkles"></i> ${animSel ? 'Animado: ' + THEMES[animSel].label : 'Animados'}</span>
+        const animTile = `<button type="button" class="theme-swatch anim-swatch ${animSel ? 'active' : ''}" data-anim-open="1" title="Más temas de colores (fechas y ocasiones)">
+                <span class="swatch-preview anim-preview"><span class="anim-emojis">${animSel ? `<i class="fa-solid fa-${(FX_META[THEMES[animSel].fx] || {}).i || 'palette'}" style="color:${THEMES[animSel].accent}"></i>` : '<i class="fa-solid fa-tree" style="color:#2ECC71"></i> <i class="fa-solid fa-ghost" style="color:#FF7518"></i> <i class="fa-solid fa-sun" style="color:#F6B40E"></i>'}</span></span>
+                <span class="swatch-label"><i class="fa-solid fa-palette"></i> ${animSel ? THEMES[animSel].label : 'Especiales'}</span>
             </button>`;
         wrap.innerHTML = Object.keys(THEMES).filter(k => !THEMES[k].anim).map(k => {
             const t = THEMES[k];
@@ -5603,7 +5605,13 @@ document.addEventListener('DOMContentLoaded', () => {
             obsCustomAccent: cleanColor(st.obsCustomAccent, '#00E676'),
             obsCustomText: cleanColor(st.obsCustomText, ''),
             obsCardColor: cleanColor(st.obsCardColor, ''),
-            obsBg: Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '', alpha: 100, fx: '', front: 0 }, st.obsBg || {})
+            obsBg: (function () {
+                const ob = Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '', alpha: 100, fx: '', front: 0 }, st.obsBg || {});
+                // Antes la animación venía con el tema de OBS: si lo tenías elegido, pasa a ser el efecto
+                const tf = st.obsTheme && st.obsTheme !== 'same' && THEMES[st.obsTheme] && THEMES[st.obsTheme].fx;
+                if (!ob.fx && tf) { ob.fx = tf; if (!ob.fxBg) ob.fxBg = 'on'; }
+                return ob;
+            })()
         };
         return Object.assign(base, lookDraft || {});
     }
@@ -5665,7 +5673,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sel = $('cfg-obs-theme');
         sel.innerHTML = '<option value="same">Igual que el panel</option>' +
             Object.keys(THEMES).filter(k => !THEMES[k].anim).map(k => `<option value="${k}">${THEMES[k].label}</option>`).join('') +
-            '<optgroup label="Animados">' + ANIM_KEYS.map(k => `<option value="${k}">${THEMES[k].emoji} ${THEMES[k].label}</option>`).join('') + '</optgroup>';
+            '<optgroup label="Especiales">' + ANIM_KEYS.map(k => `<option value="${k}">${THEMES[k].label}</option>`).join('') + '</optgroup>';
         sel.value = THEMES[lk.obsTheme] ? lk.obsTheme : 'same';
         $('cfg-obs-custom-accent').value = lk.obsCustomAccent;
         $('cfg-obs-custom-text-auto').checked = !lk.obsCustomText;
@@ -6245,7 +6253,21 @@ document.addEventListener('DOMContentLoaded', () => {
         sendObsStyle();
     };
     $('cfg-obs-bg-alpha').addEventListener('input', bgAlphaInput);
-    $('cfg-obs-fx-bg').addEventListener('change', () => { setSettingsDirty(true); previewLook(); sendObsStyle(); });
+    $('cfg-obs-fx-bg').addEventListener('change', () => { setSettingsDirty(true); previewLook(); sendObsStyle(); applyPanelFx(); });
+    // ---- El mismo efecto de OBS también en el panel (opcional, apagado de fábrica) ----
+    function applyPanelFx() {
+        const open = !els.modalSettings.classList.contains('hidden');
+        const on = open ? $('cfg-panel-fx').checked : !!state.settings.panelFx;
+        let fx = '', bgOn = false;
+        try { const ob = open ? readLookForm().obsBg : look().obsBg; fx = ob.fx || ''; bgOn = ob.fxBg === 'on'; } catch (e) {}
+        const show = on && fx && fx !== 'none';
+        document.documentElement.classList.toggle('panel-fx', !!show);
+        document.documentElement.classList.toggle('panel-fx-xfiles', show && fx === 'xfiles' && bgOn);
+        if (window.SDAnimFX) { if (SDAnimFX.setBgMode) SDAnimFX.setBgMode(bgOn ? 'on' : 'off'); if (SDAnimFX.setFront) SDAnimFX.setFront(0); }
+        if (window.XFilesFX) { if (show && fx === 'xfiles') XFilesFX.start(); else XFilesFX.stop(); }
+        if (window.SDAnimFX) { if (show && fx !== 'xfiles') SDAnimFX.start(fx); else SDAnimFX.stop(); }
+    }
+    $('cfg-panel-fx').addEventListener('change', () => { setSettingsDirty(true); applyPanelFx(); });
     $('cfg-obs-fx-alpha').addEventListener('input', () => {
         $('lbl-obs-fx-alpha').textContent = $('cfg-obs-fx-alpha').value + '%';
         document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-fx-alpha"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-fx-alpha').value));
@@ -6259,22 +6281,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // "Pasan por delante" solo tiene sentido si hay algún efecto
     function syncBgFrontRow() {
         const v = $('cfg-obs-bg-fx').value;
-        let fx = v;
-        if (v === '') { try { const lk = look(); const tk = (!lk.obsTheme || lk.obsTheme === 'same') ? (themeDraft || state.settings.theme) : lk.obsTheme; fx = (THEMES[tk] && THEMES[tk].fx) || ''; } catch (e) { fx = ''; } }
+        const fx = v;
         $('row-obs-bg-front').classList.toggle('hidden', !fx || fx === 'none' || fx === 'xfiles');
         $('row-obs-fx-alpha').classList.toggle('hidden', !fx || fx === 'none');
         $('row-obs-fx-bg').classList.toggle('hidden', !fx || fx === 'none');
     }
-    $('cfg-obs-bg-fx').addEventListener('change', () => { syncBgFrontRow(); renderFxPicker(); setSettingsDirty(true); previewLook(); sendObsStyle(); });
+    $('cfg-obs-bg-fx').addEventListener('change', () => { syncBgFrontRow(); renderFxPicker(); setSettingsDirty(true); previewLook(); sendObsStyle(); applyPanelFx(); });
     // Selector visual de efectos (tarjetitas con ícono, en 3 grupos claros)
     function renderFxPicker() {
         const box = $('bgfx-picker'); if (!box) return;
-        const cur = $('cfg-obs-bg-fx').value;
+        const cur = $('cfg-obs-bg-fx').value || 'none';
         const tile = k => { const m = FX_META[k]; return `<button type="button" class="fx-tile ${k === cur ? 'active' : ''}" data-fx="${k}" style="--fc:${m.c}"><i class="fa-solid fa-${m.i}"></i><span>${escapeHTML(m.n)}</span></button>`; };
         const m = FX_META[cur] || FX_META[''];
         const open = box.classList.contains('open');
         box.innerHTML = `<button type="button" class="fx-current" data-fx-toggle style="--fc:${m.c}"><i class="fa-solid fa-${m.i}"></i><span>${escapeHTML(m.n)}</span><em>${open ? 'Ocultar efectos' : 'Ver todos los efectos'} <i class="fa-solid fa-chevron-${open ? 'up' : 'down'}"></i></em></button>` +
-            `<div class="fx-all"><div class="fx-row">${tile('')}${tile('none')}</div>` + FX_GROUPS.map(g => `<div class="fx-group"><div class="fx-group-title"><i class="fa-solid fa-${g.i}"></i> ${escapeHTML(g.t)} <small>${escapeHTML(g.d)}</small></div><div class="fx-row">${g.k.map(tile).join('')}</div></div>`).join('') + '</div>';
+            `<div class="fx-all"><div class="fx-row">${tile('none')}</div>` + FX_GROUPS.map(g => `<div class="fx-group"><div class="fx-group-title"><i class="fa-solid fa-${g.i}"></i> ${escapeHTML(g.t)} <small>${escapeHTML(g.d)}</small></div><div class="fx-row">${g.k.map(tile).join('')}</div></div>`).join('') + '</div>';
     }
     $('bgfx-picker').addEventListener('click', (e) => {
         if (e.target.closest('[data-fx-toggle]')) { $('bgfx-picker').classList.toggle('open'); renderFxPicker(); return; }

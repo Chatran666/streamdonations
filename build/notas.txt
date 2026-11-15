@@ -1,2 +1,4 @@
-Novedades de la 2.3.11:
-- "Fondo del efecto" ahora es un solo interruptor: "Mostrar el fondo del efecto". Todos los efectos traen su fondo y vos decidís si se ve (prendido) o si queda solo lo que cae o flota (apagado). Lo que tenías antes se ve igual.
+Novedades de la 2.3.12:
+- Los temas ahora son solo colores. Los que antes eran "Animados" pasan a "Temas especiales" (Navidad, Halloween, Aurora, etc.): mismos colores, sin animación, así el panel gasta menos PC.
+- Las animaciones se eligen en un solo lugar: Diseño → OBS → Efecto animado de fondo. Si tenías un tema animado elegido para OBS, su animación pasa sola a ser el efecto.
+- Nuevo (opcional, apagado): "Mostrar en el panel el mismo efecto que en OBS", en Diseño → Panel.

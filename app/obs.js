@@ -656,8 +656,8 @@
                 r.setProperty('--obs-shadow-rgb', L > 0.35 ? '0, 0, 0' : '255, 255, 255');
                 document.documentElement.dataset.mode = t.mode === 'light' ? 'light' : 'dark';
                 document.documentElement.dataset.fx = t.fx || '';
-                if (t.fx) document.documentElement.dataset.anim = t.fx; else delete document.documentElement.dataset.anim;
-                themeFx = t.fx || '';
+                delete document.documentElement.dataset.anim; // los temas ya no traen animación (va en "Efecto animado de fondo")
+                themeFx = '';
                 applyFx();
             }
             // Colores propios de la tarjeta (fondo y letras), en cualquier diseño
