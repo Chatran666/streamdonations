@@ -1234,6 +1234,13 @@
                                 <option value="">El del tema</option>
                                 <option value="none">Ninguno</option>
                                 <option value="estrellas">✨ Cielo con estrellas</option>
+                                <option value="aurora">🌌 Aurora boreal</option>
+                                <option value="lluvia">🌧️ Lluvia</option>
+                                <option value="tormenta">⛈️ Tormenta</option>
+                                <option value="otono">🍁 Otoño</option>
+                                <option value="burbujas">🫧 Burbujas</option>
+                                <option value="luciernagas">🌙 Luciérnagas</option>
+                                <option value="fiesta">🎉 Fiesta</option>
                                 <option value="nieve">❄️ Nieve</option>
                                 <option value="navidad">🎄 Navidad</option>
                                 <option value="halloween">🎃 Halloween</option>
@@ -1245,6 +1252,13 @@
                                 <option value="plata">💸 Lluvia de plata</option>
                                 <option value="xfiles">🛸 OVNI</option>
                             </select>
+                        </div>
+                        <div class="setting-row bg-extra-row">
+                            <div><strong>Pasan por delante de las tarjetas</strong><small>Qué parte del efecto (copos, hojas, papelitos…) cruza por encima de las donaciones. 0% = todo queda atrás.</small></div>
+                            <div class="alpha-ctl">
+                                <div class="alpha-ctl-row"><input type="range" id="cfg-obs-bg-front" min="0" max="100" step="1" value="0"><span class="range-value" id="lbl-obs-bg-front">0%</span></div>
+                                <div class="alpha-quick" data-alpha-target="cfg-obs-bg-front"><button type="button" data-v="0">0%</button><button type="button" data-v="15">15%</button><button type="button" data-v="30">30%</button><button type="button" data-v="50">50%</button></div>
+                            </div>
                         </div>
                         <div class="setting-row bg-extra-row">
                             <div><strong>Transparencia del fondo</strong><small>Para el fondo (color, imagen o GIF) y el efecto animado. Deja ver tu juego o tu cámara detrás. Funciona con la fuente de navegador (el link); en captura de ventana el fondo tapa todo.</small></div>

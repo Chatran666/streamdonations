@@ -113,14 +113,50 @@
 :root[data-design="franja"] .obs-tag { background: rgba(0, 0, 0, 0.35) !important; color: #fff !important; border-color: rgba(255, 255, 255, 0.4) !important; }
 :root[data-design="franja"] .obs-btn-dismiss { background: rgba(0, 0, 0, 0.25); border-color: rgba(255, 255, 255, 0.35); color: #fff; }
 
+/* ===================== PIXEL (retro de 8 bits) ===================== */
+:root[data-design="pixel"] .obs-alert { border: none; border-radius: 0; backdrop-filter: none; margin: 6px; padding: 14px 18px; gap: 9px;
+    background: rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.96));
+    box-shadow: 0 -4px 0 0 var(--cur), 0 4px 0 0 var(--cur), -4px 0 0 0 var(--cur), 4px 0 0 0 var(--cur),
+        0 -8px 0 0 rgba(0, 0, 0, 0.55), 0 8px 0 0 rgba(0, 0, 0, 0.55), -8px 0 0 0 rgba(0, 0, 0, 0.55), 8px 0 0 0 rgba(0, 0, 0, 0.55), 10px 12px 0 0 rgba(0, 0, 0, 0.45); }
+:root[data-design="pixel"] .obs-alert, :root[data-design="pixel"] .obs-alert *:not(i):not(.fa-solid):not(.fa-brands):not(.fa-regular) { font-family: 'JetBrains Mono', 'Consolas', monospace; }
+:root[data-design="pixel"] .obs-nick > span:first-child { text-transform: uppercase; letter-spacing: 0.08em; color: var(--cur); }
+:root[data-design="pixel"] .obs-amount { background: var(--cur) !important; color: #0B0B12 !important; border: none !important; border-radius: 0 !important; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.6); text-shadow: none !important; }
+:root[data-design="pixel"] .obs-amount.has-amt-color { background: var(--amt-color) !important; }
+:root[data-design="pixel"] .obs-msg { background: rgba(0, 0, 0, 0.28); border: none; border-radius: 0; box-shadow: inset 0 0 0 2px rgba(var(--obs-ink-rgb), 0.18); }
+:root[data-design="pixel"] .obs-avatar { border-radius: 0 !important; box-shadow: 0 0 0 3px var(--cur), 3px 3px 0 3px rgba(0, 0, 0, 0.5); image-rendering: pixelated; }
+:root[data-design="pixel"] .obs-avatar img { border-radius: 0 !important; image-rendering: pixelated; }
+:root[data-design="pixel"] .obs-tag { border-radius: 0 !important; }
+:root[data-design="pixel"] .obs-btn-dismiss { border-radius: 0; }
+
+/* ===================== HUD (pantalla de nave) ===================== */
+:root[data-design="hud"] .obs-alert { border: none; border-radius: 0; backdrop-filter: none; padding: 16px 22px;
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+    background: repeating-linear-gradient(0deg, rgba(var(--cur-rgb), 0.07) 0 1px, transparent 1px 4px),
+        linear-gradient(120deg, rgba(var(--cur-rgb), 0.22), rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.9)) 45%);
+    background-color: rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.9));
+    box-shadow: inset 0 0 0 1px rgba(var(--cur-rgb), 0.55), inset 0 0 26px rgba(var(--cur-rgb), 0.18); }
+:root[data-design="hud"] .obs-alert::before { content: ''; position: absolute; inset: 6px; pointer-events: none; z-index: 2;
+    background:
+        linear-gradient(var(--cur), var(--cur)) top left / 18px 2px no-repeat, linear-gradient(var(--cur), var(--cur)) top left / 2px 18px no-repeat,
+        linear-gradient(var(--cur), var(--cur)) bottom right / 18px 2px no-repeat, linear-gradient(var(--cur), var(--cur)) bottom right / 2px 18px no-repeat,
+        linear-gradient(90deg, transparent, rgba(var(--cur-rgb), 0.8), transparent) top center / 40% 1px no-repeat; }
+:root[data-design="hud"] .obs-nick > span:first-child { text-transform: uppercase; letter-spacing: 0.12em; color: var(--cur); }
+:root[data-design="hud"] .obs-nick > span:first-child::before { content: '▸ '; opacity: 0.8; }
+:root[data-design="hud"] .obs-amount { background: rgba(var(--cur-rgb), 0.22) !important; border: none !important; border-radius: 0 !important; padding: 2px 16px !important;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); font-family: 'JetBrains Mono', monospace; }
+:root[data-design="hud"] .obs-msg { background: linear-gradient(90deg, rgba(var(--cur-rgb), 0.14), transparent 80%); border: none; border-left: 2px solid var(--cur); border-radius: 0; }
+:root[data-design="hud"] .obs-avatar { border-radius: 4px; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); }
+:root[data-design="hud"] .obs-avatar img { border-radius: 0 !important; }
+:root[data-design="hud"] .obs-btn-dismiss { border-radius: 0; }
+
 /* Vista previa dentro de Opciones: sin barras ni avisos */
 :root.obs-preview #obs-filter-bar, :root.obs-preview .obs-status-box, :root.obs-preview #obs-top, :root.obs-preview #obs-goal { display: none !important; }
 :root.obs-preview, :root.obs-preview body { overflow: hidden !important; }
 :root.obs-preview, :root.obs-preview body, :root.obs-preview #obs-scroll-area { background: transparent !important; color-scheme: normal; }
-:root.obs-preview .obs-preview-bar, :root.obs-preview canvas:not(#anim-fx):not(#xfiles-sky), :root.obs-preview:not(.own-fx) #anim-fx, :root.obs-preview:not(.own-fx) #xfiles-sky, :root.obs-preview:not(.own-fx) #xfiles-fx { display: none !important; }
+:root.obs-preview .obs-preview-bar, :root.obs-preview canvas:not(#anim-fx):not(#anim-fx-front):not(#xfiles-sky), :root.obs-preview:not(.own-fx) #anim-fx, :root.obs-preview:not(.own-fx) #anim-fx-front, :root.obs-preview:not(.own-fx) #xfiles-sky, :root.obs-preview:not(.own-fx) #xfiles-fx { display: none !important; }
 /* La vista previa muestra el fondo como en la fuente de navegador: con su transparencia sobre los cuadraditos */
 :root.obs-preview:not(.has-obs-bg) #obs-bg { display: none !important; }
-:root.obs-preview #obs-bg, :root.obs-preview #anim-fx, :root.obs-preview #xfiles-sky, :root.obs-preview #xfiles-fx { opacity: var(--obs-bg-alpha, 1); }
+:root.obs-preview #obs-bg, :root.obs-preview #anim-fx, :root.obs-preview #anim-fx-front, :root.obs-preview #xfiles-sky, :root.obs-preview #xfiles-fx { opacity: var(--obs-bg-alpha, 1); }
 :root.obs-preview #alerts-container { padding-top: 6px; }
 /* Vista previa: el ejemplo aparece de una (sin la entrada animada), sin barra de scroll, y siempre visible */
 :root.obs-preview #obs-scroll-area { overflow: hidden !important; scrollbar-width: none; }

@@ -566,7 +566,7 @@
         const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
         let obsLayout = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
         // Diseños que necesitan cosas en un lugar fijo (en "Barra" el monto va siempre en su bloque de la izquierda)
-        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja'];
+        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja', 'pixel', 'hud'];
         const DESIGN_FORCE = { barra: { amount: 'right' } };
         let obsDesign = 'tarjeta';
         function placeElements(card) {
@@ -673,7 +673,7 @@
         }
         // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
         let themeFx = '', bgFx = '';
-        const FX_KINDS = ['xfiles', 'estrellas', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata'];
+        const FX_KINDS = ['xfiles', 'estrellas', 'aurora', 'lluvia', 'tormenta', 'otono', 'burbujas', 'luciernagas', 'fiesta', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata'];
         function applyFx() {
             const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
             const fx = bgFx === 'none' ? '' : (own ? bgFx : themeFx);
@@ -693,6 +693,8 @@
             // Transparencia del fondo (en la fuente de navegador y la vista previa) y efecto propio
             const al = bg ? parseFloat(bg.alpha) : NaN;
             root.style.setProperty('--obs-bg-alpha', String(Number.isFinite(al) ? Math.min(100, Math.max(0, al)) / 100 : 1));
+            const fr = bg ? parseFloat(bg.front) : 0;
+            if (window.SDAnimFX && SDAnimFX.setFront) SDAnimFX.setFront(Number.isFinite(fr) ? fr / 100 : 0);
             const nfx = bg && typeof bg.fx === 'string' ? bg.fx : '';
             if (nfx !== bgFx) { bgFx = nfx; applyFx(); }
             const chroma = !!bg && bg.type === 'chroma';

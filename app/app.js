@@ -5383,7 +5383,15 @@ document.addEventListener('DOMContentLoaded', () => {
         julio4:     { label: '4 de Julio',      mode: 'dark', accent: '#3C6EF0', accent2: '#E63946', fx: 'julio4',      anim: true, emoji: '🎆', desc: 'Fuegos artificiales rojos, blancos y azules' },
         sanvalentin:{ label: 'San Valentín',    mode: 'dark', accent: '#FF4D8D', accent2: '#FF99C2', fx: 'sanvalentin', anim: true, emoji: '💘', desc: 'Corazones que suben' },
         primavera:  { label: 'Primavera',       mode: 'dark', accent: '#FF8FB1', accent2: '#8BD17C', fx: 'primavera',   anim: true, emoji: '🌸', desc: 'Flores y hojitas que caen' },
-        plata:      { label: 'Lluvia de plata', mode: 'dark', accent: '#2ECC71', accent2: '#F1C40F', fx: 'plata',       anim: true, emoji: '💸', desc: 'Billetes y monedas que caen' }
+        plata:      { label: 'Lluvia de plata', mode: 'dark', accent: '#2ECC71', accent2: '#F1C40F', fx: 'plata',       anim: true, emoji: '💸', desc: 'Billetes y monedas que caen' },
+        estrellas:  { label: 'Cielo con estrellas', mode: 'dark', accent: '#8EA8FF', accent2: '#FFE9B8', fx: 'estrellas', anim: true, emoji: '✨', desc: 'Noche estrellada con estrellas fugaces' },
+        aurora:     { label: 'Aurora boreal',   mode: 'dark', accent: '#3DFFB0', accent2: '#7A5CFF', fx: 'aurora',      anim: true, emoji: '🌌', desc: 'Luces del norte sobre un cielo estrellado' },
+        lluvia:     { label: 'Lluvia',          mode: 'dark', accent: '#5DA9E9', accent2: '#C9DDF2', fx: 'lluvia',      anim: true, emoji: '🌧️', desc: 'Lluvia con salpicaduras' },
+        tormenta:   { label: 'Tormenta',        mode: 'dark', accent: '#9DB4FF', accent2: '#FFD43B', fx: 'tormenta',    anim: true, emoji: '⛈️', desc: 'Lluvia fuerte, nubes y relámpagos' },
+        otono:      { label: 'Otoño',           mode: 'dark', accent: '#E8590C', accent2: '#FAB005', fx: 'otono',       anim: true, emoji: '🍁', desc: 'Hojas que caen con el viento' },
+        burbujas:   { label: 'Burbujas',        mode: 'dark', accent: '#5DE2FF', accent2: '#FF8FD8', fx: 'burbujas',    anim: true, emoji: '🫧', desc: 'Burbujas que suben y explotan' },
+        luciernagas:{ label: 'Luciérnagas',     mode: 'dark', accent: '#C6FF4A', accent2: '#2F9E44', fx: 'luciernagas', anim: true, emoji: '🌙', desc: 'Noche de campo con luciérnagas' },
+        fiesta:     { label: 'Fiesta',          mode: 'dark', accent: '#FF4D6D', accent2: '#FFD60A', fx: 'fiesta',      anim: true, emoji: '🎉', desc: 'Papelitos y serpentinas de colores' }
     };
     const ANIM_KEYS = Object.keys(THEMES).filter(k => THEMES[k].anim);
     // Luminancia (0 oscuro … 1 claro) para elegir sombra y textos que se lean
@@ -5570,7 +5578,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsCustomAccent: cleanColor(st.obsCustomAccent, '#00E676'),
             obsCustomText: cleanColor(st.obsCustomText, ''),
             obsCardColor: cleanColor(st.obsCardColor, ''),
-            obsBg: Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '', alpha: 100, fx: '' }, st.obsBg || {})
+            obsBg: Object.assign({ type: 'theme', color: '#000000', fit: 'cover', dim: 0.3, ver: 0, name: '', alpha: 100, fx: '', front: 0 }, st.obsBg || {})
         };
         return Object.assign(base, lookDraft || {});
     }
@@ -5647,6 +5655,8 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-bg-alpha').value = clampNum(lk.obsBg.alpha, 0, 100, 100);
         $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
         $('cfg-obs-bg-fx').value = OBS_BG_FX.includes(lk.obsBg.fx) ? lk.obsBg.fx : '';
+        $('cfg-obs-bg-front').value = clampNum(lk.obsBg.front, 0, 100, 0);
+        $('lbl-obs-bg-front').textContent = $('cfg-obs-bg-front').value + '%';
         $('obs-bg-name').textContent = lk.obsBg.name || 'Sin imagen';
         $('obs-bg-name').dataset.ver = lk.obsBg.ver || 0;
         updateLookFormState();
@@ -5674,13 +5684,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 dim: clampNum($('cfg-obs-bg-dim').value, 0, 0.85, 0.3),
                 alpha: Math.round(clampNum($('cfg-obs-bg-alpha').value, 0, 100, 100)),
                 fx: OBS_BG_FX.includes($('cfg-obs-bg-fx').value) ? $('cfg-obs-bg-fx').value : '',
+                front: Math.round(clampNum($('cfg-obs-bg-front').value, 0, 100, 0)),
                 ver: parseInt($('obs-bg-name').dataset.ver) || 0,
                 name: $('obs-bg-name').textContent === 'Sin imagen' ? '' : $('obs-bg-name').textContent
             }
         };
     }
 
-    const OBS_BG_FX = ['', 'none', 'estrellas', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata', 'xfiles'];
+    const OBS_BG_FX = ['', 'none', 'estrellas', 'aurora', 'lluvia', 'tormenta', 'otono', 'burbujas', 'luciernagas', 'fiesta', 'nieve', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'primavera', 'plata', 'xfiles'];
     function updateLookFormState() {
         const pt = $('cfg-panel-bg-type').value, ot = $('cfg-obs-bg-type').value;
         $('cfg-panel-bg-color').classList.toggle('hidden', pt !== 'color');
@@ -5883,7 +5894,9 @@ document.addEventListener('DOMContentLoaded', () => {
         { k: 'cristal', label: 'Cristal', icon: 'fa-gem', desc: 'Vidrio translúcido, redondeado y suave' },
         { k: 'ticket', label: 'Ticket', icon: 'fa-receipt', desc: 'Comprobante de papel con borde troquelado' },
         { k: 'subtitulo', label: 'Subtítulo', icon: 'fa-closed-captioning', desc: 'Sin tarjeta: solo texto con sombra' },
-        { k: 'franja', label: 'Franja', icon: 'fa-tv', desc: 'Zócalo de noticiero con el nick en una franja' }
+        { k: 'franja', label: 'Franja', icon: 'fa-tv', desc: 'Zócalo de noticiero con el nick en una franja' },
+        { k: 'pixel', label: 'Pixel', icon: 'fa-gamepad', desc: 'Retro de 8 bits: bordes pixelados y monto en bloque' },
+        { k: 'hud', label: 'HUD', icon: 'fa-crosshairs', desc: 'Pantalla de nave: esquinas marcadas y líneas de escaneo' }
     ];
     function currentDesign() { return obsDesignDraft || state.settings.obsDesign || 'tarjeta'; }
     // Diseño del panel: uno propio o "igual que OBS"
@@ -6152,6 +6165,11 @@ document.addEventListener('DOMContentLoaded', () => {
         sendObsStyle();
     };
     $('cfg-obs-bg-alpha').addEventListener('input', bgAlphaInput);
+    $('cfg-obs-bg-front').addEventListener('input', () => {
+        $('lbl-obs-bg-front').textContent = $('cfg-obs-bg-front').value + '%';
+        document.querySelectorAll('.alpha-quick[data-alpha-target="cfg-obs-bg-front"] button').forEach(b => b.classList.toggle('active', b.dataset.v === $('cfg-obs-bg-front').value));
+        setSettingsDirty(true); sendObsStyle();
+    });
     $('cfg-obs-bg-fx').addEventListener('change', () => { setSettingsDirty(true); sendObsStyle(); });
     document.querySelectorAll('.alpha-quick[data-alpha-target]').forEach(q => q.addEventListener('click', (e) => {
         const b = e.target.closest('button[data-v]');

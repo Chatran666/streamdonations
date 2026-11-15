@@ -1,4 +1,5 @@
-Novedades de la 2.2.2:
-- Fondo para OBS en la fuente de navegador (el link): ahora se ve tu color, imagen o GIF de fondo, con su propia transparencia de 0 a 100 % (barra y botones rápidos), así se ve tu juego o tu cámara detrás.
-- Efecto animado de fondo, elegible aparte del tema: Cielo con estrellas (nuevo, con estrellas fugaces), Nieve, Navidad, Halloween, Argentina, 4 de Julio, Año Nuevo, San Valentín, Primavera, Lluvia de plata y OVNI.
-- Transparencia de las tarjetas con barra libre de 0 a 100 % (de a 1). Mover la barra ya elige ese valor; los botones rápidos siguen estando.
+Novedades de la 2.3.0:
+- Efectos animados rehechos con gráficos nuevos (sin emojis): copos de cristal con profundidad, guirnalda de luces en cadena con bolas que se hamacan, murciélagos que aletean, fantasmas, luna y niebla, fuegos artificiales con brillo, pétalos y flores que giran, billetes y monedas, Sol de Mayo, y más.
+- 8 efectos nuevos: Cielo con estrellas, Aurora boreal, Lluvia, Tormenta (con relámpagos), Otoño, Burbujas, Luciérnagas y Fiesta. Están como temas animados y como fondo de OBS.
+- Nueva opción en Diseño → OBS: "Pasan por delante de las tarjetas" (0 a 100 %): una parte de los copos, hojas o papelitos cruza por encima de las donaciones.
+- 2 diseños nuevos de tarjeta, para panel y OBS: Pixel (retro de 8 bits) y HUD (pantalla de nave).
