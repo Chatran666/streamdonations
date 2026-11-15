@@ -614,7 +614,7 @@
                     document.documentElement.style.setProperty('--pc-' + k + '-rgb', rgb.join(', '));
                     // Letra que se lee encima de ese color
                     const L = rgb.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
-                    document.documentElement.style.setProperty('--pc-' + k + '-ink', 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.45 ? '#111111' : '#FFFFFF');
+                    document.documentElement.style.setProperty('--pc-' + k + '-ink', 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.3 ? '#111111' : '#FFFFFF');
                 });
             }
             applyObsBg(st.obsBg);
@@ -679,7 +679,7 @@
                     // Tarjeta de color claro (amarillo, blanco…) con letras automáticas: letras oscuras para que se lean
                     if (cc) {
                         const L = cc.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
-                        light = 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.45;
+                        light = 0.2126 * L[0] + 0.7152 * L[1] + 0.0722 * L[2] > 0.3;
                         if (light) {
                             r.setProperty('--obs-text', '#111827'); r.setProperty('--obs-ink-rgb', '17, 24, 39'); r.setProperty('--obs-shadow-rgb', '255, 255, 255');
                         }

@@ -2,7 +2,7 @@
  * Mismos nombres que los de OBS, adaptados para trabajar: los botones y el menú del nick siguen ahí. */
 
 .donation-card { --pcur-rgb: var(--accent-rgb); --pcur-ink: #fff; }
-.donation-card.pf-ceneka { --pcur-rgb: var(--pc-ceneka-rgb, 255, 196, 0); --pcur-ink: var(--pc-ceneka-ink, #111); }
+.donation-card.pf-ceneka { --pcur-rgb: var(--pc-ceneka-rgb, 245, 158, 11); --pcur-ink: var(--pc-ceneka-ink, #111); }
 .donation-card.pf-youtube { --pcur-rgb: var(--pc-youtube-rgb, 255, 46, 77); --pcur-ink: var(--pc-youtube-ink, #fff); }
 .donation-card.pf-twitch { --pcur-rgb: var(--pc-twitch-rgb, 145, 70, 255); --pcur-ink: var(--pc-twitch-ink, #fff); }
 .donation-card.pf-kick { --pcur-rgb: var(--pc-kick-rgb, 83, 252, 24); --pcur-ink: var(--pc-kick-ink, #111); }

@@ -29,7 +29,7 @@
     --text-muted: #6B7280;
 
     /* Brand Colors */
-    --ceneka-purple: #FFC400; /* (se llama así por historia: ahora es amarillo) */
+    --ceneka-purple: #F59E0B; /* (se llama así por historia: ahora es ámbar) */
     --ceneka-glow: rgba(139, 92, 246, 0.35);
     --youtube-red: #FF2E4D;
     --youtube-glow: rgba(255, 46, 77, 0.35);
@@ -2373,7 +2373,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
    COLOR POR PLATAFORMA (se elige en Opciones → Pantalla)
    ========================================================================== */
 :root {
-    --pc-ceneka-rgb: 255, 196, 0; --pc-youtube-rgb: 255, 46, 77;
+    --pc-ceneka-rgb: 245, 158, 11; --pc-youtube-rgb: 255, 46, 77;
     --pc-twitch-rgb: 145, 70, 255; --pc-kick-rgb: 83, 252, 24;
 }
 .platform-tag.ceneka  { background: rgba(var(--pc-ceneka-rgb), 0.22);  color: color-mix(in srgb, var(--ceneka-purple) 60%, #fff); }

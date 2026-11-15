@@ -4,7 +4,7 @@
 
 /* Color de la plataforma de cada donación (para bordes, franjas y triangulitos) */
 .obs-alert { --cur: var(--obs-accent); --cur-rgb: var(--obs-accent-rgb); --cur-ink: #fff; }
-.obs-alert.ceneka { --cur: var(--pc-ceneka, #FFC400); --cur-rgb: var(--pc-ceneka-rgb, 255, 196, 0); --cur-ink: var(--pc-ceneka-ink, #111); }
+.obs-alert.ceneka { --cur: var(--pc-ceneka, #F59E0B); --cur-rgb: var(--pc-ceneka-rgb, 245, 158, 11); --cur-ink: var(--pc-ceneka-ink, #111); }
 .obs-alert.youtube { --cur: var(--pc-youtube, #FF2E4D); --cur-rgb: var(--pc-youtube-rgb, 255, 46, 77); --cur-ink: var(--pc-youtube-ink, #fff); }
 .obs-alert.twitch { --cur: var(--pc-twitch, #9146FF); --cur-rgb: var(--pc-twitch-rgb, 145, 70, 255); --cur-ink: var(--pc-twitch-ink, #fff); }
 .obs-alert.kick { --cur: var(--pc-kick, #53FC18); --cur-rgb: var(--pc-kick-rgb, 83, 252, 24); --cur-ink: var(--pc-kick-ink, #111); }
@@ -56,7 +56,7 @@
 :root[data-design="burbuja"] .obs-alert { isolation: isolate; background: none; border: none; box-shadow: none; overflow: visible; padding: 10px 14px 12px calc(66px * var(--obs-scale)); gap: 6px; backdrop-filter: none; }
 :root[data-design="burbuja"] .obs-alert::after { content: ''; position: absolute; z-index: -1; top: 0; right: 0; bottom: 0; left: calc(52px * var(--obs-scale));
     background: rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.94)); border: 2px solid rgba(var(--cur-rgb), 0.75); border-radius: 18px 18px 18px 4px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45); }
-:root[data-design="burbuja"] .obs-avatar { position: absolute; left: 0; bottom: 0; border: 2px solid var(--cur); }
+:root[data-design="burbuja"] .obs-avatar { position: absolute; left: 0; bottom: 0; border: 2px solid var(--cur); background-color: rgb(var(--obs-card-rgb, var(--obs-bg-rgb))) !important; box-shadow: 0 0 0 1px #000; }
 :root[data-design="burbuja"] .obs-nick > span:first-child { color: var(--cur); }
 :root[data-design="burbuja"] .obs-msg { background: none !important; border: none; padding: 0; }
 :root[data-design="burbuja"] .obs-amount { border-radius: 999px !important; }
@@ -64,7 +64,7 @@
 /* ===================== NEÓN (esquinas cortadas y brillo) ===================== */
 :root[data-design="neon"] .obs-alert { border: none; border-radius: 0;
     clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
-    background: linear-gradient(135deg, rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.96)), rgba(var(--cur-rgb), 0.16));
+    background: linear-gradient(135deg, transparent 35%, rgba(var(--cur-rgb), 0.18)), rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.96));
     box-shadow: inset 0 0 0 2px var(--cur), inset 0 0 22px rgba(var(--cur-rgb), 0.45); }
 :root[data-design="neon"] .obs-nick > span:first-child { text-transform: uppercase; letter-spacing: 0.06em; color: var(--cur); text-shadow: 0 0 8px rgba(var(--cur-rgb), 0.8); }
 :root[data-design="neon"] .obs-amount { background: none !important; border: 1px solid var(--cur) !important; border-radius: 0 !important; text-shadow: 0 0 8px currentColor; }
@@ -73,10 +73,10 @@
 :root[data-design="neon"] .obs-avatar img { border-radius: 4px !important; }
 
 /* ===================== CRISTAL (vidrio translúcido) ===================== */
-:root[data-design="cristal"] .obs-alert { background: linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.06)), rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.45));
+:root[data-design="cristal"] .obs-alert { background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)), rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.72));
     border: 1px solid rgba(255, 255, 255, 0.38); border-radius: 22px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
 :root[data-design="cristal"] .obs-msg { background: rgba(255, 255, 255, 0.10); border: none; border-radius: 14px; }
-:root[data-design="cristal"] .obs-amount { background: rgba(255, 255, 255, 0.16) !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; border-radius: 999px !important; }
+:root[data-design="cristal"] .obs-amount { background: rgba(0, 0, 0, 0.38) !important; border: 1px solid rgba(255, 255, 255, 0.35) !important; border-radius: 999px !important; }
 :root[data-design="cristal"] .obs-avatar { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55); }
 
 /* ===================== TICKET (comprobante de papel) ===================== */
@@ -226,8 +226,8 @@
 /* Etiqueta de la plataforma: bloque de color sólido con su logo, se lee igual sobre cualquier diseño y fondo */
 :root .obs-alert .obs-tag { display: inline-flex; align-items: center; gap: 4px; font-size: calc(0.66rem * var(--obs-head-scale, 0.75) / 0.75); padding: 2px 7px; border-radius: 4px;
     background: var(--cur) !important; color: var(--cur-ink) !important; border: none !important; text-shadow: none !important; letter-spacing: 0.04em;
-    /* Doble filete (oscuro y claro): se despega del fondo aunque la tarjeta sea del mismo color */
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.35); }
+    /* Borde negro de 1 px: se despega del fondo aunque la tarjeta sea del mismo color */
+    box-shadow: 0 0 0 1px #000, 0 1px 3px rgba(0, 0, 0, 0.35); }
 :root .obs-alert .obs-tag i { font-size: 1.1em; }
 
 /* Tarjeta de color claro con letras automáticas: recuadros claros, letras oscuras y sin sombra */
@@ -237,3 +237,11 @@
 :root.light-card .obs-amount.has-amt-color { color: var(--amt-color) !important; }
 :root.light-card .obs-avatar { background: rgba(17, 24, 39, 0.12) !important; color: #111827 !important; }
 :root.light-card .obs-btn-dismiss { background: rgba(17, 24, 39, 0.08); border-color: rgba(17, 24, 39, 0.25); color: #111827; }
+
+/* Borde negro de 1 px alrededor del borde de color (así no se pierde si la tarjeta o la escena son del mismo color) */
+:root:not([data-design]) .obs-alert, :root[data-design="tarjeta"] .obs-alert, :root[data-design="compacto"] .obs-alert, :root[data-design="cristal"] .obs-alert { outline: 1px solid rgba(0, 0, 0, 0.9); outline-offset: 0; }
+:root[data-design="burbuja"] .obs-alert::after { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9), 0 8px 20px rgba(0, 0, 0, 0.45); }
+:root[data-design="franja"] .obs-alert, :root[data-design="barra"] .obs-alert, :root[data-design="ticket"] .obs-alert { outline: 1px solid rgba(0, 0, 0, 0.75); }
+:root[data-design="sticker"] #alerts-container { filter: drop-shadow(0 0 1px #000) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45)); }
+:root[data-design="zocalo"] .obs-avatar { background: rgb(var(--obs-card-rgb, 11, 79, 179)) !important; color: #fff !important; }
+:root[data-design="zocalo"] .obs-msg { outline: 1px solid rgba(0, 0, 0, 0.6); }
