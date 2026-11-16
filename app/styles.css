@@ -3108,3 +3108,18 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 /* Primeros pasos: señala dónde va la clave */
 .guide-point { animation: guidePoint 1.2s ease-in-out 4; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); border-color: #F59E0B !important; }
 @keyframes guidePoint { 0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } }
+
+/* Tu efecto (emojis propios) */
+.custom-fx { margin-top: 14px; padding: 14px; border-radius: 12px; border: 1px solid rgba(var(--accent-rgb), 0.35); background: rgba(var(--accent-rgb), 0.06); }
+.custom-fx.hidden { display: none; }
+.custom-fx-title small { color: var(--text-secondary); margin-left: 6px; }
+.custom-emojis { display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap: 6px; margin: 10px 0 12px; }
+.custom-emojis button { height: 42px; border-radius: 10px; border: 2px solid var(--border-color); background: var(--bg-tertiary, rgba(255, 255, 255, 0.04)); font-size: 1.35rem; cursor: pointer; font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; }
+.custom-emojis button.on { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.18); }
+.custom-emojis button:disabled { opacity: 0.35; cursor: default; }
+.custom-fx-opts { display: flex; flex-direction: column; gap: 10px; }
+.custom-fx-opts > div { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.custom-fx-opts > div > span { min-width: 130px; font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); }
+.seg { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--bg-tertiary, rgba(255, 255, 255, 0.04)); border: 1px solid var(--border-color); flex-wrap: wrap; }
+.seg button { border: none; background: none; color: var(--text-secondary); font-weight: 700; font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+.seg button.on { background: var(--accent); color: #fff; }

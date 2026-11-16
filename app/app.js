@@ -5454,7 +5454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ANIM_KEYS = Object.keys(THEMES).filter(k => THEMES[k].anim);
     // Íconos y nombres de los efectos (íconos de la app: se ven en cualquier Windows)
     const FX_META = {
-        '': { n: 'Ninguno', i: 'ban', c: '#9AA3B5' }, none: { n: 'Ninguno', i: 'ban', c: '#9AA3B5' },
+        '': { n: 'Ninguno', i: 'ban', c: '#9AA3B5' }, none: { n: 'Ninguno', i: 'ban', c: '#9AA3B5' }, propio: { n: 'Tu efecto (emojis)', i: 'face-smile-wink', c: '#FFD166' },
         lluvia: { n: 'Lluvia', i: 'cloud-rain', c: '#5DA9E9' }, lluviafuerte: { n: 'Lluvia fuerte', i: 'cloud-showers-heavy', c: '#3C8DDA' },
         nieve: { n: 'Nieve', i: 'snowflake', c: '#9AD8FF' }, papelitos: { n: 'Papelitos', i: 'burst', c: '#FF4D6D' },
         otono: { n: 'Hojas de otoño', i: 'leaf', c: '#F08C3A' }, primavera: { n: 'Pétalos', i: 'spa', c: '#FF8FB1' },
@@ -5756,6 +5756,7 @@ document.addEventListener('DOMContentLoaded', () => {
           $('cfg-obs-fx-bg').checked = v === 'on'; }
         $('lbl-obs-bg-alpha').textContent = $('cfg-obs-bg-alpha').value + '%';
         $('cfg-obs-bg-fx').value = OBS_BG_FX.includes(lk.obsBg.fx) ? lk.obsBg.fx : '';
+        customFx = cleanCustomFx(lk.obsBg.custom);
         try { syncBgFrontRow(); renderFxPicker(); } catch (e) {}
         $('cfg-obs-bg-front').value = clampNum(lk.obsBg.front, 0, 100, 0);
         $('lbl-obs-bg-front').textContent = $('cfg-obs-bg-front').value + '%';
@@ -5787,6 +5788,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alpha: Math.round(clampNum($('cfg-obs-bg-alpha').value, 0, 100, 100)),
                 fxAlpha: Math.round(clampNum($('cfg-obs-fx-alpha').value, 0, 100, 100)),
                 fxBg: $('cfg-obs-fx-bg').checked ? 'on' : 'off',
+                custom: Object.assign({}, customFx),
                 fx: OBS_BG_FX.includes($('cfg-obs-bg-fx').value) ? $('cfg-obs-bg-fx').value : '',
                 front: Math.round(clampNum($('cfg-obs-bg-front').value, 0, 100, 0)),
                 ver: parseInt($('obs-bg-name').dataset.ver) || 0,
@@ -5795,7 +5797,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const OBS_BG_FX = ['', 'none', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
+    const OBS_BG_FX = ['', 'none', 'propio', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
     function updateLookFormState() {
         const pt = $('cfg-panel-bg-type').value, ot = $('cfg-obs-bg-type').value;
         $('cfg-panel-bg-color').classList.toggle('hidden', pt !== 'color');
@@ -6325,6 +6327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.classList.toggle('panel-fx', !!show);
         document.documentElement.classList.toggle('panel-fx-xfiles', show && fx === 'xfiles' && bgOn);
         if (window.SDAnimFX) { if (SDAnimFX.setBgMode) SDAnimFX.setBgMode(bgOn ? 'on' : 'off'); if (SDAnimFX.setFront) SDAnimFX.setFront(0); }
+        try { const ob2 = open ? readLookForm().obsBg : look().obsBg; if (window.SDAnimFX && SDAnimFX.setCustom) SDAnimFX.setCustom(ob2.custom); } catch (e) {}
         if (window.XFilesFX) { if (show && fx === 'xfiles') XFilesFX.start(); else XFilesFX.stop(); }
         if (window.SDAnimFX) { if (show && fx !== 'xfiles') SDAnimFX.start(fx); else SDAnimFX.stop(); }
     }
@@ -6348,6 +6351,34 @@ document.addEventListener('DOMContentLoaded', () => {
         $('row-obs-fx-bg').classList.toggle('hidden', !fx || fx === 'none');
     }
     $('cfg-obs-bg-fx').addEventListener('change', () => { syncBgFrontRow(); renderFxPicker(); setSettingsDirty(true); previewLook(); sendObsStyle(); applyPanelFx(); });
+    // ---- Tu efecto: emojis propios ----
+    const CUSTOM_EMOJIS = ['⭐','🌟','✨','❤️','💖','💜','💙','💚','🔥','💧','❄️','⚡','🌈','☀️','🌙','☁️','🍀','🌸','🌺','🌻','🍁','🍂','🎈','🎉','🎁','🎂','🏆','👑','💎','💰','💵','💸','🤑','😂','😍','😎','🥳','👻','🎃','🦇','🐱','🐶','🦄','🦋','🐸','🍕','🍔','🍩','🍓','🍺','⚽','🏀','🎮','🎵','🎧','🚀','🛸','👽','💀','🤖'];
+    let customFx = { emojis: ['⭐'], motion: 'fall', amount: 'normal', size: 'm' };
+    function cleanCustomFx(c) {
+        c = c || {};
+        const em = (Array.isArray(c.emojis) ? c.emojis : []).filter(e => CUSTOM_EMOJIS.includes(e)).slice(0, 3);
+        return { emojis: em.length ? em : ['⭐'], motion: ['fall', 'rise', 'float', 'side'].includes(c.motion) ? c.motion : 'fall',
+            amount: ['few', 'normal', 'many'].includes(c.amount) ? c.amount : 'normal', size: ['s', 'm', 'l'].includes(c.size) ? c.size : 'm' };
+    }
+    function renderCustomFx() {
+        const sel = customFx.emojis;
+        $('custom-emojis').innerHTML = CUSTOM_EMOJIS.map(e => `<button type="button" data-emoji="${e}" class="${sel.includes(e) ? 'on' : ''}">${e}</button>`).join('');
+        $('custom-fx-count').textContent = sel.length;
+        document.querySelectorAll('#custom-fx .seg').forEach(g => g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === customFx[g.dataset.cfx])));
+    }
+    function customFxChanged() { renderCustomFx(); setSettingsDirty(true); previewLook(); sendObsStyle(); applyPanelFx(); }
+    $('custom-fx').addEventListener('click', (e) => {
+        const em = e.target.closest('[data-emoji]');
+        if (em) {
+            const v = em.dataset.emoji, i = customFx.emojis.indexOf(v);
+            if (i >= 0) { if (customFx.emojis.length > 1) customFx.emojis.splice(i, 1); }
+            else { customFx.emojis.push(v); if (customFx.emojis.length > 3) customFx.emojis.shift(); } // con 3 elegidos, el nuevo reemplaza al más viejo
+            customFxChanged(); return;
+        }
+        const sb = e.target.closest('.seg button');
+        if (sb) { customFx[sb.closest('.seg').dataset.cfx] = sb.dataset.v; customFxChanged(); }
+    });
+
     // Selector visual de efectos (tarjetitas con ícono, en 3 grupos claros)
     function renderFxPicker() {
         const box = $('bgfx-picker'); if (!box) return;
@@ -6355,8 +6386,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const tile = k => { const m = FX_META[k]; return `<button type="button" class="fx-tile ${k === cur ? 'active' : ''}" data-fx="${k}" style="--fc:${m.c}"><i class="fa-solid fa-${m.i}"></i><span>${escapeHTML(m.n)}</span></button>`; };
         const m = FX_META[cur] || FX_META[''];
         const open = box.classList.contains('open');
+        $('custom-fx').classList.toggle('hidden', cur !== 'propio');
+        if (cur === 'propio') renderCustomFx();
         box.innerHTML = `<button type="button" class="fx-current" data-fx-toggle style="--fc:${m.c}"><i class="fa-solid fa-${m.i}"></i><span>${escapeHTML(m.n)}</span><em>${open ? 'Ocultar efectos' : 'Ver todos los efectos'} <i class="fa-solid fa-chevron-${open ? 'up' : 'down'}"></i></em></button>` +
-            `<div class="fx-all"><div class="fx-row">${tile('none')}</div>` + FX_GROUPS.map(g => `<div class="fx-group"><div class="fx-group-title"><i class="fa-solid fa-${g.i}"></i> ${escapeHTML(g.t)} <small>${escapeHTML(g.d)}</small></div><div class="fx-row">${g.k.map(tile).join('')}</div></div>`).join('') + '</div>';
+            `<div class="fx-all"><div class="fx-row">${tile('none')}${tile('propio')}</div>` + FX_GROUPS.map(g => `<div class="fx-group"><div class="fx-group-title"><i class="fa-solid fa-${g.i}"></i> ${escapeHTML(g.t)} <small>${escapeHTML(g.d)}</small></div><div class="fx-row">${g.k.map(tile).join('')}</div></div>`).join('') + '</div>';
     }
     $('bgfx-picker').addEventListener('click', (e) => {
         if (e.target.closest('[data-fx-toggle]')) { $('bgfx-picker').classList.toggle('open'); renderFxPicker(); return; }
@@ -6366,6 +6399,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const ts = $('cfg-obs-theme');
         if (tk && THEMES[tk] && ts && ts.value !== tk) { ts.value = tk; ts.dispatchEvent(new Event('change', { bubbles: true })); }
         $('cfg-obs-bg-fx').value = b.dataset.fx;
+        // El fondo del efecto se acomoda solo: prendido para los cielos de noche, apagado para el resto (después lo cambiás)
+        $('cfg-obs-fx-bg').checked = ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'].includes(b.dataset.fx);
         $('cfg-obs-bg-fx').dispatchEvent(new Event('change', { bubbles: true }));
     });
     document.querySelectorAll('.alpha-quick[data-alpha-target]').forEach(q => q.addEventListener('click', (e) => {
@@ -7525,7 +7560,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADV_PANES = ['pantalla', 'filtros', 'datos', 'pruebas', 'reset'];
     const ADV_IDS = ['cfg-panel-fx', 'cfg-panel-card-color', 'cfg-panel-card-alpha', 'cfg-panel-pstyle', 'cfg-panel-head',
         'cfg-obs-card-color', 'cfg-obs-card-alpha', 'cfg-obs-textshadow', 'cfg-obs-hide-message', 'cfg-obs-accum',
-        'cfg-obs-fx-bg', 'cfg-obs-fx-alpha', 'cfg-obs-bg-front', 'cfg-obs-bg-alpha', 'cfg-big-sound-enabled'];
+        'cfg-obs-bg-front', 'cfg-obs-bg-alpha', 'cfg-big-sound-enabled'];
     (function markAdvanced() {
         ADV_PANES.forEach(p => { const t = document.querySelector(`#settings-nav .settings-tab[data-pane="${p}"]`); if (t) t.classList.add('adv-pane'); });
         ADV_IDS.forEach(id => { const el = $(id); const row = el && el.closest('.setting-row'); if (row) row.classList.add('adv'); });

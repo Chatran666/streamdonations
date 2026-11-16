@@ -1,3 +1,8 @@
+Novedades de la 2.4.2:
+- Tu efecto: elegí de 1 a 3 emojis (hay 60) y cómo se mueven (caen, suben, flotan o cruzan de costado), cuántos y de qué tamaño. Está en Efectos y temas.
+- Fondos de los efectos rediseñados: montañas nevadas, ciudad de noche con fuegos, mar con rayos de luz, atardecer de otoño, bosque con niebla, escenario de fiesta, paño verde de billetes y más.
+- "Mostrar el fondo del efecto" y su transparencia ahora se ven también en modo simple. Se acomoda solo al elegir: prendido para los cielos de noche, apagado para el resto.
+
 Novedades de la 2.4.1:
 - "Efectos y temas" en Diseño → OBS: elegís un efecto y trae su animación y sus colores juntos (Navidad: nieve, guirnalda y tarjeta roja y verde). Los colores sueltos quedan en modo experto como "Colores a mano".
 - El título y el selector de efectos ahora son un solo bloque.

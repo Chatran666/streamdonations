@@ -1292,12 +1292,21 @@
                             <div class="fx-block-head"><strong><i class="fa-solid fa-wand-magic-sparkles"></i> Efectos y temas</strong><small>Elegí uno: trae su animación y sus colores (por ejemplo, Navidad pone nieve, guirnalda y la tarjeta en rojo y verde). Se ve al instante en la vista previa.</small></div>
                             <select id="cfg-obs-bg-fx" class="dz-hidden-select" aria-hidden="true" tabindex="-1">
                                 <option value="">El del tema</option>
-                                <option value="none">Ninguno</option>
+                                <option value="none">Ninguno</option><option value="propio">Tu efecto</option>
                                 <optgroup label="Encima de tu fondo o tu juego (no tapan nada)"><option value="lluvia">🌧️ Lluvia</option><option value="lluviafuerte">🌊 Lluvia fuerte</option><option value="nieve">❄️ Nieve</option><option value="papelitos">🎊 Papelitos</option><option value="otono">🍁 Hojas de otoño</option><option value="primavera">🌸 Pétalos</option><option value="burbujas">🫧 Burbujas</option><option value="brillos">✨ Brillitos</option><option value="polvo">🌫️ Polvo flotando</option><option value="bokeh">🔆 Luces desenfocadas</option><option value="fugaces">☄️ Estrellas fugaces</option><option value="niebla">🌁 Niebla</option><option value="rayos">⚡ Rayos</option><option value="corazones">💗 Corazones</option><option value="plata">💸 Lluvia de plata</option></optgroup>
                                 <optgroup label="Con cielo propio (tapan el fondo)"><option value="estrellas">🌌 Cielo con estrellas</option><option value="aurora">🌠 Aurora boreal</option><option value="tormenta">⛈️ Tormenta</option><option value="luciernagas">🌙 Luciérnagas</option></optgroup>
                                 <optgroup label="De fechas"><option value="navidad">🎄 Navidad</option><option value="halloween">🎃 Halloween</option><option value="argentina">🇦🇷 Argentina</option><option value="julio4">🎆 4 de Julio</option><option value="anionuevo">🥂 Año Nuevo</option><option value="sanvalentin">💖 San Valentín</option><option value="fiesta">🎉 Fiesta</option><option value="xfiles">🛸 OVNI</option></optgroup>
                             </select>
                             <div class="fx-picker" id="bgfx-picker"></div>
+                            <div class="custom-fx hidden" id="custom-fx">
+                                <div class="custom-fx-title"><strong>Tu efecto</strong> <small>Elegí de 1 a 3 emojis (<span id="custom-fx-count">0</span>/3)</small></div>
+                                <div class="custom-emojis" id="custom-emojis"></div>
+                                <div class="custom-fx-opts">
+                                    <div><span>Cómo se mueven</span><div class="seg" data-cfx="motion"><button type="button" data-v="fall">Caen</button><button type="button" data-v="rise">Suben</button><button type="button" data-v="float">Flotan</button><button type="button" data-v="side">Cruzan de costado</button></div></div>
+                                    <div><span>Cantidad</span><div class="seg" data-cfx="amount"><button type="button" data-v="few">Pocos</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="many">Muchos</button></div></div>
+                                    <div><span>Tamaño</span><div class="seg" data-cfx="size"><button type="button" data-v="s">Chicos</button><button type="button" data-v="m">Medianos</button><button type="button" data-v="l">Grandes</button></div></div>
+                                </div>
+                            </div>
                         </div>
                         <label class="setting-row toggle-row bg-extra-row" id="row-obs-fx-bg">
                             <div><strong>Mostrar el fondo del efecto</strong><small>Cada efecto trae su fondo (cielo de noche, mar, otoño, verde de billetes…). Apagado: solo lo que cae o flota. Con la fuente de navegador se ve tu juego detrás; en la ventana "Modo OBS" se ve el "Fondo de la ventana" (una ventana no puede ser transparente: poné ahí tu imagen).</small></div>

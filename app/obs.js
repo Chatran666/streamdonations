@@ -705,7 +705,7 @@
         }
         // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
         let themeFx = '', bgFx = '', themeOwn = false, LITE = false;
-        const FX_KINDS = ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
+        const FX_KINDS = ['propio', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
         function applyFx() {
             const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
             const fx = LITE || bgFx === 'none' ? '' : (own ? bgFx : themeFx);
@@ -737,6 +737,7 @@
             const fxBg = bg && ['on', 'off'].includes(bg.fxBg) ? bg.fxBg : 'auto';
             if (window.SDAnimFX && SDAnimFX.setBgMode) SDAnimFX.setBgMode(fxBg);
             root.classList.toggle('fxbg-off', fxBg === 'off');
+            if (window.SDAnimFX && SDAnimFX.setCustom) SDAnimFX.setCustom(bg && bg.custom);
             const nfx = bg && typeof bg.fx === 'string' ? bg.fx : '';
             if (nfx !== bgFx) { bgFx = nfx; applyFx(); }
             const chroma = !!bg && bg.type === 'chroma';
