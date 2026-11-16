@@ -1,3 +1,6 @@
+Novedades de la 2.4.5:
+- En Opciones → Donaciones ahora también se puede apoyar desde otros países con Ko-fi (dólares, PayPal o tarjeta), con su código QR y link. Ceneka queda para donar desde Argentina.
+
 Novedades de la 2.4.4:
 - Al marcar una donación como leída, en OBS se va con un efecto: Desvanecer (de fábrica), Desintegrar (se deshace en polvo), Explotar, Al fondo (se achica y se aleja), Deslizar o Caer. Se elige en modo experto, en Diseño → OBS, y se ve en la vista previa al tocarlo.
 - Al irse una donación, las de abajo suben suave en lugar de saltar.

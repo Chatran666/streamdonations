@@ -579,7 +579,12 @@ window.SD_I18N_EN = {
     'Prueba Ceneka': 'Ceneka test', 'Prueba YouTube': 'YouTube test', 'Prueba Twitch': 'Twitch test', 'Prueba Kick': 'Kick test',
 
     // ---- Settings: Donate / About / Reset ----
-    '¿Te sirve StreamDonations? Podés apoyar su desarrollo con una donación por Ceneka.': 'Find StreamDonations useful? You can support its development with a donation through Ceneka.',
+    '¿Te sirve StreamDonations? Podés apoyar su desarrollo con una donación por Ceneka o Ko-fi.': 'Find StreamDonations useful? You can support its development with a donation through Ceneka or Ko-fi.',
+    'Código QR para donar por Ko-fi': 'QR code to donate through Ko-fi',
+    'Desde Argentina': 'From Argentina',
+    '(pesos, MercadoPago) – Ceneka': '(pesos, MercadoPago) – Ceneka',
+    'Desde otros países': 'From other countries',
+    '(dólares, PayPal/tarjeta) – Ko-fi': '(dollars, PayPal/card) – Ko-fi',
     'Código QR para donar por Ceneka': 'QR code to donate through Ceneka',
     'Escaneá el código con el celular': 'Scan the code with your phone',
     'o abrí el link:': 'or open the link:',

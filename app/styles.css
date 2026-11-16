@@ -2347,6 +2347,9 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
     border: 1px solid rgba(236, 72, 153, 0.35);
     background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(var(--accent-rgb), 0.06));
 }
+.donate-title { margin: 18px 0 8px; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.donate-title i { color: #EC4899; }
+.donate-title span { font-weight: 500; font-size: 0.82rem; color: var(--text-secondary); }
 .donate-qr { width: 190px; height: 190px; border-radius: 12px; background: #fff; padding: 8px; flex-shrink: 0; }
 .donate-info { display: flex; flex-direction: column; gap: 6px; min-width: 200px; flex: 1; }
 .donate-info strong { font-size: 0.95rem; }

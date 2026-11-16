@@ -1855,14 +1855,13 @@ document.addEventListener('DOMContentLoaded', () => {
             im.addEventListener('click', () => fi.click());
             fi.addEventListener('change', () => { if (fi.files && fi.files[0]) importFullBackup(fi.files[0]); fi.value = ''; });
         }
-        const cp = document.getElementById('btn-copy-donate');
-        if (cp) cp.addEventListener('click', () => {
-            const url = 'https://ceneka.net/Padeca';
+        document.querySelectorAll('.btn-copy-donate').forEach(cp => cp.addEventListener('click', () => {
+            const url = cp.dataset.url;
             (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
                 () => showToast('Link copiado', 'success'),
                 () => { prompt('Copiá el link:', url); }
             );
-        });
+        }));
     }
     initBackupAndDonate();
 
