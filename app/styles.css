@@ -3123,3 +3123,8 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .seg { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: var(--bg-tertiary, rgba(255, 255, 255, 0.04)); border: 1px solid var(--border-color); flex-wrap: wrap; }
 .seg button { border: none; background: none; color: var(--text-secondary); font-weight: 700; font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
 .seg button.on { background: var(--accent); color: #fff; }
+
+.setting-row.exit-row { display: block; }
+.exit-row .exit-seg { display: flex !important; flex-direction: row !important; flex-wrap: wrap; margin-top: 12px; width: fit-content; max-width: 100%; }
+.exit-row .exit-seg button { display: inline-flex; align-items: center; width: auto; }
+.exit-seg button i { margin-right: 4px; }

@@ -255,3 +255,15 @@
 /* Modo liviano: sin efectos ni animaciones decorativas en las tarjetas */
 :root.lite .obs-alert *, :root.lite .obs-alert::before, :root.lite .obs-alert::after { animation: none !important; }
 :root.lite #anim-fx, :root.lite #anim-fx-front, :root.lite #xfiles-sky { display: none !important; }
+
+/* Cómo se va una donación al marcarla leída */
+@keyframes exit-fade { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes exit-dissolve {
+    0% { opacity: 1; filter: none; -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+    100% { opacity: 0.2; filter: blur(3px); transform: translateX(10px); -webkit-mask-position: 0 0; mask-position: 0 0; }
+}
+.obs-alert[style*="exit-dissolve"] { -webkit-mask-image: linear-gradient(90deg, transparent 0 40%, #000 60% 100%); mask-image: linear-gradient(90deg, transparent 0 40%, #000 60% 100%); -webkit-mask-size: 250% 100%; mask-size: 250% 100%; }
+@keyframes exit-explode { 0% { transform: scale(1); opacity: 1; filter: none; } 25% { transform: scale(1.07); opacity: 1; filter: brightness(1.6); } 100% { transform: scale(1.45); opacity: 0; filter: blur(10px) brightness(2); } }
+@keyframes exit-back { to { transform: scale(0.25) translateY(-30px); opacity: 0; filter: blur(3px); } }
+@keyframes exit-slide { to { transform: translateX(115%); opacity: 0; } }
+@keyframes exit-fall { 0% { transform: none; } 15% { transform: translateY(-8px) rotate(-2deg); } 100% { transform: translateY(110vh) rotate(16deg); opacity: 0.9; } }

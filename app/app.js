@@ -163,7 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
             censorObs: true, censorTts: true, censorPanel: false,
             blockedUsers: '', // Usuarios bloqueados (uno por línea)
             obsDelayOn: false, obsDelay: 5, // Retraso antes de mostrar en OBS (para descartar a tiempo)
-            lite: false // Modo liviano: sin efectos ni animaciones decorativas, voz de Windows
+            lite: false, // Modo liviano: sin efectos ni animaciones decorativas, voz de Windows
+            obsExit: 'fade' // Cómo se va de OBS al marcarla leída
         },
         lastReadId: null
     };
@@ -4766,6 +4767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-obs-delay').value = String([3, 5, 10, 15, 20, 30].includes(Number(st.obsDelay)) ? Number(st.obsDelay) : 5);
         $('row-obs-delay').classList.toggle('hidden', !st.obsDelayOn);
         $('cfg-lite').checked = !!st.lite;
+        setExitChoice(st.obsExit || 'fade');
         $('cfg-close-tray').checked = !!st.closeToTray;
         if (TAURI) { TAURI.autostart.isEnabled().then(on => { $('cfg-autostart').checked = !!on; }).catch(() => {}); refreshVoz(); }
         $('cfg-banned-words').value = st.bannedWords || '';
@@ -4905,6 +4907,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsDelayOn = $('cfg-obs-delay-on').checked;
         st.obsDelay = parseInt($('cfg-obs-delay').value, 10) || 5;
         st.lite = $('cfg-lite').checked;
+        st.obsExit = EXIT_TYPES.includes($('exit-seg').dataset.v) ? $('exit-seg').dataset.v : 'fade';
         st.closeToTray = $('cfg-close-tray').checked;
         applyTauriSettings();
         document.documentElement.classList.toggle('hotkeys-off', !st.hotkeys);
@@ -6483,6 +6486,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // El tema de OBS elegido a propósito (no "igual que el panel"): su animación también va en la fuente de navegador
             themeOwn: !!(lk.obsTheme && lk.obsTheme !== 'same'),
             lite: !els.modalSettings.classList.contains('hidden') && $('cfg-lite') ? $('cfg-lite').checked : !!state.settings.lite,
+            exitFx: !els.modalSettings.classList.contains('hidden') && $('exit-seg').dataset.v ? $('exit-seg').dataset.v : (state.settings.obsExit || 'fade'),
             filterBar: state.settings.obsFilterBar !== false,
             platforms: visiblePlatforms(),
             layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),
@@ -7551,12 +7555,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setTimeout(maybeShowGuide, 4000);
 
+    // ---- Cómo se va al marcarla leída ----
+    function setExitChoice(v) {
+        const g = $('exit-seg'); g.dataset.v = EXIT_TYPES.includes(v) ? v : 'fade';
+        g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === g.dataset.v));
+    }
+    $('exit-seg').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]'); if (!b) return;
+        setExitChoice(b.dataset.v); setSettingsDirty(true); sendObsStyle();
+        if (dzSide !== 'obs') setDzSide('obs');
+        // Lo muestra en la vista previa
+        setTimeout(() => { const w = $('design-preview') && $('design-preview').contentWindow; try { w.postMessage({ type: 'PREVIEW_EXIT' }, '*'); } catch (err) {} }, 120);
+    });
+
     // ---- Retraso y modo liviano en el formulario ----
     $('cfg-obs-delay-on').addEventListener('change', () => { $('row-obs-delay').classList.toggle('hidden', !$('cfg-obs-delay-on').checked); setSettingsDirty(true); });
     $('cfg-obs-delay').addEventListener('change', () => setSettingsDirty(true));
     $('cfg-lite').addEventListener('change', () => { setSettingsDirty(true); applyPanelFx(); sendObsStyle(); });
 
     // ---- Modo experto ----
+    var EXIT_TYPES = ['fade', 'dissolve', 'explode', 'back', 'slide', 'fall'];
     const ADV_PANES = ['pantalla', 'filtros', 'datos', 'pruebas', 'reset'];
     const ADV_IDS = ['cfg-panel-fx', 'cfg-panel-card-color', 'cfg-panel-card-alpha', 'cfg-panel-pstyle', 'cfg-panel-head',
         'cfg-obs-card-color', 'cfg-obs-card-alpha', 'cfg-obs-textshadow', 'cfg-obs-hide-message', 'cfg-obs-accum',

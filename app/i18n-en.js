@@ -1063,6 +1063,8 @@ window.SD_I18N_EN = {
     'Cuánto queda cada alerta': 'How long each alert stays',
     'Tu efecto (emojis)': 'Your effect (emojis)', 'Tu efecto': 'Your effect', 'Elegí de 1 a 3 emojis (': 'Pick 1 to 3 emojis (', 'Cómo se mueven': 'How they move', 'Caen': 'Fall', 'Suben': 'Rise', 'Flotan': 'Float', 'Cruzan de costado': 'Cross sideways', 'Cantidad': 'Amount', 'Pocos': 'Few', 'Muchos': 'Many', 'Tamaño': 'Size', 'Chicos': 'Small', 'Medianos': 'Medium', 'Grandes': 'Large',
     'Al azar': 'Random', 'Variados': 'Mixed', '/3). Para cambiar uno, tocalo de nuevo y se saca.': '/3). To change one, tap it again to remove it.', 'Ya elegiste 3: sacá uno para cambiarlo': 'You already picked 3: remove one to change it',
+    'Cómo se va al marcarla leída': 'How it leaves when marked as read', 'El efecto con el que desaparece la donación de OBS. Tocá uno y miralo en la vista previa. En modo simple es "Desvanecer".': 'The effect used when the donation disappears from OBS. Tap one to see it in the preview. In simple mode it is "Fade".',
+    'Desvanecer': 'Fade', 'Desintegrar': 'Disintegrate', 'Explotar': 'Explode', 'Al fondo': 'Into the distance', 'Deslizar': 'Slide away', 'Caer': 'Fall',
     'Ver en el panel': 'Show in the panel', 'Ver en OBS': 'Show in OBS',
     'Volver al panel': 'Back to the panel', 'Volver al panel (Esc)': 'Back to the panel (Esc)', 'Volver al panel para verlas': 'Go back to the panel to see them',
     '1 donación nueva': '1 new donation', '{} donaciones nuevas': '{} new donations',

@@ -1,3 +1,7 @@
+Novedades de la 2.4.4:
+- Al marcar una donación como leída, en OBS se va con un efecto: Desvanecer (de fábrica), Desintegrar (se deshace en polvo), Explotar, Al fondo (se achica y se aleja), Deslizar o Caer. Se elige en modo experto, en Diseño → OBS, y se ve en la vista previa al tocarlo.
+- Al irse una donación, las de abajo suben suave en lugar de saltar.
+
 Novedades de la 2.4.3:
 - Tu efecto: nuevas opciones "Al azar" (cada emoji se mueve distinto: caen, suben, flotan o cruzan) y tamaños "Variados".
 - Con 3 emojis elegidos no se pueden marcar más hasta que saques uno.

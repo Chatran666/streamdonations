@@ -301,27 +301,76 @@
             });
         }
 
+        // ---- Cómo se va una donación al marcarla leída ----
+        let EXIT = 'fade';
+        const EXIT_MS = { fade: 450, dissolve: 950, explode: 650, back: 650, slide: 520, fall: 850 };
+        let burstCv = null, burstCx = null, burstParts = [], burstRaf = null;
+        function burst(el, type) {
+            const r = el.getBoundingClientRect(); if (!r.width) return;
+            if (!burstCv) {
+                burstCv = document.createElement('canvas'); burstCv.id = 'exit-burst';
+                burstCv.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483001;';
+                document.body.appendChild(burstCv); burstCx = burstCv.getContext('2d');
+            }
+            burstCv.width = innerWidth; burstCv.height = innerHeight;
+            const cs = getComputedStyle(el), cur = cs.getPropertyValue('--cur').trim() || '#8B5CF6';
+            const cols = [cur, cur, '#FFFFFF', 'rgba(255,255,255,0.7)'];
+            const n = type === 'explode' ? 110 : 90, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+            for (let i = 0; i < n; i++) {
+                const x = r.left + Math.random() * r.width, y = r.top + Math.random() * r.height;
+                if (type === 'explode') {
+                    const a = Math.atan2(y - cy, x - cx) + (Math.random() - 0.5) * 0.6, v = 250 + Math.random() * 450;
+                    burstParts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, g: 500, life: 0, max: 0.5 + Math.random() * 0.4, s: 2 + Math.random() * 4, c: cols[i % cols.length], delay: 0 });
+                } else {
+                    // Desintegrar: se va deshaciendo de izquierda a derecha, en polvo que vuela
+                    burstParts.push({ x, y, vx: 40 + Math.random() * 90, vy: -30 - Math.random() * 70, g: -20, life: 0, max: 0.6 + Math.random() * 0.5, s: 1.5 + Math.random() * 3, c: cols[i % cols.length], delay: ((x - r.left) / r.width) * 0.45 });
+                }
+            }
+            if (type === 'explode') burstParts.push({ flash: true, x: cx, y: cy, life: 0, max: 0.35, r: Math.max(r.width, r.height) * 0.7, c: cur, delay: 0 });
+            if (!burstRaf) { let last = performance.now(); const tick = (now) => {
+                const dt = Math.min(0.05, (now - last) / 1000); last = now;
+                burstCx.clearRect(0, 0, burstCv.width, burstCv.height);
+                burstParts = burstParts.filter(p => {
+                    if (p.delay > 0) { p.delay -= dt; return true; }
+                    p.life += dt; if (p.life > p.max) return false;
+                    const k = 1 - p.life / p.max;
+                    if (p.flash) { const gr = burstCx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r); gr.addColorStop(0, 'rgba(255,255,255,' + (0.7 * k) + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)'); burstCx.fillStyle = gr; burstCx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2); return true; }
+                    p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+                    burstCx.globalAlpha = k; burstCx.fillStyle = p.c; burstCx.fillRect(p.x, p.y, p.s, p.s);
+                    return true;
+                });
+                burstCx.globalAlpha = 1;
+                if (burstParts.length) burstRaf = requestAnimationFrame(tick); else { burstRaf = null; burstCx.clearRect(0, 0, burstCv.width, burstCv.height); }
+            }; burstRaf = requestAnimationFrame(tick); }
+        }
+        function exitAlert(el, done) {
+            if (el.dataset.leaving) return; el.dataset.leaving = '1';
+            const type = LITE ? 'fade' : (EXIT_MS[EXIT] ? EXIT : 'fade'), ms = EXIT_MS[type];
+            if (type === 'dissolve' || type === 'explode') burst(el, type);
+            el.style.animation = 'exit-' + type + ' ' + ms + 'ms ' + (type === 'fall' ? 'cubic-bezier(.5,0,.9,.5)' : 'ease') + ' forwards';
+            setTimeout(() => {
+                // Se cierra el hueco suave (así las de abajo suben sin saltar)
+                const h = el.offsetHeight;
+                el.style.height = h + 'px'; el.style.overflow = 'hidden';
+                void el.offsetHeight;
+                el.style.transition = 'height .22s ease, margin .22s ease, padding .22s ease';
+                el.style.height = '0px'; el.style.marginTop = '0px'; el.style.marginBottom = '0px'; el.style.paddingTop = '0px'; el.style.paddingBottom = '0px';
+                setTimeout(() => { el.remove(); if (done) done(); }, 240);
+            }, ms);
+        }
         function dismissAlert(id) {
             if (id === 'all') {
-                const allAlerts = container.querySelectorAll('.obs-alert');
-                allAlerts.forEach(el => {
-                    el.style.animation = 'popSlideOut 0.3s forwards';
-                    setTimeout(() => el.remove(), 300);
-                });
+                container.querySelectorAll('.obs-alert').forEach(el => exitAlert(el));
                 renderedIds.clear();
                 setTimeout(() => {
                     updateAlertCounter();
-                }, 350);
+                }, 1300);
                 return;
             }
 
             const target = container.querySelector('[data-alert-id="' + id + '"]');
             if (target) {
-                target.style.animation = 'popSlideOut 0.3s forwards';
-                setTimeout(() => {
-                    target.remove();
-                    updateAlertCounter();
-                }, 300);
+                exitAlert(target, updateAlertCounter);
                 renderedIds.delete(id);
             }
         }
@@ -403,7 +452,12 @@
                 renderAlert(e.data.data);
             } else if (e.data && e.data.type === 'DISMISS_ALERT') {
                 dismissAlert(e.data.id);
+            } else if (PREVIEW && e.data && e.data.type === 'PREVIEW_EXIT') {
+                // Vista previa: muestra cómo se va el ejemplo y lo vuelve a poner
+                const el = document.querySelector('.obs-alert');
+                if (el && lastPreviewData) exitAlert(el, () => setTimeout(() => { if (!document.querySelector('.obs-alert')) { renderedIds.clear(); renderAlert(Object.assign({}, lastPreviewData, { id: lastPreviewData.id + 'r' })); } }, 350));
             } else if (PREVIEW && e.data && e.data.type === 'PREVIEW_SHOW' && e.data.data) {
+                lastPreviewData = e.data.data;
                 // Vista previa: siempre un solo ejemplo (se borra lo anterior de golpe, sin animación)
                 document.querySelectorAll('.obs-alert').forEach(a => a.remove());
                 renderedIds.clear();
@@ -629,6 +683,7 @@
                 });
             }
             themeOwn = !!st.themeOwn;
+            if (typeof st.exitFx === 'string') EXIT = st.exitFx;
             // Modo liviano: sin efectos animados ni animaciones decorativas
             if (!!st.lite !== LITE) { LITE = !!st.lite; document.documentElement.classList.toggle('lite', LITE); applyFx(); }
             applyObsBg(st.obsBg);
@@ -704,7 +759,7 @@
             layoutTop();
         }
         // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
-        let themeFx = '', bgFx = '', themeOwn = false, LITE = false;
+        let themeFx = '', bgFx = '', themeOwn = false, LITE = false, lastPreviewData = null;
         const FX_KINDS = ['propio', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
         function applyFx() {
             const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
