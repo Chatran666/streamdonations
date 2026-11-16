@@ -6357,12 +6357,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function cleanCustomFx(c) {
         c = c || {};
         const em = (Array.isArray(c.emojis) ? c.emojis : []).filter(e => CUSTOM_EMOJIS.includes(e)).slice(0, 3);
-        return { emojis: em.length ? em : ['⭐'], motion: ['fall', 'rise', 'float', 'side'].includes(c.motion) ? c.motion : 'fall',
-            amount: ['few', 'normal', 'many'].includes(c.amount) ? c.amount : 'normal', size: ['s', 'm', 'l'].includes(c.size) ? c.size : 'm' };
+        return { emojis: em.length ? em : ['⭐'], motion: ['fall', 'rise', 'float', 'side', 'random'].includes(c.motion) ? c.motion : 'fall',
+            amount: ['few', 'normal', 'many'].includes(c.amount) ? c.amount : 'normal', size: ['s', 'm', 'l', 'random'].includes(c.size) ? c.size : 'm' };
     }
     function renderCustomFx() {
         const sel = customFx.emojis;
-        $('custom-emojis').innerHTML = CUSTOM_EMOJIS.map(e => `<button type="button" data-emoji="${e}" class="${sel.includes(e) ? 'on' : ''}">${e}</button>`).join('');
+        $('custom-emojis').innerHTML = CUSTOM_EMOJIS.map(e => `<button type="button" data-emoji="${e}" class="${sel.includes(e) ? 'on' : ''}" ${!sel.includes(e) && sel.length >= 3 ? 'disabled title="Ya elegiste 3: sacá uno para cambiarlo"' : ''}>${e}</button>`).join('');
         $('custom-fx-count').textContent = sel.length;
         document.querySelectorAll('#custom-fx .seg').forEach(g => g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === customFx[g.dataset.cfx])));
     }
@@ -6372,7 +6372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (em) {
             const v = em.dataset.emoji, i = customFx.emojis.indexOf(v);
             if (i >= 0) { if (customFx.emojis.length > 1) customFx.emojis.splice(i, 1); }
-            else { customFx.emojis.push(v); if (customFx.emojis.length > 3) customFx.emojis.shift(); } // con 3 elegidos, el nuevo reemplaza al más viejo
+            else if (customFx.emojis.length < 3) customFx.emojis.push(v); // máximo 3: para elegir otro, sacá uno
             customFxChanged(); return;
         }
         const sb = e.target.closest('.seg button');

@@ -842,8 +842,9 @@
         return (SPR[k] = c);
     }
     function newCustom(initial) {
-        var sz = { s: [14, 24], m: [24, 40], l: [40, 64] }[CUSTOM.size] || [24, 40];
-        var m = CUSTOM.motion, p = { img: emojiSpr(pick(CUSTOM.emojis)), s: rand(sz[0], sz[1]), ph: rand(0, 6.28), rot: rand(-0.4, 0.4), vr: rand(-0.8, 0.8), a: rand(0.85, 1) };
+        var sz = { s: [14, 24], m: [24, 40], l: [40, 64], random: [12, 66] }[CUSTOM.size] || [24, 40];
+        // "Al azar": cada emoji elige su propio movimiento
+        var m = CUSTOM.motion === 'random' ? pick(['fall', 'rise', 'float', 'side']) : CUSTOM.motion, p = { m: m, img: emojiSpr(pick(CUSTOM.emojis)), s: rand(sz[0], sz[1]), ph: rand(0, 6.28), rot: rand(-0.4, 0.4), vr: rand(-0.8, 0.8), a: rand(0.85, 1) };
         if (m === 'rise') { p.x = rand(0, W); p.y = initial ? rand(0, H * 1.2) : H + 40; p.vy = -rand(30, 70); p.vx = 0; }
         else if (m === 'float') { p.x = rand(0, W); p.y = rand(0, H); p.vx = rand(-18, 18); p.vy = rand(-14, 14); p.vr *= 0.3; }
         else if (m === 'side') { var l = Math.random() < 0.5; p.x = initial ? rand(0, W) : (l ? -40 : W + 40); p.y = rand(0, H); p.vx = (l ? 1 : -1) * rand(60, 130); p.vy = 0; }
@@ -853,9 +854,8 @@
     KINDS.propio = {
         init: function () { var n = { few: 14, normal: 28, many: 50 }[CUSTOM.amount] || 28; for (var i = 0; i < scaleN(n); i++) parts.push(newCustom(true)); },
         step: function (dt) {
-            var m = CUSTOM.motion;
             for (var i = 0; i < parts.length; i++) {
-                var p = parts[i];
+                var p = parts[i], m = p.m;
                 p.x += (p.vx + (m === 'fall' || m === 'rise' ? Math.sin(T * 1.2 + p.ph) * 25 : 0)) * dt;
                 p.y += (p.vy + (m === 'side' ? Math.sin(T * 2 + p.ph) * 30 : 0)) * dt;
                 p.rot += p.vr * dt;
@@ -943,8 +943,8 @@
     function setCustom(c) {
         c = c || {};
         var em = (Array.isArray(c.emojis) ? c.emojis : []).filter(function (e) { return typeof e === 'string' && e.length <= 8; }).slice(0, 3);
-        var next = { emojis: em.length ? em : ['⭐'], motion: ['fall', 'rise', 'float', 'side'].indexOf(c.motion) >= 0 ? c.motion : 'fall',
-            amount: ['few', 'normal', 'many'].indexOf(c.amount) >= 0 ? c.amount : 'normal', size: ['s', 'm', 'l'].indexOf(c.size) >= 0 ? c.size : 'm' };
+        var next = { emojis: em.length ? em : ['⭐'], motion: ['fall', 'rise', 'float', 'side', 'random'].indexOf(c.motion) >= 0 ? c.motion : 'fall',
+            amount: ['few', 'normal', 'many'].indexOf(c.amount) >= 0 ? c.amount : 'normal', size: ['s', 'm', 'l', 'random'].indexOf(c.size) >= 0 ? c.size : 'm' };
         var changed = JSON.stringify(next) !== JSON.stringify(CUSTOM);
         CUSTOM = next;
         if (changed && kind === 'propio') build();
