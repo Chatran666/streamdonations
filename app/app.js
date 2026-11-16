@@ -5470,6 +5470,9 @@ document.addEventListener('DOMContentLoaded', () => {
         anionuevo: { n: 'Año Nuevo', i: 'champagne-glasses', c: '#F6C744' }, sanvalentin: { n: 'San Valentín', i: 'heart', c: '#FF4D8D' },
         fiesta: { n: 'Fiesta', i: 'masks-theater', c: '#FFD60A' }, xfiles: { n: 'OVNI', i: 'shuttle-space', c: '#00FF41' }
     };
+    const FX_THEME = { xfiles: 'xfiles', navidad: 'navidad', nieve: 'nieve', anionuevo: 'anionuevo', halloween: 'halloween', argentina: 'argentina', julio4: 'julio4',
+        sanvalentin: 'sanvalentin', corazones: 'sanvalentin', primavera: 'primavera', plata: 'plata', estrellas: 'estrellas', fugaces: 'estrellas', aurora: 'aurora',
+        lluvia: 'lluvia', lluviafuerte: 'lluvia', tormenta: 'tormenta', rayos: 'tormenta', otono: 'otono', burbujas: 'burbujas', luciernagas: 'luciernagas', fiesta: 'fiesta', papelitos: 'fiesta' };
     const FX_GROUPS = [
         { t: 'Cosas que caen o flotan', d: '', i: 'cloud-rain', k: ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata'] },
         { t: 'Cielos de noche', d: '', i: 'moon', k: ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'] },
@@ -6358,6 +6361,10 @@ document.addEventListener('DOMContentLoaded', () => {
     $('bgfx-picker').addEventListener('click', (e) => {
         if (e.target.closest('[data-fx-toggle]')) { $('bgfx-picker').classList.toggle('open'); renderFxPicker(); return; }
         const b = e.target.closest('[data-fx]'); if (!b) return;
+        // Efectos y temas: el efecto trae sus colores (los que no tienen, dejan los tuyos)
+        const tk = FX_THEME[b.dataset.fx];
+        const ts = $('cfg-obs-theme');
+        if (tk && THEMES[tk] && ts && ts.value !== tk) { ts.value = tk; ts.dispatchEvent(new Event('change', { bubbles: true })); }
         $('cfg-obs-bg-fx').value = b.dataset.fx;
         $('cfg-obs-bg-fx').dispatchEvent(new Event('change', { bubbles: true }));
     });
@@ -7489,6 +7496,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (b.dataset.guide === 'test') { sendQuickTest(); return; }
         $('modal-guide').classList.add('hidden');
         openSettings(b.dataset.guide);
+        if (b.dataset.guide === 'conexion') {
+            // Muestra dónde va la clave (StreamElements, el recomendado)
+            setTimeout(() => {
+                const add = $('btn-add-se'); if (!add) return;
+                add.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                add.classList.remove('guide-point'); void add.offsetWidth; add.classList.add('guide-point');
+                setTimeout(() => add.classList.remove('guide-point'), 5200);
+            }, 250);
+        }
     });
     // Se ofrece sola la primera vez (sin conexiones), cuando no hay otra ventana abierta
     function maybeShowGuide(tries) {
@@ -7514,7 +7530,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ADV_PANES.forEach(p => { const t = document.querySelector(`#settings-nav .settings-tab[data-pane="${p}"]`); if (t) t.classList.add('adv-pane'); });
         ADV_IDS.forEach(id => { const el = $(id); const row = el && el.closest('.setting-row'); if (row) row.classList.add('adv'); });
         const big = $('big-sound-picker'); if (big) big.classList.add('adv');
-        const lay = document.querySelector('.layout-box'); if (lay) { lay.classList.add('adv'); const sub = lay.previousElementSibling; if (sub && sub.classList.contains('pane-subtitle')) sub.classList.add('adv'); }
+        document.querySelectorAll('.layout-box').forEach(lay => { lay.classList.add('adv'); const sub = lay.previousElementSibling; if (sub && sub.classList.contains('pane-subtitle')) sub.classList.add('adv'); });
     })();
     function expertOn() { return state.settings.expertMode !== false; }
     function advancedActive() {

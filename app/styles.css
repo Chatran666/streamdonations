@@ -3096,3 +3096,15 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 #modal-guide .rank-check { font-size: 0.85rem; }
 /* Modo liviano: sin animaciones decorativas en el panel */
 :root.lite .donation-card, :root.lite .donation-card *, :root.lite .donation-card::after, :root.lite .donation-card::before { animation: none !important; transition: none !important; }
+
+/* Efectos y temas: título y selector en un solo bloque */
+.fx-block { padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--bg-card, rgba(255, 255, 255, 0.02)); margin-bottom: 14px; }
+.fx-block-head strong { display: block; font-size: 0.95rem; margin-bottom: 2px; }
+.fx-block-head strong i { color: var(--accent); margin-right: 6px; }
+.fx-block-head small { display: block; color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 12px; }
+.fx-block .fx-picker { margin: 0; }
+/* Pestañas Panel / OBS / Destacar: del ancho justo (sin hueco cuando falta Destacar) */
+.obs-live-preview .dz-tabs { justify-self: start; }
+/* Primeros pasos: señala dónde va la clave */
+.guide-point { animation: guidePoint 1.2s ease-in-out 4; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); border-color: #F59E0B !important; }
+@keyframes guidePoint { 0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } }

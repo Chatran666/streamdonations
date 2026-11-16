@@ -1,3 +1,10 @@
+Novedades de la 2.4.1:
+- "Efectos y temas" en Diseño → OBS: elegís un efecto y trae su animación y sus colores juntos (Navidad: nieve, guirnalda y tarjeta roja y verde). Los colores sueltos quedan en modo experto como "Colores a mano".
+- El título y el selector de efectos ahora son un solo bloque.
+- La barra de plataformas de arriba de OBS se prende o apaga desde Diseño → OBS.
+- Primeros pasos: "Ir a Conexión" te lleva directo a StreamElements y marca dónde agregar la clave.
+- Arreglos: en modo simple ya no aparece "Qué se ve en cada donación y dónde", y las pestañas Panel / OBS no dejan un hueco.
+
 Novedades de la 2.4.0:
 - Modo experto (arriba de todo en Opciones): apagado muestra solo lo esencial; prendido, todo (Filtros, Destacar, transparencias, efectos, etc.). Si algo avanzado sigue funcionando oculto, te avisa. A quien ya usaba la app le queda prendido.
 - Estilos rápidos en Diseño: Clásico, Gamer, Neón, Noticiero, Minimalista y Divertido arman diseño, efecto y transparencia de un toque.
