@@ -4,9 +4,9 @@ Todas las donaciones de **Ceneka, YouTube (Super Chats), Twitch (Bits) y Kick (K
 
 ## Video
 
-[![Ver el video de StreamDonations](docs/demo-preview.jpg)](docs/StreamDonations-demo.mp4)
+![StreamDonations en acción: efectos, salidas y diseños](docs/StreamDonations-demo.gif)
 
-**[▶ Ver el video (67 s)](docs/StreamDonations-demo.mp4)** — voz en inglés, subtítulos en español y música. / Watch the demo: English voice-over, Spanish subtitles.
+[▶ Ver el video completo con sonido (67 s)](docs/StreamDonations-demo.mp4) — se descarga. / Full video with sound (downloads).
 
 ## Descargar
 
