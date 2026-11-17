@@ -1,6 +1,7 @@
-# Cuando cambia la versión en package.json (rama main), GitHub arma el instalador (Tauri, en Windows),
-# lo publica en Releases y actualiza latest.json en la rama "actualizaciones"
-# (el archivo que la app consulta para saber si hay versión nueva).
+# Cuando cambia la versión en package.json (rama main), GitHub arma el instalador (Tauri, en Windows)
+# y lo publica en el repositorio PÚBLICO de descargas (Chatran666/streamdonations-app), junto con latest.json
+# (el archivo que la app consulta para saber si hay versión nueva). El código queda en este repositorio privado.
+# Necesita el secreto APP_REPO_TOKEN: un token con permiso de escritura ("Contents: Read and write") en el repo público.
 # Una versión de prueba (con guion, ej. 2.0.0-beta.1) sale como "pre-release" y NO avisa a las apps instaladas.
 name: Publicar versión
 on:
@@ -19,15 +20,24 @@ jobs:
         shell: bash
     env:
       FIRMAR: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+      APP_REPO: ${{ vars.APP_REPO || 'Chatran666/streamdonations-app' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Controlar el permiso para publicar en el repositorio de descargas
+        env:
+          TOK: ${{ secrets.APP_REPO_TOKEN }}
+        run: |
+          if [ -z "$TOK" ]; then
+            echo "::error::Falta el secreto APP_REPO_TOKEN (token con permiso de escritura en $APP_REPO). Sin él no se puede publicar."
+            exit 1
+          fi
       - name: Versión desde package.json
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
         run: |
           V=$(node -p "require('./package.json').version")
           echo "VERSION=$V" >> $GITHUB_ENV
-          if gh release view "v$V" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+          if gh release view "v$V" --repo "$APP_REPO" >/dev/null 2>&1; then
             echo "YA_EXISTE=1" >> $GITHUB_ENV
             echo "La versión v$V ya está publicada: subí el número en package.json para publicar otra."
           fi
@@ -83,7 +93,7 @@ jobs:
       - name: Armar latest.json
         if: env.YA_EXISTE != '1'
         run: |
-          REPO="${{ github.repository }}"
+          REPO="$APP_REPO"
           MIN=""
           [ -f build/version-minima.txt ] && MIN=$(tr -d ' \r\n' < build/version-minima.txt)
           node -e '
@@ -102,32 +112,28 @@ jobs:
         if: env.YA_EXISTE != '1'
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
+          repository: ${{ env.APP_REPO }}
+          token: ${{ secrets.APP_REPO_TOKEN }}
           tag_name: v${{ env.VERSION }}
-          target_commitish: ${{ github.sha }}
           name: StreamDonations ${{ env.VERSION }}
           body_path: build/notas.txt
           prerelease: ${{ env.PRUEBA == '1' }}
           files: |
             dist/StreamDonations-Setup-${{ env.VERSION }}.exe
             dist/latest.json
-      - name: Avisar a las apps instaladas (rama "actualizaciones")
+      - name: Avisar a las apps instaladas (latest.json en el repositorio de descargas)
         if: env.YA_EXISTE != '1' && env.PRUEBA != '1'
+        env:
+          GH_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
         run: |
-          cp dist/latest.json /tmp/latest.json
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git fetch origin actualizaciones || true
-          if git show-ref --quiet refs/remotes/origin/actualizaciones; then
-            git checkout -B actualizaciones origin/actualizaciones
+          SHA=$(gh api "repos/$APP_REPO/contents/latest.json" -q .sha 2>/dev/null || true)
+          B64=$(base64 -w0 dist/latest.json 2>/dev/null || base64 dist/latest.json | tr -d '\n')
+          if [ -n "$SHA" ]; then
+            gh api -X PUT "repos/$APP_REPO/contents/latest.json" -f message="Versión ${VERSION}" -f content="$B64" -f sha="$SHA" >/dev/null
           else
-            git checkout --orphan actualizaciones
-            git rm -rf --quiet .
+            gh api -X PUT "repos/$APP_REPO/contents/latest.json" -f message="Versión ${VERSION}" -f content="$B64" >/dev/null
           fi
-          cp /tmp/latest.json latest.json
-          printf '# Rama automática\nLa app StreamDonations lee `latest.json` para saber si hay versión nueva. No la edites a mano.\n' > README.md
-          git add latest.json README.md
-          git commit -m "Versión ${VERSION}" || echo "sin cambios"
-          git push origin actualizaciones
+          echo "latest.json actualizado en $APP_REPO"
 
   # Deja solo las últimas 5 versiones publicadas (con sus etiquetas). El código y su historial no se tocan.
   # Las apps instaladas se actualizan igual: latest.json apunta siempre a la última.
@@ -138,8 +144,8 @@ jobs:
     steps:
       - name: Borrar las versiones viejas (quedan las 5 últimas)
         env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
+          REPO: ${{ vars.APP_REPO || 'Chatran666/streamdonations-app' }}
           QUEDAN: 5
         run: |
           set -euo pipefail

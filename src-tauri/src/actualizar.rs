@@ -10,7 +10,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Emitter};
 
-const ALLOWED: &str = "https://github.com/Chatran666/streamdonations/releases/download/";
+const ALLOWED: &str = "https://github.com/Chatran666/streamdonations-app/releases/download/";
 static BUSY: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Serialize)]

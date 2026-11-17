@@ -3,6 +3,7 @@
   "productName": "StreamDonations",
   "version": "2.9.2",
   "private": true,
+  "license": "UNLICENSED",
   "description": "Donaciones de Ceneka, YouTube, Twitch y Kick en un panel y en OBS",
   "author": "Mariano <mrlasheras@gmail.com>",
   "devDependencies": {

@@ -2075,10 +2075,10 @@ document.addEventListener('DOMContentLoaded', () => {
     //     "linkText": "Mirá las novedades", "linkUrl": "https://..." }   (los dos últimos son opcionales)
     // o solo el número en texto plano: 1.5.2
     // GitHub publica este archivo solo cada vez que sale una versión nueva (ver .github/workflows/publicar.yml)
-    const UPDATE_URL = 'https://raw.githubusercontent.com/Chatran666/streamdonations/actualizaciones/latest.json';
+    const UPDATE_URL = 'https://raw.githubusercontent.com/Chatran666/streamdonations-app/main/latest.json';
     // Respaldo: el archivo que se editaba a mano antes
     const UPDATE_URL_FALLBACK = 'https://gist.githubusercontent.com/Chatran666/c83c5045378146750cc3e0538e5078da/raw/versionStreamDonations.json';
-    const DOWNLOAD_PAGE = 'https://github.com/Chatran666/streamdonations/releases/latest';
+    const DOWNLOAD_PAGE = 'https://github.com/Chatran666/streamdonations-app/releases/latest';
 
     function versionParts(v) { return String(v || '0').trim().replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0).concat([0, 0, 0]).slice(0, 3); }
     function compareVersions(a, b) {
