@@ -3131,3 +3131,11 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .exit-row .exit-seg { display: flex !important; flex-direction: row !important; flex-wrap: wrap; margin-top: 12px; width: fit-content; max-width: 100%; }
 .exit-row .exit-seg button { display: inline-flex; align-items: center; width: auto; }
 .exit-seg button i { margin-right: 4px; }
+
+/* 2.4.6 */
+.bg-alpha-row { flex-wrap: wrap; row-gap: 8px; }
+.bg-alpha-row .alpha-quick { margin-top: 0; flex-basis: 100%; padding-left: 150px; }
+.bg-alpha-row small { flex-basis: 100%; font-size: 0.74rem; line-height: 1.35; color: var(--text-secondary); }
+.anim-tile-dots { display: flex; gap: 5px; margin-bottom: 4px; }
+.anim-tile-dots i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.55); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18); }
+.anim-tile small b { font-weight: 700; }

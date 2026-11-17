@@ -5454,6 +5454,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fiesta:     { label: 'Fiesta',          mode: 'dark', accent: '#FF4D6D', accent2: '#FFD60A', fx: 'fiesta',      anim: true, emoji: '🎉', desc: 'Rojo y amarillo' }
     };
     const ANIM_KEYS = Object.keys(THEMES).filter(k => THEMES[k].anim);
+    // Son solo colores: se llaman por su color (el nombre del efecto queda como referencia)
+    ANIM_KEYS.forEach(k => { const t = THEMES[k]; t.fxName = t.label; t.label = t.desc; });
     // Íconos y nombres de los efectos (íconos de la app: se ven en cualquier Windows)
     const FX_META = {
         '': { n: 'Ninguno', i: 'ban', c: '#9AA3B5' }, none: { n: 'Ninguno', i: 'ban', c: '#9AA3B5' }, propio: { n: 'Tu efecto (emojis)', i: 'face-smile-wink', c: '#FFD166' },
@@ -5620,7 +5622,7 @@ document.addEventListener('DOMContentLoaded', () => {
         g.innerHTML = ANIM_KEYS.map(k => {
             const t = THEMES[k];
             return `<button type="button" class="anim-tile ${themeDraft === k ? 'active' : ''}" data-theme-key="${k}" style="--c1:${t.accent};--c2:${t.accent2}">
-                <span class="anim-tile-emoji">${FX_META[t.fx] ? `<i class="fa-solid fa-${FX_META[t.fx].i}" style="color:${FX_META[t.fx].c}"></i>` : t.emoji}</span><strong>${escapeHTML(t.label)}</strong><small>${escapeHTML(t.desc)}</small></button>`;
+                <span class="anim-tile-dots"><i style="background:${t.accent}"></i><i style="background:${t.accent2}"></i></span><strong>${escapeHTML(t.label)}</strong><small><span>Combina con el efecto</span> <b>${escapeHTML(t.fxName)}</b></small></button>`;
         }).join('');
     }
     var animPrevTheme = null;
@@ -5809,6 +5811,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('obs-bg-file-row').classList.toggle('hidden', ot !== 'image');
         $('obs-bg-fit-row').classList.toggle('hidden', ot !== 'image');
         $('obs-bg-dim-row').classList.toggle('hidden', ot !== 'image');
+        $('obs-bg-alpha-row').classList.toggle('hidden', ot !== 'image' && ot !== 'color');
         $('obs-chroma-row').classList.toggle('hidden', ot !== 'chroma');
         $('obs-chroma-help').classList.toggle('hidden', ot !== 'chroma');
         $('obs-custom-accent-row').classList.toggle('hidden', $('cfg-obs-theme').value !== 'custom');
@@ -7575,9 +7578,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- Modo experto ----
     var EXIT_TYPES = ['fade', 'dissolve', 'explode', 'back', 'slide', 'fall'];
     const ADV_PANES = ['pantalla', 'filtros', 'datos', 'pruebas', 'reset'];
-    const ADV_IDS = ['cfg-panel-fx', 'cfg-panel-card-color', 'cfg-panel-card-alpha', 'cfg-panel-pstyle', 'cfg-panel-head',
+    const ADV_IDS = ['cfg-panel-card-color', 'cfg-panel-card-alpha', 'cfg-panel-pstyle', 'cfg-panel-head',
         'cfg-obs-card-color', 'cfg-obs-card-alpha', 'cfg-obs-textshadow', 'cfg-obs-hide-message', 'cfg-obs-accum',
-        'cfg-obs-bg-front', 'cfg-obs-bg-alpha', 'cfg-big-sound-enabled'];
+        'cfg-obs-bg-front', 'cfg-big-sound-enabled'];
     (function markAdvanced() {
         ADV_PANES.forEach(p => { const t = document.querySelector(`#settings-nav .settings-tab[data-pane="${p}"]`); if (t) t.classList.add('adv-pane'); });
         ADV_IDS.forEach(id => { const el = $(id); const row = el && el.closest('.setting-row'); if (row) row.classList.add('adv'); });

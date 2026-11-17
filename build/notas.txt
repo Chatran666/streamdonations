@@ -1,2 +1,4 @@
-Novedades de la 2.4.5:
-- En Opciones → Donaciones ahora también se puede apoyar desde otros países con Ko-fi (dólares, PayPal o tarjeta), con su código QR y link. Ceneka queda para donar desde Argentina.
+Novedades de la 2.4.6:
+- "Mostrar en el panel el mismo efecto que en OBS" ahora se ve también en modo simple.
+- Los temas especiales se llaman por sus colores (por ejemplo "Negro con verde fosforescente" en lugar de "OVNI") y muestran con qué efecto combinan, para que no parezcan animaciones.
+- La transparencia de la imagen o color de fondo de OBS ahora está junto a "Cómo se acomoda" y "Oscurecer la imagen".

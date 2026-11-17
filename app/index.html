@@ -520,7 +520,7 @@
     <div class="anim-picker hidden" id="anim-picker" role="dialog" aria-labelledby="anim-title">
         <div class="anim-head">
             <h3 id="anim-title"><i class="fa-solid fa-palette"></i> Temas especiales</h3>
-            <small>Colores para fechas y ocasiones. Tocá uno y miralo en vivo. Las animaciones (nieve, lluvia…) se eligen en Diseño → OBS → Efecto animado de fondo.</small>
+            <small>Colores para fechas y ocasiones. Tocá uno y miralo en vivo. Las animaciones (nieve, lluvia…) se eligen en Diseño → OBS → Efectos y temas.</small>
         </div>
         <div class="anim-grid" id="anim-grid"></div>
         <div class="anim-actions">
@@ -1291,6 +1291,13 @@
                                 <input type="range" id="cfg-obs-bg-dim" min="0" max="0.85" step="0.05">
                                 <span class="range-value" id="lbl-obs-bg-dim">30%</span>
                             </div>
+                            <div class="bg-dim-row bg-alpha-row adv" id="obs-bg-alpha-row">
+                                <label for="cfg-obs-bg-alpha">Transparencia</label>
+                                <input type="range" id="cfg-obs-bg-alpha" min="0" max="100" step="1" value="100">
+                                <span class="range-value" id="lbl-obs-bg-alpha">100%</span>
+                                <div class="alpha-quick" data-alpha-target="cfg-obs-bg-alpha"><button type="button" data-v="100">100%</button><button type="button" data-v="75">75%</button><button type="button" data-v="50">50%</button><button type="button" data-v="25">25%</button></div>
+                                <small>Solo tu imagen, GIF o color (el efecto tiene su propia barra). Deja ver tu juego o tu cámara detrás. Funciona con la fuente de navegador (el link); en captura de ventana el fondo tapa todo.</small>
+                            </div>
                         </div>
                         <div class="fx-block" id="fx-block">
                             <div class="fx-block-head"><strong><i class="fa-solid fa-wand-magic-sparkles"></i> Efectos y temas</strong><small>Elegí uno: trae su animación y sus colores (por ejemplo, Navidad pone nieve, guirnalda y la tarjeta en rojo y verde). Se ve al instante en la vista previa.</small></div>
@@ -1328,13 +1335,6 @@
                             <div class="alpha-ctl">
                                 <div class="alpha-ctl-row"><input type="range" id="cfg-obs-bg-front" min="0" max="100" step="1" value="0"><span class="range-value" id="lbl-obs-bg-front">0%</span></div>
                                 <div class="alpha-quick" data-alpha-target="cfg-obs-bg-front"><button type="button" data-v="0">0%</button><button type="button" data-v="15">15%</button><button type="button" data-v="30">30%</button><button type="button" data-v="50">50%</button></div>
-                            </div>
-                        </div>
-                        <div class="setting-row bg-extra-row">
-                            <div><strong>Transparencia de la imagen o color de fondo</strong><small>Solo tu imagen, GIF o color (el efecto tiene su propia barra). Deja ver tu juego o tu cámara detrás. Funciona con la fuente de navegador (el link); en captura de ventana el fondo tapa todo.</small></div>
-                            <div class="alpha-ctl">
-                                <div class="alpha-ctl-row"><input type="range" id="cfg-obs-bg-alpha" min="0" max="100" step="1" value="100"><span class="range-value" id="lbl-obs-bg-alpha">100%</span></div>
-                                <div class="alpha-quick" data-alpha-target="cfg-obs-bg-alpha"><button type="button" data-v="100">100%</button><button type="button" data-v="75">75%</button><button type="button" data-v="50">50%</button><button type="button" data-v="25">25%</button></div>
                             </div>
                         </div>
                         <div class="pane-note chroma-help hidden" id="obs-chroma-help"><i class="fa-solid fa-wand-magic-sparkles"></i> <strong>Cómo dejarlo transparente en OBS:</strong> clic derecho en la captura de la ventana → <em>Filtros</em> → <strong>+</strong> → <em>Clave cromática</em> (Chroma Key) → elegí el mismo color de acá (Magenta, Verde o Azul). Las tarjetas quedan flotando sobre tu escena. Si mostrás donaciones de Kick (verde), usá Magenta.</div>
