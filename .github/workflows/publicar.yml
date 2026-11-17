@@ -128,3 +128,29 @@ jobs:
           git add latest.json README.md
           git commit -m "Versión ${VERSION}" || echo "sin cambios"
           git push origin actualizaciones
+
+  # Deja solo las últimas 5 versiones publicadas (con sus etiquetas). El código y su historial no se tocan.
+  # Las apps instaladas se actualizan igual: latest.json apunta siempre a la última.
+  limpiar-versiones:
+    needs: instalador
+    if: ${{ !cancelled() && needs.instalador.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Borrar las versiones viejas (quedan las 5 últimas)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          QUEDAN: 5
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/releases?per_page=100" --paginate \
+            -q '.[] | select(.draft | not) | [.created_at, .tag_name] | @tsv' | sort -r > todas.tsv
+          echo "Versiones publicadas: $(wc -l < todas.tsv)"
+          tail -n +$((QUEDAN + 1)) todas.tsv | cut -f2 > borrar.txt
+          if [ ! -s borrar.txt ]; then echo "No hay nada para borrar."; exit 0; fi
+          echo "Quedan: $(head -n $QUEDAN todas.tsv | cut -f2 | tr '\n' ' ')"
+          while read -r tag; do
+            case "$tag" in v[0-9]*) ;; *) echo "Salteo $tag (no es una versión)"; continue;; esac
+            echo "Borrando $tag"
+            gh release delete "$tag" --repo "$REPO" --yes --cleanup-tag
+          done < borrar.txt
