@@ -2,6 +2,12 @@
 
 Todas las donaciones de **Ceneka, YouTube (Super Chats), Twitch (Bits) y Kick (KICKs)** en un solo panel, con lectura en voz alta, sonidos y alertas para **OBS**.
 
+## Video
+
+[![Ver el video de StreamDonations](docs/demo-preview.jpg)](docs/StreamDonations-demo.mp4)
+
+**[▶ Ver el video (54 s)](docs/StreamDonations-demo.mp4)** — voz en inglés, subtítulos en español. / Watch the demo: English voice-over, Spanish subtitles.
+
 ## Descargar
 
 Bajá el instalador de la última versión en **[Releases](../../releases/latest)** (`StreamDonations-Setup-X.Y.Z.exe`).
