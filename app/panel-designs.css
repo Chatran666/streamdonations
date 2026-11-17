@@ -123,3 +123,58 @@
 :root[data-pdesign="postit"] .amount-badge { background: none !important; border: 2px solid #B42318 !important; color: #B42318 !important; border-radius: 50% / 45% !important; transform: rotate(-5deg); }
 :root[data-pdesign="postit"] .btn-card-action { color: #3A3000; border-color: rgba(58, 48, 0, 0.3); background: rgba(58, 48, 0, 0.06); }
 :root[data-pdesign="postit"] .platform-tag { background: rgba(58, 48, 0, 0.1) !important; color: #3A3000 !important; border-color: rgba(58, 48, 0, 0.35) !important; }
+
+/* ===== 2.9.0: seis diseños nuevos (versión del panel) ===== */
+:root[data-pdesign="pastel"] .donation-card { --ink-rgb: 74, 59, 92; background: linear-gradient(135deg, #FFF3F8, #F1F5FF) !important; color: #4A3B5C; border: 2px solid rgba(var(--pcur-rgb), 0.5); border-radius: 24px; box-shadow: 0 5px 0 rgba(var(--pcur-rgb), 0.3); margin-bottom: 5px; }
+:root[data-pdesign="pastel"] .donation-card::before { display: none; }
+:root[data-pdesign="pastel"] .donor-nick-text, :root[data-pdesign="pastel"] .timestamp { color: #4A3B5C; }
+:root[data-pdesign="pastel"] .card-message { background: rgba(255, 255, 255, 0.85); border: 2px dashed rgba(var(--pcur-rgb), 0.45); border-radius: 16px; color: #4A3B5C; }
+:root[data-pdesign="pastel"] .amount-badge { background: rgba(var(--pcur-rgb), 0.25) !important; color: #3A2B4C !important; border: none !important; border-radius: 999px !important; }
+:root[data-pdesign="pastel"] .btn-card-action { color: #4A3B5C; border-color: rgba(74, 59, 92, 0.3); background: rgba(74, 59, 92, 0.06); border-radius: 999px; }
+
+:root[data-pdesign="mono"] .donation-card { background: #0A0A0A !important; border: 1px solid #fff; border-radius: 4px; }
+:root[data-pdesign="mono"] .donation-card::before { display: none; }
+:root[data-pdesign="mono"] .donor-nick-text { color: #fff; text-transform: uppercase; letter-spacing: 0.12em; }
+:root[data-pdesign="mono"] .amount-badge { background: #fff !important; color: #000 !important; border: none !important; border-radius: 2px !important; }
+:root[data-pdesign="mono"] .card-message { background: none; border: none; border-left: 2px solid #fff; border-radius: 0; color: #E6E6E6; }
+:root[data-pdesign="mono"] .donor-avatar { border-radius: 4px; filter: grayscale(1); }
+:root[data-pdesign="mono"] .btn-card-action { border-radius: 2px; color: #fff; border-color: rgba(255, 255, 255, 0.5); }
+:root[data-pdesign="mono"] .timestamp { color: #B0B0B0; }
+
+:root[data-pdesign="glitch"] .donation-card { background: #08081A !important; border: 2px solid rgb(var(--pcur-rgb)); border-radius: 0; box-shadow: -3px 0 0 #00F0FF, 3px 0 0 #FF2BD6; margin: 0 4px; }
+:root[data-pdesign="glitch"] .donation-card::before { display: none; }
+:root[data-pdesign="glitch"] .donor-nick-text { color: #fff; text-transform: uppercase; letter-spacing: 0.08em; text-shadow: 2px 0 #00F0FF, -2px 0 #FF2BD6; }
+:root[data-pdesign="glitch"] .amount-badge { background: rgb(var(--pcur-rgb)) !important; color: var(--pcur-ink) !important; border: none !important; border-radius: 0 !important; transform: skewX(-8deg); }
+:root[data-pdesign="glitch"] .card-message { background: rgba(255, 255, 255, 0.05); border: none; border-left: 3px solid #00F0FF; border-radius: 0; color: #E8E8F4; }
+:root[data-pdesign="glitch"] .donor-avatar, :root[data-pdesign="glitch"] .btn-card-action { border-radius: 0; }
+:root[data-pdesign="glitch"] .timestamp { color: #A0A0C0; }
+
+:root[data-pdesign="holo"] .donation-card { border: 2px solid transparent; border-radius: 18px; background: linear-gradient(#12102A, #12102A) padding-box, linear-gradient(120deg, #7AD7FF, #B79CFF, #FF9BD2, #FFE08A, #8CFFB0, #7AD7FF) border-box !important; }
+:root[data-pdesign="holo"] .donation-card::before { display: none; }
+:root[data-pdesign="holo"] .donor-nick-text { background: linear-gradient(90deg, #7AD7FF, #B79CFF, #FF9BD2, #FFE08A); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+:root[data-pdesign="holo"] .amount-badge { background: linear-gradient(120deg, #7AD7FF, #B79CFF, #FF9BD2, #FFE08A) !important; color: #14102A !important; border: none !important; }
+:root[data-pdesign="holo"] .card-message { background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 12px; color: #ECEAF8; }
+:root[data-pdesign="holo"] .timestamp { color: #B4AEDA; }
+
+:root[data-pdesign="comic"] .donation-card { --ink-rgb: 17, 17, 17; background: #fff !important; color: #111; border: 3px solid #111; border-radius: 12px; box-shadow: 5px 5px 0 #111; margin: 0 6px 6px 0; }
+:root[data-pdesign="comic"] .donation-card::before { display: none; }
+:root[data-pdesign="comic"] .donor-nick-text { background: rgb(var(--pcur-rgb)); color: var(--pcur-ink); border: 2px solid #111; padding: 0 8px; text-transform: uppercase; font-weight: 900; transform: rotate(-1.5deg); display: inline-block; }
+:root[data-pdesign="comic"] .timestamp { color: #333; }
+:root[data-pdesign="comic"] .amount-badge { background: #FFE600 !important; color: #111 !important; border: 2px solid #111 !important; border-radius: 6px !important; transform: rotate(2deg); font-weight: 900; }
+:root[data-pdesign="comic"] .card-message { background: none; border: none; color: #111; font-weight: 700; padding: 0; }
+:root[data-pdesign="comic"] .btn-card-action { color: #111; border: 2px solid #111; background: #fff; }
+:root[data-pdesign="comic"] .platform-tag { border-color: #111 !important; }
+
+:root[data-pdesign="capsula"] .donation-card { --ink-rgb: 27, 27, 42; background: #fff !important; color: #1B1B2A; border: 3px solid rgb(var(--pcur-rgb)); border-top-width: 10px; border-radius: 26px; }
+:root[data-pdesign="capsula"] .donation-card::before { display: none; }
+:root[data-pdesign="capsula"] .donor-nick-text { color: #1B1B2A; font-weight: 800; }
+:root[data-pdesign="capsula"] .timestamp { color: #55556A; }
+:root[data-pdesign="capsula"] .amount-badge { background: #fff !important; color: #1B1B2A !important; border: 1px solid rgba(0, 0, 0, 0.3) !important; border-radius: 999px !important; }
+:root[data-pdesign="capsula"] .card-message { background: #F3F3F8; border: none; border-radius: 14px; color: #1B1B2A; }
+:root[data-pdesign="capsula"] .btn-card-action { color: #1B1B2A; border-color: rgba(0, 0, 0, 0.35); background: #fff; border-radius: 999px; }
+
+/* Diseños claros: etiquetas, foto y "PRUEBA" con contraste sobre el papel */
+:root[data-pdesign="pastel"] .platform-tag, :root[data-pdesign="comic"] .platform-tag, :root[data-pdesign="capsula"] .platform-tag { background: rgb(var(--pcur-rgb)) !important; color: var(--pcur-ink) !important; border-color: rgba(0, 0, 0, 0.65) !important; }
+:root[data-pdesign="pastel"] .test-tag, :root[data-pdesign="comic"] .test-tag, :root[data-pdesign="capsula"] .test-tag { background: #FFE9B0; color: #7A4B00; border-color: #B8860B; }
+:root[data-pdesign="pastel"] .donor-avatar, :root[data-pdesign="comic"] .donor-avatar, :root[data-pdesign="capsula"] .donor-avatar { background: rgba(var(--pcur-rgb), 0.3); color: #1B1B2A; }
+:root[data-pdesign="comic"] .donation-card { outline: 1px solid rgba(255, 255, 255, 0.4); }

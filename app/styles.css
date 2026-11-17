@@ -3139,3 +3139,34 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .anim-tile-dots { display: flex; gap: 5px; margin-bottom: 4px; }
 .anim-tile-dots i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.55); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18); }
 .anim-tile small b { font-weight: 700; }
+
+/* 2.9.0: miniaturas de los diseños nuevos */
+.dzm-pastel::before { background: #FFF3F8; border: 2px solid #FFB3CC; border-radius: 14px; box-shadow: 0 3px 0 #E7C4D6; }
+.dzm-pastel .dzm-nick { background: #4A3B5C; } .dzm-pastel .dzm-msg { background: #fff; border: 1px dashed #FFB3CC; } .dzm-pastel .dzm-amt { background: #FFC9DA; border-radius: 99px; }
+.dzm-mono::before { background: #0A0A0A; border: 1px solid #fff; border-radius: 2px; }
+.dzm-mono .dzm-av { border-radius: 1px; background: #777; } .dzm-mono .dzm-amt { background: #fff; border-radius: 1px; } .dzm-mono .dzm-msg { background: none; border-left: 2px solid #fff; border-radius: 0; left: 13%; }
+.dzm-glitch::before { background: #08081A; border: 2px solid var(--a); border-radius: 0; box-shadow: -3px 0 0 #00F0FF, 3px 0 0 #FF2BD6; }
+.dzm-glitch .dzm-av { border-radius: 0; } .dzm-glitch .dzm-nick { background: #fff; box-shadow: 2px 0 #00F0FF, -2px 0 #FF2BD6; border-radius: 0; } .dzm-glitch .dzm-amt { background: var(--a); border-radius: 0; transform: skewX(-12deg); } .dzm-glitch .dzm-msg { border-left: 2px solid #00F0FF; border-radius: 0; }
+.dzm-holo::before { border: 2px solid transparent; border-radius: 10px; background: linear-gradient(#12102A, #12102A) padding-box, linear-gradient(120deg, #7AD7FF, #B79CFF, #FF9BD2, #FFE08A, #8CFFB0) border-box; }
+.dzm-holo .dzm-nick { background: linear-gradient(90deg, #7AD7FF, #FF9BD2); } .dzm-holo .dzm-amt { background: linear-gradient(120deg, #7AD7FF, #B79CFF, #FF9BD2, #FFE08A); }
+.dzm-comic::before { background: #fff; border: 3px solid #111; border-radius: 6px; box-shadow: 4px 4px 0 #111; }
+.dzm-comic .dzm-nick { background: var(--a); outline: 2px solid #111; border-radius: 0; height: 6px; transform: rotate(-3deg); } .dzm-comic .dzm-amt { background: #FFE600; outline: 2px solid #111; border-radius: 1px; transform: rotate(4deg); } .dzm-comic .dzm-msg { background: #111; height: 4px; }
+.dzm-capsula::before { border: 2px solid #fff; border-radius: 16px; background: linear-gradient(180deg, var(--a) 0 50%, #fff 50%); }
+.dzm-capsula .dzm-nick { background: #fff; } .dzm-capsula .dzm-amt { background: #fff; border-radius: 99px; } .dzm-capsula .dzm-msg { background: #C9CBD6; top: 35px; height: 5px; }
+
+/* 2.9.0: opciones nuevas de Diseño */
+.seg-eye { width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-right: 2px; }
+.ico-eye { display: none; width: 1.1em; height: 1.1em; vertical-align: -0.18em; }
+:root.read-eye .ico-check { display: none !important; }
+:root.read-eye .ico-eye { display: inline-block; }
+.card-img-box { border: 1px solid var(--border-color); border-radius: 12px; padding: 4px 14px 12px; margin-bottom: 14px; }
+.card-img-box > .setting-row { border: none; padding-left: 0; padding-right: 0; background: none; }
+.card-img-opts { display: flex; flex-direction: column; gap: 10px; padding: 2px 0 12px 4px; border-bottom: 1px dashed var(--border-color); margin-bottom: 4px; }
+.card-img-opts.hidden { display: none; }
+.card-img-opts .seg { display: inline-flex; flex-direction: row; }
+#readicon-seg { display: inline-flex !important; flex-direction: row !important; flex-shrink: 0; }
+/* Colores de la tarjeta: tres filas alineadas (bordes, fondo, letras) */
+.setting-row > .card-colors, .card-colors { display: grid; grid-template-columns: auto auto auto; gap: 8px 10px; align-items: center; justify-content: end; flex-shrink: 0; }
+.card-colors .custom-text-group { display: contents; }
+.card-colors label:not(.inline-check) { text-align: right; }
+.card-colors .inline-check { white-space: nowrap; }

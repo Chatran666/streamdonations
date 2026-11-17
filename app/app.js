@@ -3,6 +3,8 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    const ENTER_TYPES = ['pop', 'fade', 'slide', 'slidel', 'bounce', 'grow', 'drop', 'flip', 'spin', 'blur'];
+    const EYE_SVG = '<svg class="ico-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
     const APP_VERSION = '1.5.3';
     // Versión 2 (ventana propia, sin Chrome): la app corre dentro de Tauri
     const TAURI = window.__TAURI__ && window.__TAURI__.core ? window.__TAURI__ : null;
@@ -164,7 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
             blockedUsers: '', // Usuarios bloqueados (uno por línea)
             obsDelayOn: false, obsDelay: 5, // Retraso antes de mostrar en OBS (para descartar a tiempo)
             lite: false, // Modo liviano: sin efectos ni animaciones decorativas, voz de Windows
-            obsExit: 'fade' // Cómo se va de OBS al marcarla leída
+            obsExit: 'fade', // Cómo se va de OBS al marcarla leída
+            obsEnter: 'pop', // Cómo aparece en OBS
+            readIcon: 'check', // Ícono de "leído": tilde u ojo
+            obsStep: false, obsStepDim: true, // Leer de a una con la rueda en la ventana OBS
+            obsCard: null // Imagen de esquina y de fondo de las tarjetas de OBS
         },
         lastReadId: null
     };
@@ -1712,7 +1718,7 @@ document.addEventListener('DOMContentLoaded', () => {
                    <i class="fa-solid fa-arrow-rotate-left"></i> Restaurar
                </button>`
             : `<button class="btn-card-action is-read-btn" data-act="toggle-read" data-id="${item.id}" title="Marcar como leído y quitar de la vista">
-                   <i class="fa-solid fa-check"></i> Marcar Leído
+                   <i class="fa-solid fa-check ico-check"></i>${EYE_SVG} Marcar Leído
                </button>`;
 
         // Estilo (rango y/o donación grande): los bordes animados solo mientras está pendiente
@@ -1766,7 +1772,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MEDIA_KEY_RE = /^(panelBg|obsBg|alertSound|alertSoundBig|icon:[a-z0-9]{6,24})$/;
     const MEDIA_TYPE_RE = /^(image\/(png|gif|webp|jpeg|svg\+xml)|audio\/[a-z0-9.+-]{1,30})$/;
     function mediaKeys() {
-        return ['panelBg', 'obsBg', 'alertSound', 'alertSoundBig', ...(state.settings.customIcons || []).map(ic => 'icon:' + ic.id)];
+        return ['panelBg', 'obsBg', 'cardCorner', 'cardBg', 'alertSound', 'alertSoundBig', ...(state.settings.customIcons || []).map(ic => 'icon:' + ic.id)];
     }
     function blobToBase64(blob) {
         return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(blob); });
@@ -2418,7 +2424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         els.btnFocusToggleRead.innerHTML = item.isRead 
             ? `<i class="fa-solid fa-arrow-rotate-left"></i> Restaurar a Pendientes` 
-            : `<i class="fa-solid fa-check-circle"></i> Marcar como Leído`;
+            : `<i class="fa-solid fa-check-circle ico-check"></i>${EYE_SVG} Marcar como Leído`;
 
         els.modalFocus.classList.remove('hidden');
     };
@@ -4767,6 +4773,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('row-obs-delay').classList.toggle('hidden', !st.obsDelayOn);
         $('cfg-lite').checked = !!st.lite;
         setExitChoice(st.obsExit || 'fade');
+        load29Form(st);
         $('cfg-close-tray').checked = !!st.closeToTray;
         if (TAURI) { TAURI.autostart.isEnabled().then(on => { $('cfg-autostart').checked = !!on; }).catch(() => {}); refreshVoz(); }
         $('cfg-banned-words').value = st.bannedWords || '';
@@ -4907,6 +4914,7 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsDelay = parseInt($('cfg-obs-delay').value, 10) || 5;
         st.lite = $('cfg-lite').checked;
         st.obsExit = EXIT_TYPES.includes($('exit-seg').dataset.v) ? $('exit-seg').dataset.v : 'fade';
+        save29Form(st);
         st.closeToTray = $('cfg-close-tray').checked;
         applyTauriSettings();
         document.documentElement.classList.toggle('hotkeys-off', !st.hotkeys);
@@ -5467,6 +5475,9 @@ document.addEventListener('DOMContentLoaded', () => {
         fugaces: { n: 'Estrellas fugaces', i: 'meteor', c: '#FFD166' }, niebla: { n: 'Niebla', i: 'smog', c: '#C9D3DE' },
         rayos: { n: 'Rayos', i: 'bolt', c: '#9DB4FF' }, corazones: { n: 'Corazones', i: 'heart', c: '#FF4D8D' },
         plata: { n: 'Lluvia de plata', i: 'money-bill-wave', c: '#2ECC71' },
+        fuego: { n: 'Fuego', i: 'fire', c: '#FF7A1A' }, matrix: { n: 'Lluvia de código', i: 'terminal', c: '#00FF41' },
+        globos: { n: 'Globos', i: 'gift', c: '#FF4D6D' }, monedas: { n: 'Monedas', i: 'coins', c: '#F6C744' },
+        notas: { n: 'Notas musicales', i: 'music', c: '#B79CFF' }, pixelhearts: { n: 'Corazones 8 bits', i: 'gamepad', c: '#FF3B5C' },
         estrellas: { n: 'Cielo con estrellas', i: 'moon', c: '#8EA8FF' }, aurora: { n: 'Aurora boreal', i: 'star', c: '#3DFFB0' },
         tormenta: { n: 'Tormenta', i: 'cloud-bolt', c: '#9DB4FF' }, luciernagas: { n: 'Luciérnagas', i: 'bug', c: '#C6FF4A' },
         navidad: { n: 'Navidad', i: 'tree', c: '#2ECC71' }, halloween: { n: 'Halloween', i: 'ghost', c: '#FF7518' },
@@ -5476,9 +5487,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const FX_THEME = { xfiles: 'xfiles', navidad: 'navidad', nieve: 'nieve', anionuevo: 'anionuevo', halloween: 'halloween', argentina: 'argentina', julio4: 'julio4',
         sanvalentin: 'sanvalentin', corazones: 'sanvalentin', primavera: 'primavera', plata: 'plata', estrellas: 'estrellas', fugaces: 'estrellas', aurora: 'aurora',
-        lluvia: 'lluvia', lluviafuerte: 'lluvia', tormenta: 'tormenta', rayos: 'tormenta', otono: 'otono', burbujas: 'burbujas', luciernagas: 'luciernagas', fiesta: 'fiesta', papelitos: 'fiesta' };
+        lluvia: 'lluvia', lluviafuerte: 'lluvia', tormenta: 'tormenta', rayos: 'tormenta', otono: 'otono', burbujas: 'burbujas', luciernagas: 'luciernagas', fiesta: 'fiesta', papelitos: 'fiesta', matrix: 'xfiles', fuego: 'halloween', monedas: 'plata', globos: 'fiesta', pixelhearts: 'sanvalentin' };
     const FX_GROUPS = [
-        { t: 'Cosas que caen o flotan', d: '', i: 'cloud-rain', k: ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata'] },
+        { t: 'Cosas que caen o flotan', d: '', i: 'cloud-rain', k: ['lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'fuego', 'matrix', 'globos', 'monedas', 'notas', 'pixelhearts'] },
         { t: 'Cielos de noche', d: '', i: 'moon', k: ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'] },
         { t: 'De fechas especiales', d: '', i: 'calendar-days', k: ['navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta'] }
     ];
@@ -5801,7 +5812,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const OBS_BG_FX = ['', 'none', 'propio', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
+    const OBS_BG_FX = ['', 'none', 'propio', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'fuego', 'matrix', 'globos', 'monedas', 'notas', 'pixelhearts', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
     function updateLookFormState() {
         const pt = $('cfg-panel-bg-type').value, ot = $('cfg-obs-bg-type').value;
         $('cfg-panel-bg-color').classList.toggle('hidden', pt !== 'color');
@@ -5814,7 +5825,11 @@ document.addEventListener('DOMContentLoaded', () => {
         $('obs-bg-alpha-row').classList.toggle('hidden', ot !== 'image' && ot !== 'color');
         $('obs-chroma-row').classList.toggle('hidden', ot !== 'chroma');
         $('obs-chroma-help').classList.toggle('hidden', ot !== 'chroma');
-        $('obs-custom-accent-row').classList.toggle('hidden', $('cfg-obs-theme').value !== 'custom');
+        // Bordes y brillo: "Automático" sigue al efecto (o al panel); al elegir un color pasa a Personalizado
+        const accAuto = $('cfg-obs-theme').value !== 'custom';
+        $('cfg-obs-accent-auto').checked = accAuto;
+        $('cfg-obs-custom-accent').disabled = accAuto;
+        if (accAuto) { const tk = $('cfg-obs-theme').value; const t = tk === 'same' ? THEMES[state.settings.theme] : THEMES[tk]; if (t && t.accent) $('cfg-obs-custom-accent').value = (tk === 'same' && state.settings.theme === 'custom' && /^#[0-9a-fA-F]{6}$/.test(state.settings.customAccent || '')) ? state.settings.customAccent : t.accent; }
         $('cfg-obs-custom-text').disabled = $('cfg-obs-custom-text-auto').checked;
         $('cfg-obs-card-color').disabled = $('cfg-obs-card-color-auto').checked;
         $('lbl-panel-bg-dim').textContent = Math.round($('cfg-panel-bg-dim').value * 100) + '%';
@@ -5902,6 +5917,14 @@ document.addEventListener('DOMContentLoaded', () => {
             PLATFORM_KEYS.forEach(k => { $('cfg-color-' + k).value = PLATFORM_COLOR_DEFAULTS[k]; });
             setSettingsDirty(true);
             previewLook();
+        });
+        $('cfg-obs-accent-auto').addEventListener('change', () => {
+            const ts = $('cfg-obs-theme');
+            if ($('cfg-obs-accent-auto').checked) {
+                const fx = $('cfg-obs-bg-fx').value, tk = FX_THEME[fx];
+                ts.value = tk && THEMES[tk] ? tk : (ts.dataset.prev && ts.dataset.prev !== 'custom' ? ts.dataset.prev : 'same');
+            } else { if (ts.value !== 'custom') ts.dataset.prev = ts.value; ts.value = 'custom'; }
+            ts.dispatchEvent(new Event('change', { bubbles: true }));
         });
         $('btn-panel-bg-pick').addEventListener('click', () => $('panel-bg-file').click());
         $('btn-obs-bg-pick').addEventListener('click', () => $('obs-bg-file').click());
@@ -6010,7 +6033,13 @@ document.addEventListener('DOMContentLoaded', () => {
         { k: 'hud', label: 'HUD', icon: 'fa-crosshairs', desc: 'Pantalla de nave: esquinas marcadas y líneas de escaneo' },
         { k: 'zocalo', label: 'Zócalo', icon: 'fa-newspaper', desc: 'De noticiero: nick en etiqueta, mensaje en banda y monto en placa dorada' },
         { k: 'sticker', label: 'Calcomanía', icon: 'fa-note-sticky', desc: 'Sticker con borde blanco y la esquina despegada' },
-        { k: 'postit', label: 'Nota', icon: 'fa-thumbtack', desc: 'Papelito pegado con cinta, con la punta levantada' }
+        { k: 'postit', label: 'Nota', icon: 'fa-thumbtack', desc: 'Papelito pegado con cinta, con la punta levantada' },
+        { k: 'pastel', label: 'Pastel', icon: 'fa-ice-cream', desc: 'Suave y redondeado, en tonos claros' },
+        { k: 'mono', label: 'Blanco y negro', icon: 'fa-circle-half-stroke', desc: 'Sobrio: solo la plataforma lleva color' },
+        { k: 'glitch', label: 'Glitch', icon: 'fa-bug', desc: 'Ciberpunk con aberración de color y barrido' },
+        { k: 'holo', label: 'Holográfico', icon: 'fa-gem', desc: 'Borde tornasolado y un brillo que cruza' },
+        { k: 'comic', label: 'Cómic', icon: 'fa-comment-dots', desc: 'Viñeta blanca con borde grueso y puntos de imprenta' },
+        { k: 'capsula', label: 'Cápsula', icon: 'fa-capsules', desc: 'Mitad de color con el nombre, mitad blanca con el mensaje' }
     ];
     function currentDesign() { return obsDesignDraft || state.settings.obsDesign || 'tarjeta'; }
     // Diseño del panel: uno propio o "igual que OBS"
@@ -6402,7 +6431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Efectos y temas: el efecto trae sus colores (los que no tienen, dejan los tuyos)
         const tk = FX_THEME[b.dataset.fx];
         const ts = $('cfg-obs-theme');
-        if (tk && THEMES[tk] && ts && ts.value !== tk) { ts.value = tk; ts.dispatchEvent(new Event('change', { bubbles: true })); }
+        if (tk && THEMES[tk] && ts && ts.value !== tk && ts.value !== 'custom') { ts.value = tk; ts.dispatchEvent(new Event('change', { bubbles: true })); }
         $('cfg-obs-bg-fx').value = b.dataset.fx;
         // El fondo del efecto se acomoda solo: prendido para los cielos de noche, apagado para el resto (después lo cambiás)
         $('cfg-obs-fx-bg').checked = ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'].includes(b.dataset.fx);
@@ -6489,6 +6518,7 @@ document.addEventListener('DOMContentLoaded', () => {
             themeOwn: !!(lk.obsTheme && lk.obsTheme !== 'same'),
             lite: !els.modalSettings.classList.contains('hidden') && $('cfg-lite') ? $('cfg-lite').checked : !!state.settings.lite,
             exitFx: !els.modalSettings.classList.contains('hidden') && $('exit-seg').dataset.v ? $('exit-seg').dataset.v : (state.settings.obsExit || 'fade'),
+            ...style29(),
             filterBar: state.settings.obsFilterBar !== false,
             platforms: visiblePlatforms(),
             layout: cleanObsLayout(obsLayoutDraft || state.settings.obsLayout),
@@ -6605,7 +6635,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             try { APP_STORAGE_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) {}
             // Imágenes y sonidos elegidos (guardados aparte)
-            if (window.SDStore) ['panelBg', 'obsBg', 'alertSound', 'alertSoundBig', ...(state.settings.customIcons || []).map(ic => 'icon:' + ic.id)].forEach(k => { try { SDStore.del(k).catch(() => {}); } catch (e) {} });
+            if (window.SDStore) ['panelBg', 'obsBg', 'cardCorner', 'cardBg', 'alertSound', 'alertSoundBig', ...(state.settings.customIcons || []).map(ic => 'icon:' + ic.id)].forEach(k => { try { SDStore.del(k).catch(() => {}); } catch (e) {} });
             // La ventana de OBS necesita saber que tiene que limpiar todo
             try { localStorage.setItem('obs_dismiss_queue', JSON.stringify([{ id: 'all', _t: Date.now() }])); } catch (e) {}
             location.reload();
@@ -7126,7 +7156,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return SDStore.get('obsBg').then(b => b && /^image\/(png|gif|webp|jpeg)$/.test(b.type) && blobToBase64(b).then(data =>
                     tp.send({ sd: 1, from: 'panel', msg: { type: 'BG_IMAGE', ver: bg.ver, mime: b.type, data } }))).catch(() => {});
             };
-            Promise.all(icons.map(sendIcon).concat(sendBg())).then(() => tp.send({ sd: 1, from: 'panel', msg }));
+            // Las imágenes de las tarjetas (esquina y fondo) también viajan una vez por conexión
+            const sendCard = (slot) => {
+                const c = msg.type === 'STYLE_UPDATE' && msg.data && msg.data.card;
+                if (!c || !window.SDStore) return Promise.resolve();
+                const on = slot === 'corner' ? c.corner : c.bg, ver = slot === 'corner' ? c.cornerVer : c.bgVer;
+                if (!on || !ver || tp.sent.has('card:' + slot + ver)) return Promise.resolve();
+                tp.sent.add('card:' + slot + ver);
+                return SDStore.get(slot === 'corner' ? 'cardCorner' : 'cardBg').then(b => b && /^image\/(png|gif|webp|jpeg)$/.test(b.type) && blobToBase64(b).then(data =>
+                    tp.send({ sd: 1, from: 'panel', msg: { type: 'CARD_IMAGE', slot, ver, mime: b.type, data } }))).catch(() => {});
+            };
+            Promise.all(icons.map(sendIcon).concat(sendBg(), sendCard('corner'), sendCard('bg'))).then(() => tp.send({ sd: 1, from: 'panel', msg }));
         });
     }
     // Manda a la fuente todo lo que tiene que mostrar ahora (al conectar o cuando la fuente recién arranca)
@@ -7570,13 +7610,92 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { const w = $('design-preview') && $('design-preview').contentWindow; try { w.postMessage({ type: 'PREVIEW_EXIT' }, '*'); } catch (err) {} }, 120);
     });
 
+    // ---- 2.9.0: cómo aparece, ícono de leído, leer de a una e imágenes de las tarjetas ----
+    function segSet(id, v, list, def) {
+        const g = $(id); g.dataset.v = list.includes(v) ? v : def;
+        g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === g.dataset.v));
+    }
+    function cleanCard(c) {
+        c = c || {};
+        const n = (v, a, b, d) => { if (v === undefined || v === null || v === '') return d; v = Number(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : d; };
+        return { corner: !!c.corner, cornerPos: c.cornerPos === 'left' ? 'left' : 'right', cornerSize: n(c.cornerSize, 30, 220, 90), cornerAlpha: n(c.cornerAlpha, 10, 100, 100),
+            cornerVer: Number(c.cornerVer) || 0, cornerName: String(c.cornerName || '').slice(0, 80),
+            bg: !!c.bg, bgAlpha: n(c.bgAlpha, 5, 100, 100), bgDim: n(c.bgDim, 0, 90, 40), bgVer: Number(c.bgVer) || 0, bgName: String(c.bgName || '').slice(0, 80) };
+    }
+    function cardFromForm() {
+        return cleanCard({ corner: $('cfg-card-corner').checked, cornerPos: $('corner-pos-seg').dataset.v, cornerSize: $('cfg-card-corner-size').value, cornerAlpha: $('cfg-card-corner-alpha').value,
+            cornerVer: $('card-corner-name').dataset.ver, cornerName: $('card-corner-name').dataset.name,
+            bg: $('cfg-card-bg').checked, bgAlpha: $('cfg-card-bg-alpha').value, bgDim: $('cfg-card-bg-dim').value, bgVer: $('card-bg-name').dataset.ver, bgName: $('card-bg-name').dataset.name });
+    }
+    function style29() {
+        const st = state.settings;
+        if (!els.modalSettings.classList.contains('hidden') && $('enter-seg').dataset.v) {
+            return { enterFx: $('enter-seg').dataset.v, readIcon: $('readicon-seg').dataset.v || 'check', step: $('cfg-obs-step').checked, stepDim: $('cfg-obs-step-dim').checked, card: cardFromForm() };
+        }
+        return { enterFx: ENTER_TYPES.includes(st.obsEnter) ? st.obsEnter : 'pop', readIcon: st.readIcon === 'eye' ? 'eye' : 'check', step: !!st.obsStep, stepDim: st.obsStepDim !== false, card: cleanCard(st.obsCard) };
+    }
+    function update29Form() {
+        $('card-corner-opts').classList.toggle('hidden', !$('cfg-card-corner').checked);
+        $('card-bg-opts').classList.toggle('hidden', !$('cfg-card-bg').checked);
+        $('row-obs-step-dim').classList.toggle('hidden', !$('cfg-obs-step').checked);
+        $('lbl-card-corner-size').textContent = $('cfg-card-corner-size').value + ' px';
+        $('lbl-card-corner-alpha').textContent = $('cfg-card-corner-alpha').value + '%';
+        $('lbl-card-bg-alpha').textContent = $('cfg-card-bg-alpha').value + '%';
+        $('lbl-card-bg-dim').textContent = $('cfg-card-bg-dim').value + '%';
+    }
+    function setCardName(el, name, ver) {
+        el.dataset.ver = ver || 0; el.dataset.name = name || '';
+        if (name) { el.textContent = name; el.setAttribute('data-no-i18n', ''); } else { el.removeAttribute('data-no-i18n'); el.textContent = window.SDi18n ? window.SDi18n.t('Sin imagen') : 'Sin imagen'; }
+    }
+    function load29Form(st) {
+        const c = cleanCard(st.obsCard);
+        segSet('enter-seg', st.obsEnter, ENTER_TYPES, 'pop');
+        segSet('readicon-seg', st.readIcon, ['check', 'eye'], 'check');
+        segSet('corner-pos-seg', c.cornerPos, ['left', 'right'], 'right');
+        $('cfg-obs-step').checked = !!st.obsStep; $('cfg-obs-step-dim').checked = st.obsStepDim !== false;
+        $('cfg-card-corner').checked = c.corner; $('cfg-card-corner-size').value = c.cornerSize; $('cfg-card-corner-alpha').value = c.cornerAlpha;
+        $('cfg-card-bg').checked = c.bg; $('cfg-card-bg-alpha').value = c.bgAlpha; $('cfg-card-bg-dim').value = c.bgDim;
+        setCardName($('card-corner-name'), c.cornerName, c.cornerVer); setCardName($('card-bg-name'), c.bgName, c.bgVer);
+        update29Form();
+    }
+    function save29Form(st) {
+        st.obsEnter = ENTER_TYPES.includes($('enter-seg').dataset.v) ? $('enter-seg').dataset.v : 'pop';
+        st.readIcon = $('readicon-seg').dataset.v === 'eye' ? 'eye' : 'check';
+        st.obsStep = $('cfg-obs-step').checked; st.obsStepDim = $('cfg-obs-step-dim').checked;
+        st.obsCard = cardFromForm();
+        applyReadIcon();
+    }
+    function applyReadIcon() { document.documentElement.classList.toggle('read-eye', state.settings.readIcon === 'eye'); }
+    applyReadIcon();
+    function changed29() { update29Form(); setSettingsDirty(true); sendObsStyle(); if (dzSide !== 'obs') setDzSide('obs'); }
+    ['enter-seg', 'readicon-seg', 'corner-pos-seg'].forEach(id => $(id).addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]'); if (!b) return;
+        segSet(id, b.dataset.v, Array.from($(id).querySelectorAll('button')).map(x => x.dataset.v), b.dataset.v);
+        changed29();
+        if (id === 'enter-seg') setTimeout(() => { const w = $('design-preview') && $('design-preview').contentWindow; try { w.postMessage({ type: 'PREVIEW_ENTER' }, '*'); } catch (err) {} }, 150);
+    }));
+    ['cfg-obs-step', 'cfg-obs-step-dim', 'cfg-card-corner', 'cfg-card-bg'].forEach(id => $(id).addEventListener('change', changed29));
+    ['cfg-card-corner-size', 'cfg-card-corner-alpha', 'cfg-card-bg-alpha', 'cfg-card-bg-dim'].forEach(id => $(id).addEventListener('input', changed29));
+    function pickCardImage(input, key, nameEl, toggle, types, hint) {
+        const f = input.files && input.files[0]; input.value = '';
+        if (!f) return;
+        if (!types.test(f.type)) { showToast(hint, 'warning'); return; }
+        if (f.size > 4 * 1024 * 1024) { showToast('La imagen pesa ' + (f.size / 1048576).toFixed(1) + ' MB. El máximo es 4 MB.', 'warning'); return; }
+        SDStore.put(key, f).then(() => { setCardName(nameEl, f.name, Date.now()); toggle.checked = true; changed29(); })
+            .catch(() => showToast('No se pudo guardar la imagen', 'warning'));
+    }
+    $('btn-card-corner-pick').addEventListener('click', () => $('card-corner-file').click());
+    $('card-corner-file').addEventListener('change', () => pickCardImage($('card-corner-file'), 'cardCorner', $('card-corner-name'), $('cfg-card-corner'), /^image\/(png|gif|webp)$/, 'Elegí un PNG con fondo transparente (también sirve GIF o WEBP)'));
+    $('btn-card-bg-pick').addEventListener('click', () => $('card-bg-file').click());
+    $('card-bg-file').addEventListener('change', () => pickCardImage($('card-bg-file'), 'cardBg', $('card-bg-name'), $('cfg-card-bg'), /^image\/(png|gif|webp|jpeg)$/, 'Elegí una imagen (JPG, PNG, WEBP o GIF)'));
+
     // ---- Retraso y modo liviano en el formulario ----
     $('cfg-obs-delay-on').addEventListener('change', () => { $('row-obs-delay').classList.toggle('hidden', !$('cfg-obs-delay-on').checked); setSettingsDirty(true); });
     $('cfg-obs-delay').addEventListener('change', () => setSettingsDirty(true));
     $('cfg-lite').addEventListener('change', () => { setSettingsDirty(true); applyPanelFx(); sendObsStyle(); });
 
     // ---- Modo experto ----
-    var EXIT_TYPES = ['fade', 'dissolve', 'explode', 'back', 'slide', 'fall'];
+    var EXIT_TYPES = ['fade', 'dissolve', 'explode', 'back', 'slide', 'fall', 'spin', 'burn', 'pixel', 'float'];
     const ADV_PANES = ['pantalla', 'filtros', 'datos', 'pruebas', 'reset'];
     const ADV_IDS = ['cfg-panel-card-color', 'cfg-panel-card-alpha', 'cfg-panel-pstyle', 'cfg-panel-head',
         'cfg-obs-card-color', 'cfg-obs-card-alpha', 'cfg-obs-textshadow', 'cfg-obs-hide-message', 'cfg-obs-accum',

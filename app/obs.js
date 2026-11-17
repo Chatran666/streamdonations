@@ -10,6 +10,7 @@
                 if (!c || !window.ResizeObserver) return;
                 let last = 0;
                 new ResizeObserver(() => {
+                    if (window.__pvHold) return; // mostrando cómo se va: el alto queda quieto
                     const h = Math.ceil(c.getBoundingClientRect().height + c.offsetTop + 10);
                     if (Math.abs(h - last) > 2) { last = h; try { window.parent.postMessage({ type: 'SD_PREVIEW_H', h }, '*'); } catch (e) {} }
                 }).observe(c);
@@ -83,6 +84,19 @@
                 }
                 return;
             }
+            if (msg.type === 'CARD_IMAGE') {
+                if ((msg.slot === 'corner' || msg.slot === 'bg') && /^image\/(png|gif|webp|jpeg)$/.test(msg.mime || '') && typeof msg.data === 'string' && msg.data.length < 12 * 1024 * 1024 && /^[A-Za-z0-9+/=]+$/.test(msg.data.slice(0, 4096))) {
+                    try {
+                        const bin = atob(msg.data), arr = new Uint8Array(bin.length);
+                        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+                        const w = wsCard[msg.slot];
+                        if (w.url) URL.revokeObjectURL(w.url);
+                        w.url = URL.createObjectURL(new Blob([arr], { type: msg.mime })); w.ver = msg.ver;
+                        if (lastCardCfg) applyCard(lastCardCfg);
+                    } catch (e) {}
+                }
+                return;
+            }
             if (msg.type === 'ICON') {
                 if (/^[a-z0-9]{6,24}$/.test(msg.id || '') && /^image\/(png|gif|webp|jpeg|svg\+xml)$/.test(msg.mime || '') && /^[A-Za-z0-9+/=]+$/.test(msg.data || '') && msg.data.length < 300000) {
                     obsIconUrls[msg.id] = 'data:' + msg.mime + ';base64,' + msg.data;
@@ -108,6 +122,7 @@
             window.dispatchEvent(ev);
         }
         const container = document.getElementById('alerts-container');
+        const EYE_SVG = '<svg class="ico-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
         const statusMsg = document.getElementById('status-msg');
         const scrollArea = document.getElementById('obs-scroll-area');
         const countNum = document.getElementById('count-num');
@@ -232,7 +247,7 @@
             const accumHTML = (typeof d.accum === 'string' && d.accum && d.accum.length < 30) ? '<span class="obs-accum" data-no-i18n>' + escapeHTML(d.accum) + ' ' + (window.SD_LANG === 'en' ? 'total' : 'acum.') + '</span>' : '';
 
             if (sty.card) alertEl.classList.add('sfx-host');
-            alertEl.innerHTML = ringHTML(sty.card) + `
+            alertEl.innerHTML = ringHTML(sty.card) + '<div class="obs-cb" aria-hidden="true"></div><div class="obs-cc" aria-hidden="true"></div>' + `
                 <div class="obs-header">
                     <div class="obs-donor">
                         <div class="obs-avatar">${avatarHTML}</div>
@@ -247,7 +262,7 @@
                         <span class="obs-tag ${d.platform || 'ceneka'}" data-el="platform">${({ youtube: '<i class="fa-brands fa-youtube"></i>', twitch: '<i class="fa-brands fa-twitch"></i>', kick: '<i class="fa-solid fa-bolt"></i>' })[d.platform] || '<i class="fa-solid fa-mug-hot"></i>'}${platformLabel}</span>
                         <div class="obs-amount${amtColor ? ' has-amt-color' : ''}${sty.amount ? ' tfx tfx-' + sty.amount.fx : ''}" data-el="amount" style="${amtColor ? '--amt-color:' + amtColor + ';' : ''}${sty.amount ? vars(sty.amount) : ''}"><span class="amt-full">${formattedAmt}</span><span class="amt-split"><b>${numPart}</b><small>${escapeHTML(curLabel)}</small></span></div>
                         <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar como leído y ocultar">
-                            <i class="fa-solid fa-check"></i>
+                            <i class="fa-solid fa-check ico-check"></i>${EYE_SVG}
                         </button>
                     </div>
                 </div>
@@ -303,7 +318,8 @@
 
         // ---- Cómo se va una donación al marcarla leída ----
         let EXIT = 'fade';
-        const EXIT_MS = { fade: 450, dissolve: 950, explode: 650, back: 650, slide: 520, fall: 850 };
+        const EXIT_MS = { fade: 450, dissolve: 950, explode: 650, back: 650, slide: 520, fall: 850, spin: 650, burn: 950, pixel: 800, float: 950 };
+        const EXIT_EASE = { fall: 'cubic-bezier(.5,0,.9,.5)', float: 'cubic-bezier(.5,0,.9,.5)', spin: 'cubic-bezier(.6,0,.8,.4)', pixel: 'steps(7)' };
         let burstCv = null, burstCx = null, burstParts = [], burstRaf = null;
         function burst(el, type) {
             const r = el.getBoundingClientRect(); if (!r.width) return;
@@ -321,6 +337,14 @@
                 if (type === 'explode') {
                     const a = Math.atan2(y - cy, x - cx) + (Math.random() - 0.5) * 0.6, v = 250 + Math.random() * 450;
                     burstParts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, g: 500, life: 0, max: 0.5 + Math.random() * 0.4, s: 2 + Math.random() * 4, c: cols[i % cols.length], delay: 0 });
+                } else if (type === 'burn') {
+                    // Quemarse: brasas que suben, de abajo hacia arriba
+                    const hot = ['#FF7A1A', '#FFB02E', '#FF4D1A', '#FFE08A'];
+                    burstParts.push({ x, y, vx: (Math.random() - 0.5) * 60, vy: -40 - Math.random() * 120, g: -60, life: 0, max: 0.6 + Math.random() * 0.6, s: 1.5 + Math.random() * 3.5, c: hot[i % hot.length], delay: (1 - (y - r.top) / r.height) * 0.5 });
+                } else if (type === 'pixel') {
+                    // Pixelarse: bloques cuadrados que se desprenden y caen
+                    const sz = 6 + ((Math.random() * 3) | 0) * 3;
+                    burstParts.push({ x: Math.round(x / 6) * 6, y: Math.round(y / 6) * 6, vx: (Math.random() - 0.5) * 120, vy: -60 - Math.random() * 90, g: 900, life: 0, max: 0.6 + Math.random() * 0.4, s: sz, c: [cur, cur, '#FFFFFF', '#1A1F2B'][i % 4], delay: Math.random() * 0.35, hard: true });
                 } else {
                     // Desintegrar: se va deshaciendo de izquierda a derecha, en polvo que vuela
                     burstParts.push({ x, y, vx: 40 + Math.random() * 90, vy: -30 - Math.random() * 70, g: -20, life: 0, max: 0.6 + Math.random() * 0.5, s: 1.5 + Math.random() * 3, c: cols[i % cols.length], delay: ((x - r.left) / r.width) * 0.45 });
@@ -336,7 +360,7 @@
                     const k = 1 - p.life / p.max;
                     if (p.flash) { const gr = burstCx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r); gr.addColorStop(0, 'rgba(255,255,255,' + (0.7 * k) + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)'); burstCx.fillStyle = gr; burstCx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2); return true; }
                     p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt;
-                    burstCx.globalAlpha = k; burstCx.fillStyle = p.c; burstCx.fillRect(p.x, p.y, p.s, p.s);
+                    burstCx.globalAlpha = p.hard ? (k > 0.25 ? 1 : k * 4) : k; burstCx.fillStyle = p.c; burstCx.fillRect(p.x, p.y, p.s, p.s);
                     return true;
                 });
                 burstCx.globalAlpha = 1;
@@ -345,10 +369,13 @@
         }
         function exitAlert(el, done) {
             if (el.dataset.leaving) return; el.dataset.leaving = '1';
+            if (el.classList.contains('step-focus')) stepAfterLeave(el);
             const type = LITE ? 'fade' : (EXIT_MS[EXIT] ? EXIT : 'fade'), ms = EXIT_MS[type];
-            if (type === 'dissolve' || type === 'explode') burst(el, type);
-            el.style.animation = 'exit-' + type + ' ' + ms + 'ms ' + (type === 'fall' ? 'cubic-bezier(.5,0,.9,.5)' : 'ease') + ' forwards';
+            if (type === 'dissolve' || type === 'explode' || type === 'burn' || type === 'pixel') burst(el, type);
+            el.style.animation = 'exit-' + type + ' ' + ms + 'ms ' + (EXIT_EASE[type] || 'ease') + ' forwards';
             setTimeout(() => {
+                // En la vista previa no se cierra el hueco: el ejemplo vuelve enseguida y el recuadro no se mueve
+                if (PREVIEW) { el.remove(); if (done) done(); return; }
                 // Se cierra el hueco suave (así las de abajo suben sin saltar)
                 const h = el.offsetHeight;
                 el.style.height = h + 'px'; el.style.overflow = 'hidden';
@@ -455,7 +482,11 @@
             } else if (PREVIEW && e.data && e.data.type === 'PREVIEW_EXIT') {
                 // Vista previa: muestra cómo se va el ejemplo y lo vuelve a poner
                 const el = document.querySelector('.obs-alert');
-                if (el && lastPreviewData) exitAlert(el, () => setTimeout(() => { if (!document.querySelector('.obs-alert')) { renderedIds.clear(); renderAlert(Object.assign({}, lastPreviewData, { id: lastPreviewData.id + 'r' })); } }, 350));
+                if (el && lastPreviewData) { window.__pvHold = true; clearTimeout(window.__pvHoldT); window.__pvHoldT = setTimeout(() => { window.__pvHold = false; }, 2600); }
+                if (el && lastPreviewData) exitAlert(el, () => setTimeout(() => { if (!document.querySelector('.obs-alert')) { renderedIds.clear(); renderAlert(Object.assign({}, lastPreviewData, { id: lastPreviewData.id + 'r' })); } setTimeout(() => { window.__pvHold = false; }, 250); }, 350));
+            } else if (PREVIEW && e.data && e.data.type === 'PREVIEW_ENTER') {
+                // Vista previa: vuelve a mostrar el ejemplo para ver cómo aparece
+                if (lastPreviewData) { document.querySelectorAll('.obs-alert').forEach(a => a.remove()); renderedIds.clear(); renderAlert(Object.assign({}, lastPreviewData, { id: lastPreviewData.id + 'e' + Date.now() })); }
             } else if (PREVIEW && e.data && e.data.type === 'PREVIEW_SHOW' && e.data.data) {
                 lastPreviewData = e.data.data;
                 // Vista previa: siempre un solo ejemplo (se borra lo anterior de golpe, sin animación)
@@ -633,7 +664,7 @@
         const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
         let obsLayout = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
         // Diseños que necesitan cosas en un lugar fijo (en "Barra" el monto va siempre en su bloque de la izquierda)
-        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja', 'pixel', 'hud', 'zocalo', 'sticker', 'postit'];
+        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja', 'pixel', 'hud', 'zocalo', 'sticker', 'postit', 'pastel', 'mono', 'glitch', 'holo', 'comic', 'capsula'];
         const DESIGN_FORCE = { barra: { amount: 'right' }, zocalo: { amount: 'right', platform: 'right' } };
         let obsDesign = 'tarjeta';
         function placeElements(card) {
@@ -684,6 +715,12 @@
             }
             themeOwn = !!st.themeOwn;
             if (typeof st.exitFx === 'string') EXIT = st.exitFx;
+            // Cómo aparece cada donación, ícono de leído, leer de a una e imágenes de las tarjetas
+            const en = ENTER_TYPES.includes(st.enterFx) ? st.enterFx : 'pop';
+            if (en === 'pop' || st.lite) delete document.documentElement.dataset.enter; else document.documentElement.dataset.enter = en;
+            document.documentElement.classList.toggle('read-eye', st.readIcon === 'eye');
+            setStep(!!st.step, st.stepDim !== false);
+            applyCard(st.card);
             // Modo liviano: sin efectos animados ni animaciones decorativas
             if (!!st.lite !== LITE) { LITE = !!st.lite; document.documentElement.classList.toggle('lite', LITE); applyFx(); }
             applyObsBg(st.obsBg);
@@ -760,7 +797,7 @@
         }
         // Efecto animado: el del tema, o el que se elija para el fondo (este también se ve en la fuente de navegador)
         let themeFx = '', bgFx = '', themeOwn = false, LITE = false, lastPreviewData = null;
-        const FX_KINDS = ['propio', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
+        const FX_KINDS = ['propio', 'lluvia', 'lluviafuerte', 'nieve', 'papelitos', 'otono', 'primavera', 'burbujas', 'brillos', 'polvo', 'bokeh', 'fugaces', 'niebla', 'rayos', 'corazones', 'plata', 'fuego', 'matrix', 'globos', 'monedas', 'notas', 'pixelhearts', 'estrellas', 'aurora', 'tormenta', 'luciernagas', 'navidad', 'halloween', 'argentina', 'julio4', 'anionuevo', 'sanvalentin', 'fiesta', 'xfiles'];
         function applyFx() {
             const own = bgFx && bgFx !== 'none' && FX_KINDS.includes(bgFx);
             const fx = LITE || bgFx === 'none' ? '' : (own ? bgFx : themeFx);
@@ -772,6 +809,71 @@
         }
         // Imagen de fondo que manda el panel (la fuente de navegador no ve los archivos de la app)
         const wsBg = { ver: -1, url: null };
+        const ENTER_TYPES = ['pop', 'fade', 'slide', 'slidel', 'bounce', 'grow', 'drop', 'flip', 'spin', 'blur'];
+
+        // ---- Imagen en la esquina y de fondo de cada tarjeta ----
+        const wsCard = { corner: { ver: -1, url: null }, bg: { ver: -1, url: null } };
+        const cardImg = { corner: { ver: -1, url: null }, bg: { ver: -1, url: null } };
+        let lastCardCfg = null;
+        function applyCard(c) {
+            const root = document.documentElement;
+            lastCardCfg = c || null;
+            const num = (v, a, b, d) => { v = parseFloat(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : d; };
+            const on = { corner: !!(c && c.corner), bg: !!(c && c.bg) };
+            root.classList.toggle('corner-left', !!c && c.cornerPos === 'left');
+            root.style.setProperty('--cc-size', num(c && c.cornerSize, 30, 220, 90) + 'px');
+            root.style.setProperty('--cc-alpha', String(num(c && c.cornerAlpha, 10, 100, 100) / 100));
+            root.style.setProperty('--cb-alpha', String(num(c && c.bgAlpha, 5, 100, 100) / 100));
+            root.style.setProperty('--cb-dim', String(num(c && c.bgDim, 0, 90, 40) / 100));
+            ['corner', 'bg'].forEach(slot => {
+                const cls = slot === 'corner' ? 'card-corner' : 'card-bg', v = slot === 'corner' ? '--cc-url' : '--cb-url', ver = c ? (slot === 'corner' ? c.cornerVer : c.bgVer) : 0;
+                const show = (url) => { root.classList.toggle(cls, on[slot] && !!url); if (url) root.style.setProperty(v, 'url("' + url + '")'); };
+                if (!on[slot]) { root.classList.remove(cls); return; }
+                if (WS_MODE) { show(wsCard[slot].ver === ver ? wsCard[slot].url : null); return; }
+                const ci = cardImg[slot];
+                if (ci.ver === ver && ci.url) { show(ci.url); return; }
+                if (!window.SDStore) { show(null); return; }
+                ci.ver = ver;
+                SDStore.get(slot === 'corner' ? 'cardCorner' : 'cardBg').then(blob => {
+                    if (ci.url) URL.revokeObjectURL(ci.url);
+                    ci.url = blob ? URL.createObjectURL(blob) : null;
+                    if (lastCardCfg) show(ci.url);
+                });
+            });
+        }
+
+        // ---- Leer de a una: la rueda salta de donación en donación y opaca las demás ----
+        let STEP = false, STEP_DIM = true;
+        function stepCards() { return Array.from(container.querySelectorAll('.obs-alert')).filter(el => !el.dataset.leaving && el.offsetParent !== null); }
+        function stepFocus(el) {
+            container.querySelectorAll('.obs-alert.step-focus').forEach(x => x.classList.remove('step-focus'));
+            document.documentElement.classList.toggle('step-on', !!el && STEP_DIM);
+            if (!el) return;
+            el.classList.add('step-focus');
+            if (scrollArea) scrollArea.scrollTo({ top: Math.max(0, el.offsetTop - container.offsetTop - 8), behavior: 'smooth' });
+        }
+        function stepAfterLeave(el) {
+            const list = stepCards().filter(x => x !== el), all = Array.from(container.querySelectorAll('.obs-alert')), i = all.indexOf(el);
+            const next = all.slice(i + 1).find(x => list.includes(x)) || all.slice(0, i).reverse().find(x => list.includes(x)) || null;
+            el.classList.remove('step-focus');
+            setTimeout(() => stepFocus(STEP ? next : null), 0);
+        }
+        function setStep(on, dim) {
+            STEP_DIM = dim;
+            if (on === STEP) { if (!on || !container.querySelector('.step-focus')) document.documentElement.classList.remove('step-on'); else document.documentElement.classList.toggle('step-on', dim); return; }
+            STEP = on;
+            if (!on) stepFocus(null);
+        }
+        if (scrollArea && !PREVIEW) scrollArea.addEventListener('wheel', (e) => {
+            if (!STEP || e.ctrlKey) return;
+            const list = stepCards(); if (!list.length) return;
+            e.preventDefault();
+            const cur = list.findIndex(x => x.classList.contains('step-focus')), dir = e.deltaY > 0 ? 1 : -1;
+            if (cur < 0) { if (dir > 0) stepFocus(list[0]); return; }
+            const ni = cur + dir;
+            if (ni < 0) { stepFocus(null); scrollArea.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+            if (ni < list.length) stepFocus(list[ni]);
+        }, { passive: false });
         let lastBgCfg = null;
         // Fondo de la ventana: el del tema, un color o una imagen/GIF (guardada en IndexedDB)
         let obsBgUrl = null, obsBgVer = -1;

@@ -1161,8 +1161,14 @@
                         </div>
                         <div class="dz-carousel" data-for="cfg-obs-design"></div>
                         <div class="setting-row">
-                            <div><strong>Colores de la tarjeta</strong><small>El fondo de cada donación y el color de las letras, en cualquier diseño. "Automático" usa los del diseño y el tema.</small></div>
+                            <div><strong>Colores de la tarjeta</strong><small>El fondo de cada donación, el color de las letras y el de los bordes y brillos, en cualquier diseño. "Automático" usa los del diseño y el efecto elegido.</small></div>
                             <div class="card-colors">
+                                <select id="cfg-obs-theme" class="dz-hidden-select" aria-hidden="true" tabindex="-1"></select>
+                                <span class="custom-text-group">
+                                    <label for="cfg-obs-custom-accent">Bordes y brillo</label>
+                                    <input type="color" id="cfg-obs-custom-accent" value="#00E676">
+                                    <label class="inline-check"><input type="checkbox" id="cfg-obs-accent-auto" checked> Automático</label>
+                                </span>
                                 <span class="custom-text-group">
                                     <label for="cfg-obs-card-color">Fondo</label>
                                     <input type="color" id="cfg-obs-card-color" value="#14161F">
@@ -1256,25 +1262,54 @@
                         </div>
 
 
-                        <div class="pane-subtitle adv"><i class="fa-solid fa-palette"></i> Colores a mano <small style="font-weight:500;text-transform:none;letter-spacing:0">(los efectos ya traen sus colores)</small></div>
-                        <div class="form-group adv">
-                            <select id="cfg-obs-theme"></select>
-                            <small class="pane-note">Los colores de cada plataforma (Ceneka, YouTube, Twitch, Kick) se cambian en la pestaña Panel y valen para los dos.</small>
-                            <div class="custom-accent-row hidden" id="obs-custom-accent-row" style="margin-top:8px">
-                                <label for="cfg-obs-custom-accent"><strong>Color de OBS</strong></label>
-                                <input type="color" id="cfg-obs-custom-accent" value="#00E676">
-                            </div>
+                        <div class="setting-row adv exit-row">
+                            <div><strong>Cómo aparece cada donación</strong><small>El efecto con el que entra a OBS. Tocá uno y miralo en la vista previa. En modo simple es "Aparecer".</small></div>
+                            <div class="seg exit-seg" id="enter-seg"><button type="button" data-v="pop"><i class="fa-solid fa-wand-sparkles"></i> Aparecer</button><button type="button" data-v="fade"><i class="fa-solid fa-droplet"></i> Desvanecer</button><button type="button" data-v="slide"><i class="fa-solid fa-arrow-left"></i> Deslizar</button><button type="button" data-v="slidel"><i class="fa-solid fa-arrow-right"></i> Desde la izquierda</button><button type="button" data-v="bounce"><i class="fa-solid fa-basketball"></i> Rebotar</button><button type="button" data-v="grow"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Crecer</button><button type="button" data-v="drop"><i class="fa-solid fa-arrow-down"></i> Caer</button><button type="button" data-v="flip"><i class="fa-solid fa-repeat"></i> Voltear</button><button type="button" data-v="spin"><i class="fa-solid fa-rotate"></i> Girar</button><button type="button" data-v="blur"><i class="fa-solid fa-eye-low-vision"></i> Enfocar</button></div>
                         </div>
-
-
                         <div class="setting-row adv exit-row">
                             <div><strong>Cómo se va al marcarla leída</strong><small>El efecto con el que desaparece la donación de OBS. Tocá uno y miralo en la vista previa. En modo simple es "Desvanecer".</small></div>
-                            <div class="seg exit-seg" id="exit-seg"><button type="button" data-v="fade"><i class="fa-solid fa-droplet-slash"></i> Desvanecer</button><button type="button" data-v="dissolve"><i class="fa-solid fa-wind"></i> Desintegrar</button><button type="button" data-v="explode"><i class="fa-solid fa-burst"></i> Explotar</button><button type="button" data-v="back"><i class="fa-solid fa-down-left-and-up-right-to-center"></i> Al fondo</button><button type="button" data-v="slide"><i class="fa-solid fa-arrow-right"></i> Deslizar</button><button type="button" data-v="fall"><i class="fa-solid fa-arrow-down"></i> Caer</button></div>
+                            <div class="seg exit-seg" id="exit-seg"><button type="button" data-v="fade"><i class="fa-solid fa-droplet-slash"></i> Desvanecer</button><button type="button" data-v="dissolve"><i class="fa-solid fa-wind"></i> Desintegrar</button><button type="button" data-v="explode"><i class="fa-solid fa-burst"></i> Explotar</button><button type="button" data-v="back"><i class="fa-solid fa-down-left-and-up-right-to-center"></i> Al fondo</button><button type="button" data-v="slide"><i class="fa-solid fa-arrow-right"></i> Deslizar</button><button type="button" data-v="fall"><i class="fa-solid fa-arrow-down"></i> Caer</button><button type="button" data-v="spin"><i class="fa-solid fa-rotate"></i> Girar</button><button type="button" data-v="burn"><i class="fa-solid fa-fire"></i> Quemarse</button><button type="button" data-v="pixel"><i class="fa-solid fa-table-cells"></i> Pixelarse</button><button type="button" data-v="float"><i class="fa-solid fa-arrow-up"></i> Flotar</button></div>
                         </div>
                         <label class="setting-row toggle-row">
                             <div><strong>Barra de plataformas arriba de OBS</strong><small>Una barrita arriba en la ventana OBS (Todas · Ceneka · YouTube · Twitch · Kick) para ver solo las de una red y leerlas primero. Apagalo para ver todas juntas sin que ocupe lugar.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-filter-bar"><span class="toggle-slider"></span></span>
                         </label>
+                        <div class="setting-row adv">
+                            <div><strong>Ícono de "leído"</strong><small>El que se toca para marcar una donación como leída, en el panel y en OBS.</small></div>
+                            <div class="seg" id="readicon-seg"><button type="button" data-v="check"><i class="fa-solid fa-check"></i> Tilde</button><button type="button" data-v="eye"><svg class="seg-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> Ojo</button></div>
+                        </div>
+                        <label class="setting-row toggle-row adv">
+                            <div><strong>Leer de a una con la rueda del mouse</strong><small>En la ventana "Modo OBS": cada paso de la rueda salta justo a la donación siguiente o anterior, sin quedar a mitad de una tarjeta. Subí del todo para volver a ver la lista normal.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-step"><span class="toggle-slider"></span></span>
+                        </label>
+                        <label class="setting-row toggle-row adv" id="row-obs-step-dim">
+                            <div><strong>Opacar las demás al 50 %</strong><small>Mientras leés de a una, la donación elegida queda al 100 % y el resto se atenúa. Tu audiencia también lo ve.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-obs-step-dim"><span class="toggle-slider"></span></span>
+                        </label>
+
+                        <div class="pane-subtitle adv"><i class="fa-solid fa-images"></i> Imágenes en las tarjetas de OBS</div>
+                        <div class="card-img-box adv">
+                            <label class="setting-row toggle-row">
+                                <div><strong>Imagen en la esquina de cada donación</strong><small>Un personaje, tu logo o lo que quieras, arriba a la izquierda o a la derecha de cada tarjeta. <strong>Tiene que ser un PNG con fondo transparente</strong> (si tiene fondo, se ve el recuadro). También acepta GIF y WEBP.</small></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-card-corner"><span class="toggle-slider"></span></span>
+                            </label>
+                            <div class="card-img-opts" id="card-corner-opts">
+                                <div class="bg-file-row"><button type="button" class="btn btn-outline btn-sm" id="btn-card-corner-pick"><i class="fa-solid fa-upload"></i> Elegir PNG</button><span class="bg-file-name" id="card-corner-name">Sin imagen</span><input type="file" id="card-corner-file" accept="image/png,image/gif,image/webp" class="hidden"></div>
+                                <div class="bg-dim-row"><label>Esquina</label><div class="seg" id="corner-pos-seg"><button type="button" data-v="left"><i class="fa-solid fa-arrow-up" style="transform:rotate(-45deg)"></i> Izquierda</button><button type="button" data-v="right"><i class="fa-solid fa-arrow-up" style="transform:rotate(45deg)"></i> Derecha</button></div></div>
+                                <div class="bg-dim-row"><label for="cfg-card-corner-size">Tamaño</label><input type="range" id="cfg-card-corner-size" min="30" max="220" step="5" value="90"><span class="range-value" id="lbl-card-corner-size">90 px</span></div>
+                                <div class="bg-dim-row"><label for="cfg-card-corner-alpha">Opacidad</label><input type="range" id="cfg-card-corner-alpha" min="10" max="100" step="5" value="100"><span class="range-value" id="lbl-card-corner-alpha">100%</span></div>
+                            </div>
+                            <label class="setting-row toggle-row">
+                                <div><strong>Imagen o GIF de fondo en cada tarjeta</strong><small>Se pone detrás del texto de cada donación. Con "Oscurecer" evitás que la imagen se coma las letras (en los diseños de papel claro, la aclara).</small></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-card-bg"><span class="toggle-slider"></span></span>
+                            </label>
+                            <div class="card-img-opts" id="card-bg-opts">
+                                <div class="bg-file-row"><button type="button" class="btn btn-outline btn-sm" id="btn-card-bg-pick"><i class="fa-solid fa-upload"></i> Elegir imagen o GIF</button><span class="bg-file-name" id="card-bg-name">Sin imagen</span><input type="file" id="card-bg-file" accept="image/png,image/gif,image/webp,image/jpeg" class="hidden"></div>
+                                <div class="bg-dim-row"><label for="cfg-card-bg-alpha">Opacidad</label><input type="range" id="cfg-card-bg-alpha" min="5" max="100" step="5" value="100"><span class="range-value" id="lbl-card-bg-alpha">100%</span></div>
+                                <div class="bg-dim-row"><label for="cfg-card-bg-dim">Oscurecer</label><input type="range" id="cfg-card-bg-dim" min="0" max="90" step="5" value="40"><span class="range-value" id="lbl-card-bg-dim">40%</span></div>
+                            </div>
+                            <small class="pane-note">Las imágenes quedan guardadas en esta PC. Máximo 4 MB cada una. Con el link de la fuente de navegador viajan solas a OBS.</small>
+                        </div>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-image"></i> Fondo de la ventana "Modo OBS"</div>
                         <div class="bg-picker" data-bg-target="obs">
@@ -1324,7 +1359,7 @@
                             <select id="cfg-obs-bg-fx" class="dz-hidden-select" aria-hidden="true" tabindex="-1">
                                 <option value="">El del tema</option>
                                 <option value="none">Ninguno</option><option value="propio">Tu efecto</option>
-                                <optgroup label="Encima de tu fondo o tu juego (no tapan nada)"><option value="lluvia">🌧️ Lluvia</option><option value="lluviafuerte">🌊 Lluvia fuerte</option><option value="nieve">❄️ Nieve</option><option value="papelitos">🎊 Papelitos</option><option value="otono">🍁 Hojas de otoño</option><option value="primavera">🌸 Pétalos</option><option value="burbujas">🫧 Burbujas</option><option value="brillos">✨ Brillitos</option><option value="polvo">🌫️ Polvo flotando</option><option value="bokeh">🔆 Luces desenfocadas</option><option value="fugaces">☄️ Estrellas fugaces</option><option value="niebla">🌁 Niebla</option><option value="rayos">⚡ Rayos</option><option value="corazones">💗 Corazones</option><option value="plata">💸 Lluvia de plata</option></optgroup>
+                                <optgroup label="Encima de tu fondo o tu juego (no tapan nada)"><option value="lluvia">🌧️ Lluvia</option><option value="lluviafuerte">🌊 Lluvia fuerte</option><option value="nieve">❄️ Nieve</option><option value="papelitos">🎊 Papelitos</option><option value="otono">🍁 Hojas de otoño</option><option value="primavera">🌸 Pétalos</option><option value="burbujas">🫧 Burbujas</option><option value="brillos">✨ Brillitos</option><option value="polvo">🌫️ Polvo flotando</option><option value="bokeh">🔆 Luces desenfocadas</option><option value="fugaces">☄️ Estrellas fugaces</option><option value="niebla">🌁 Niebla</option><option value="rayos">⚡ Rayos</option><option value="corazones">💗 Corazones</option><option value="plata">💸 Lluvia de plata</option><option value="fuego">🔥 Fuego</option><option value="matrix">💻 Lluvia de código</option><option value="globos">🎈 Globos</option><option value="monedas">🪙 Monedas</option><option value="notas">🎵 Notas musicales</option><option value="pixelhearts">👾 Corazones 8 bits</option></optgroup>
                                 <optgroup label="Con cielo propio (tapan el fondo)"><option value="estrellas">🌌 Cielo con estrellas</option><option value="aurora">🌠 Aurora boreal</option><option value="tormenta">⛈️ Tormenta</option><option value="luciernagas">🌙 Luciérnagas</option></optgroup>
                                 <optgroup label="De fechas"><option value="navidad">🎄 Navidad</option><option value="halloween">🎃 Halloween</option><option value="argentina">🇦🇷 Argentina</option><option value="julio4">🎆 4 de Julio</option><option value="anionuevo">🥂 Año Nuevo</option><option value="sanvalentin">💖 San Valentín</option><option value="fiesta">🎉 Fiesta</option><option value="xfiles">🛸 OVNI</option></optgroup>
                             </select>

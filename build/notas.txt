@@ -1,2 +1,12 @@
-Novedades de la 2.4.7:
-- Portada de inicio: al abrir la app se ve el logo, el nombre y las cuatro plataformas en lugar de la pantalla oscura. Se va sola apenas la app está lista.
+Novedades de la 2.9.0:
+- 6 diseños de tarjeta nuevos (ahora son 20): Pastel, Blanco y negro, Glitch, Holográfico, Cómic y Cápsula.
+- 6 efectos animados nuevos: Fuego, Lluvia de código, Globos, Monedas, Notas musicales y Corazones 8 bits.
+- Cómo aparece cada donación en OBS: 10 formas de entrar (Aparecer, Desvanecer, Deslizar, Desde la izquierda, Rebotar, Crecer, Caer, Voltear, Girar y Enfocar).
+- Cómo se va al marcarla leída: ahora son 10 (se suman Girar, Quemarse, Pixelarse y Flotar).
+- Imagen en la esquina de cada donación: subí un PNG con fondo transparente (un personaje, tu logo) y elegí esquina, tamaño y opacidad.
+- Imagen o GIF de fondo en cada tarjeta, con opacidad y un control para oscurecerla y que no tape las letras.
+- El ícono de "leído" puede ser un tilde o un ojo, en el panel y en OBS.
+- Leer de a una en la ventana Modo OBS: la rueda del mouse salta de donación en donación y las demás quedan al 50 % (se puede apagar).
+- Colores de la tarjeta: ahora también elegís el color de los bordes y brillos, junto al fondo y las letras. Se fue el menú "Colores a mano".
+- La vista previa ya no se achica mientras muestra cómo se va una donación.
+- Todo lo nuevo está en modo experto.
