@@ -1,4 +1,2 @@
-Novedades de la 2.4.6:
-- "Mostrar en el panel el mismo efecto que en OBS" ahora se ve también en modo simple.
-- Los temas especiales se llaman por sus colores (por ejemplo "Negro con verde fosforescente" en lugar de "OVNI") y muestran con qué efecto combinan, para que no parezcan animaciones.
-- La transparencia de la imagen o color de fondo de OBS ahora está junto a "Cómo se acomoda" y "Oscurecer la imagen".
+Novedades de la 2.4.7:
+- Portada de inicio: al abrir la app se ve el logo, el nombre y las cuatro plataformas en lugar de la pantalla oscura. Se va sola apenas la app está lista.

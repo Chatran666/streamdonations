@@ -7666,4 +7666,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Render inicial (carga automática desde base de datos persistente) ---
     render();
+
+    // Portada de inicio: se va cuando la app está lista, con un mínimo de 0,8 s para que no parpadee
+    (function () {
+        const sp = document.getElementById('splash');
+        if (!sp) return;
+        setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 400); }, Math.max(0, 800 - performance.now()));
+    })();
 });
