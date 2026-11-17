@@ -823,12 +823,14 @@
             root.classList.toggle('corner-left', !!c && c.cornerPos === 'left');
             root.style.setProperty('--cc-size', num(c && c.cornerSize, 30, 220, 90) + 'px');
             root.style.setProperty('--cc-alpha', String(num(c && c.cornerAlpha, 10, 100, 100) / 100));
+            ccPos.x = num(c && c.cornerX, -150, 150, 0); ccPos.y = num(c && c.cornerY, -150, 150, 0); ccPos.size = num(c && c.cornerSize, 30, 220, 90); ccPos.left = !!c && c.cornerPos === 'left';
+            ccPads();
             root.style.setProperty('--cb-alpha', String(num(c && c.bgAlpha, 5, 100, 100) / 100));
             root.style.setProperty('--cb-dim', String(num(c && c.bgDim, 0, 90, 40) / 100));
             ['corner', 'bg'].forEach(slot => {
                 const cls = slot === 'corner' ? 'card-corner' : 'card-bg', v = slot === 'corner' ? '--cc-url' : '--cb-url', ver = c ? (slot === 'corner' ? c.cornerVer : c.bgVer) : 0;
-                const show = (url) => { root.classList.toggle(cls, on[slot] && !!url); if (url) root.style.setProperty(v, 'url("' + url + '")'); };
-                if (!on[slot]) { root.classList.remove(cls); return; }
+                const show = (url) => { root.classList.toggle(cls, on[slot] && !!url); if (url) root.style.setProperty(v, 'url("' + url + '")'); if (slot === 'corner') ccRun(); };
+                if (!on[slot]) { root.classList.remove(cls); if (slot === 'corner') ccRun(); return; }
                 if (WS_MODE) { show(wsCard[slot].ver === ver ? wsCard[slot].url : null); return; }
                 const ci = cardImg[slot];
                 if (ci.ver === ver && ci.url) { show(ci.url); return; }
@@ -840,6 +842,50 @@
                     if (lastCardCfg) show(ci.url);
                 });
             });
+        }
+
+        // ---- La imagen de la esquina va en una capa propia, así puede sobresalir de la tarjeta sin que la recorte ----
+        // (sigue a cada tarjeta cuadro a cuadro, también cuando entra, se va o se opaca)
+        const ccPos = { x: 0, y: 0, size: 90, left: false };
+        const ccLayer = document.createElement('div');
+        ccLayer.id = 'cc-layer';
+        if (scrollArea) scrollArea.appendChild(ccLayer);
+        const ccMap = new Map();
+        let ccLoop = 0;
+        function ccPads() {
+            // Lugar extra para que lo que sobresale no lo corte el borde de la ventana
+            const r = document.documentElement.style;
+            r.setProperty('--cc-pt', Math.max(0, -ccPos.y) + 'px');
+            r.setProperty('--cc-pr', (ccPos.left ? 0 : Math.max(0, ccPos.x)) + 'px');
+            r.setProperty('--cc-pl', (ccPos.left ? Math.max(0, -ccPos.x) : 0) + 'px');
+        }
+        function ccSync() {
+            const on = document.documentElement.classList.contains('card-corner');
+            const seen = new Set();
+            if (on && scrollArea) {
+                const base = scrollArea.getBoundingClientRect(), st = scrollArea.scrollTop, sl = scrollArea.scrollLeft;
+                container.querySelectorAll('.obs-alert').forEach(card => {
+                    if (card.offsetParent === null) return;
+                    let im = ccMap.get(card);
+                    if (!im) { im = document.createElement('div'); im.className = 'cc-img'; ccLayer.appendChild(im); ccMap.set(card, im); }
+                    seen.add(card);
+                    // Posición de la tarjeta sin la animación (offset) y la animación copiada aparte
+                    let x = 0, y = 0, el = card;
+                    while (el && el !== scrollArea) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
+                    const w = card.offsetWidth, s = ccPos.size;
+                    const ix = ccPos.left ? x + ccPos.x : x + w - s + ccPos.x, iy = y + ccPos.y;
+                    const cs = getComputedStyle(card);
+                    const o = (cs.transformOrigin || '50% 50%').split(' ');
+                    const ox = parseFloat(o[0]) + x - ix, oy = parseFloat(o[1]) + y - iy;
+                    im.style.cssText = `left:${ix}px;top:${iy}px;width:${s}px;height:${s}px;transform-origin:${ox}px ${oy}px;transform:${cs.transform === 'none' ? '' : cs.transform};opacity:${(parseFloat(cs.opacity) || 0) * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cc-alpha')) || 1)};filter:${cs.filter === 'none' ? '' : cs.filter};background-position:${ccPos.left ? 'top left' : 'top right'}`;
+                });
+            }
+            ccMap.forEach((im, card) => { if (!seen.has(card)) { im.remove(); ccMap.delete(card); } });
+        }
+        function ccRun() {
+            const on = document.documentElement.classList.contains('card-corner');
+            if (on && !ccLoop) { const tick = () => { ccSync(); ccLoop = document.documentElement.classList.contains('card-corner') ? requestAnimationFrame(tick) : 0; if (!ccLoop) ccSync(); }; ccLoop = requestAnimationFrame(tick); }
+            if (!on) ccSync();
         }
 
         // ---- Leer de a una: la rueda salta de donación en donación y opaca las demás ----

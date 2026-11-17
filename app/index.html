@@ -944,6 +944,14 @@
                             <div><strong>Mostrar "Top Donador" en el encabezado</strong><small>El recuadro de arriba con quien más donó. Apagalo para que no ocupe lugar.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-show-top-donor"><span class="toggle-slider"></span></span>
                         </label>
+                        <div class="setting-row">
+                            <div><strong>Contadores de arriba</strong><small>Los recuadros de Total, cada plataforma y Top Donador. "Compacto" deja solo el ícono y el número (pasá el mouse por arriba para ver de qué es).</small></div>
+                            <div class="seg" id="stats-mode-seg"><button type="button" data-v="normal">Normal</button><button type="button" data-v="compact">Compacto</button><button type="button" data-v="hidden">Ocultos</button></div>
+                        </div>
+                        <div class="setting-row" id="row-stats-size">
+                            <div><strong>Tamaño de los contadores</strong></div>
+                            <div class="range-row"><input type="range" id="cfg-stats-size" min="70" max="150" step="5" value="100"><span class="range-value" id="lbl-stats-size">100%</span></div>
+                        </div>
 
                     </section>
 
@@ -1021,8 +1029,7 @@
                                 <span><i class="fa-solid fa-eye"></i> Vista previa</span>
                                 <span class="obs-live-btns">
                                     <button type="button" class="btn-link-sm hidden" id="btn-preview-where"><i class="fa-solid fa-display"></i> <span>Ver en el panel</span></button>
-                                    <button type="button" class="btn-link-sm" id="btn-preview-sample" title="Cambiar el ejemplo entre una donación común y una grande"><i class="fa-solid fa-arrow-up-wide-short"></i> <span>Ver grande</span></button>
-                                    <button type="button" class="btn-link-sm" id="btn-preview-toggle"><i class="fa-solid fa-chevron-up"></i> <span>Achicar</span></button>
+                                    <button type="button" class="btn-link-sm" id="btn-preview-sample" title="Cambia el ejemplo entre una donación común y una destacada (las de monto alto, que se ven más grandes)"><i class="fa-solid fa-crown"></i> <span>Ejemplo: común</span></button>
                                 </span>
                             </div>
                             <div class="preview-zoom-back hidden" id="preview-zoom-back"><span><i class="fa-solid fa-magnifying-glass-minus"></i> Clic afuera o Esc para achicar</span></div>
@@ -1296,6 +1303,16 @@
                             <div class="card-img-opts" id="card-corner-opts">
                                 <div class="bg-file-row"><button type="button" class="btn btn-outline btn-sm" id="btn-card-corner-pick"><i class="fa-solid fa-upload"></i> Elegir PNG</button><span class="bg-file-name" id="card-corner-name">Sin imagen</span><input type="file" id="card-corner-file" accept="image/png,image/gif,image/webp" class="hidden"></div>
                                 <div class="bg-dim-row"><label>Esquina</label><div class="seg" id="corner-pos-seg"><button type="button" data-v="left"><i class="fa-solid fa-arrow-up" style="transform:rotate(-45deg)"></i> Izquierda</button><button type="button" data-v="right"><i class="fa-solid fa-arrow-up" style="transform:rotate(45deg)"></i> Derecha</button></div></div>
+                                <div class="bg-dim-row cc-move-row"><label>Mover</label>
+                                    <div class="cc-pad" id="cc-pad">
+                                        <button type="button" data-dx="0" data-dy="-1" title="Subir (sobresale por arriba)"><i class="fa-solid fa-arrow-up"></i></button>
+                                        <button type="button" data-dx="-1" data-dy="0" title="Izquierda"><i class="fa-solid fa-arrow-left"></i></button>
+                                        <button type="button" data-reset="1" title="Volver a la esquina"><i class="fa-solid fa-crosshairs"></i></button>
+                                        <button type="button" data-dx="1" data-dy="0" title="Derecha"><i class="fa-solid fa-arrow-right"></i></button>
+                                        <button type="button" data-dx="0" data-dy="1" title="Bajar"><i class="fa-solid fa-arrow-down"></i></button>
+                                    </div>
+                                    <small class="cc-pos-lbl" id="lbl-cc-pos">En la esquina</small>
+                                </div>
                                 <div class="bg-dim-row"><label for="cfg-card-corner-size">Tamaño</label><input type="range" id="cfg-card-corner-size" min="30" max="220" step="5" value="90"><span class="range-value" id="lbl-card-corner-size">90 px</span></div>
                                 <div class="bg-dim-row"><label for="cfg-card-corner-alpha">Opacidad</label><input type="range" id="cfg-card-corner-alpha" min="10" max="100" step="5" value="100"><span class="range-value" id="lbl-card-corner-alpha">100%</span></div>
                             </div>
@@ -1827,7 +1844,7 @@
                     <div class="db-filter-row">
                         <div class="search-box db-search-box">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="db-input-search" placeholder="Buscar en la base de datos...">
+                            <input type="search" id="db-input-search" placeholder="Buscar por nombre, mensaje o monto..." autocomplete="off">
                         </div>
                         <select id="db-select-filter-platform" class="db-filter-select">
                             <option value="all">Todas las plataformas</option>
@@ -1837,6 +1854,14 @@
                             <option value="unread">Solo Pendientes</option>
                             <option value="read">Solo Leídos</option>
                         </select>
+                    </div>
+                    <div class="db-filter-row db-filter-row2">
+                        <label class="db-f"><span>Desde</span><input type="date" id="db-date-from" class="db-filter-select"></label>
+                        <label class="db-f"><span>Hasta</span><input type="date" id="db-date-to" class="db-filter-select"></label>
+                        <label class="db-f"><span>Monto mínimo</span><input type="number" id="db-min-amount" class="db-filter-select" min="0" step="any" placeholder="0"></label>
+                        <label class="db-f"><span>Ordenar</span><select id="db-sort" class="db-filter-select"><option value="new">Más nuevas primero</option><option value="old">Más viejas primero</option><option value="amount">Monto más alto primero</option><option value="nick">Nombre (A-Z)</option></select></label>
+                        <button type="button" class="btn btn-sm btn-outline" id="db-btn-clear-filters"><i class="fa-solid fa-filter-circle-xmark"></i> Limpiar filtros</button>
+                        <span class="db-result-count" id="db-result-count"></span>
                     </div>
 
                     <!-- DB Stats Bar -->

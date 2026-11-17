@@ -1,12 +1,5 @@
-Novedades de la 2.9.0:
-- 6 diseños de tarjeta nuevos (ahora son 20): Pastel, Blanco y negro, Glitch, Holográfico, Cómic y Cápsula.
-- 6 efectos animados nuevos: Fuego, Lluvia de código, Globos, Monedas, Notas musicales y Corazones 8 bits.
-- Cómo aparece cada donación en OBS: 10 formas de entrar (Aparecer, Desvanecer, Deslizar, Desde la izquierda, Rebotar, Crecer, Caer, Voltear, Girar y Enfocar).
-- Cómo se va al marcarla leída: ahora son 10 (se suman Girar, Quemarse, Pixelarse y Flotar).
-- Imagen en la esquina de cada donación: subí un PNG con fondo transparente (un personaje, tu logo) y elegí esquina, tamaño y opacidad.
-- Imagen o GIF de fondo en cada tarjeta, con opacidad y un control para oscurecerla y que no tape las letras.
-- El ícono de "leído" puede ser un tilde o un ojo, en el panel y en OBS.
-- Leer de a una en la ventana Modo OBS: la rueda del mouse salta de donación en donación y las demás quedan al 50 % (se puede apagar).
-- Colores de la tarjeta: ahora también elegís el color de los bordes y brillos, junto al fondo y las letras. Se fue el menú "Colores a mano".
-- La vista previa ya no se achica mientras muestra cómo se va una donación.
-- Todo lo nuevo está en modo experto.
+Novedades de la 2.9.1:
+- La imagen de la esquina de cada donación ahora puede sobresalir de la tarjeta: con flechas la movés hacia arriba, abajo, izquierda o derecha (mantené apretado para moverla seguido). Ya no la recorta ningún diseño.
+- Contadores de arriba (Total, plataformas y Top Donador): normales, compactos (solo ícono y número) u ocultos, y con tamaño a elección. Está en Opciones → Pantalla.
+- La Base de Datos de Chats se abre a pantalla completa, con una búsqueda más grande que ignora tildes, busca también por monto y resalta lo encontrado. Se suman filtros por fecha y monto mínimo, orden, "Limpiar filtros" y la cantidad de resultados.
+- En Diseño se quitó "Achicar": la vista previa queda siempre a la vista. "Ver grande" ahora se llama "Ejemplo: común / destacada".

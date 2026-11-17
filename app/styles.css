@@ -3170,3 +3170,44 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .card-colors .custom-text-group { display: contents; }
 .card-colors label:not(.inline-check) { text-align: right; }
 .card-colors .inline-check { white-space: nowrap; }
+
+/* 2.9.1: contadores compactos (solo ícono y número) */
+.stats-container.stats-compact .stat-label { display: none; }
+.stats-container.stats-compact .stat-card { padding: 8px 12px; gap: 8px; min-width: 0; }
+.stats-container.stats-compact .stat-icon { width: 30px; height: 30px; font-size: 0.85rem; }
+.stats-container.stats-compact .stat-value { font-size: 1rem; }
+
+/* 2.9.1: flechas para mover la imagen de la esquina */
+.cc-move-row { align-items: center; }
+.cc-pad { display: grid; grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(3, 30px); gap: 3px; }
+.cc-pad button { border: 1px solid var(--border-color); background: rgba(var(--ink-rgb), 0.05); color: var(--text-primary); border-radius: 7px; cursor: pointer; font-size: 0.8rem; touch-action: none; }
+.cc-pad button:hover { border-color: var(--accent); color: var(--accent); }
+.cc-pad button:active { transform: scale(0.94); }
+.cc-pad [data-dy="-1"] { grid-column: 2; grid-row: 1; }
+.cc-pad [data-dx="-1"] { grid-column: 1; grid-row: 2; }
+.cc-pad [data-reset] { grid-column: 2; grid-row: 2; }
+.cc-pad [data-dx="1"] { grid-column: 3; grid-row: 2; }
+.cc-pad [data-dy="1"] { grid-column: 2; grid-row: 3; }
+.cc-pos-lbl { color: var(--text-secondary); margin-left: 6px; }
+
+/* 2.9.1: Base de datos a pantalla completa, como Opciones, y búsqueda más grande */
+#modal-db { padding: 0; backdrop-filter: none; }
+#modal-db .modal-db-card { width: 100vw; max-width: none; height: 100vh; max-height: none; border-radius: 0; border: none; box-shadow: none; }
+#modal-db .db-modal-body { max-height: none; }
+#modal-db .db-tab-content { max-width: 1200px; width: 100%; margin: 0 auto; }
+#modal-db .db-filter-row { gap: 12px; }
+#modal-db .db-search-box { min-width: 320px; }
+#modal-db .db-search-box i { left: 14px; font-size: 1rem; }
+#modal-db .db-search-box input, #modal-db .db-search-box input:focus { width: 100%; font-size: 1.02rem; padding: 12px 14px 12px 42px; border-radius: 10px; }
+#modal-db .db-filter-select { font-size: 0.9rem; padding: 10px 12px; border-radius: 8px; }
+.db-filter-row2 { align-items: flex-end; }
+.db-f { display: flex; flex-direction: column; gap: 4px; font-size: 0.74rem; color: var(--text-secondary); font-weight: 600; }
+.db-f input[type="number"] { width: 130px; }
+.db-f input[type="date"] { color-scheme: dark; }
+:root[data-theme="light"] .db-f input[type="date"] { color-scheme: light; }
+.db-result-count { margin-left: auto; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); align-self: center; }
+.db-result-count::before { content: "\f0b0"; font-family: "Font Awesome 6 Free"; font-weight: 900; margin-right: 6px; opacity: 0.7; }
+#db-chats-list mark { background: rgba(250, 204, 21, 0.45); color: inherit; border-radius: 3px; padding: 0 1px; }
+#modal-db .db-item { padding: 12px 14px; }
+#modal-db .db-item-msg { white-space: normal; }
+#modal-db #db-btn-clear-filters { height: 41px; padding: 0 14px; font-size: 0.85rem; }

@@ -170,7 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
             obsEnter: 'pop', // Cómo aparece en OBS
             readIcon: 'check', // Ícono de "leído": tilde u ojo
             obsStep: false, obsStepDim: true, // Leer de a una con la rueda en la ventana OBS
-            obsCard: null // Imagen de esquina y de fondo de las tarjetas de OBS
+            obsCard: null, // Imagen de esquina y de fondo de las tarjetas de OBS
+            statsMode: 'normal', statsSize: 100 // Contadores de arriba: normal, compacto u ocultos, y su tamaño
         },
         lastReadId: null
     };
@@ -2355,16 +2356,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const pending = list => list.filter(d => !d.isRead).length;
         const money = list => formatSummary(summarize(list.filter(d => base.includes(d))));
 
-        if (state.showAmounts) {
-            els.totalAmount.textContent = `${pending(state.donations)} pend. · ${money(state.donations)}${tag}`;
-        } else {
-            els.totalAmount.textContent = `${pending(state.donations)} mensajes`;
-        }
+        // En modo compacto queda solo el número (y el monto si se muestran montos); el nombre va en el globito
+        const compact = state.settings.statsMode === 'compact';
+        const statText = list => compact
+            ? (state.showAmounts ? `${pending(list)} · ${money(list)}` : `${pending(list)}`)
+            : (state.showAmounts ? `${pending(list)} pend. · ${money(list)}${tag}` : `${pending(list)} mensajes`);
+        els.totalAmount.textContent = statText(state.donations);
         activePlatforms().forEach(k => {
             const el = platformStatEls[k];
             if (!el) return;
             const list = state.donations.filter(d => platformKey(d.platform) === k);
-            el.textContent = state.showAmounts ? `${pending(list)} pend. · ${money(list)}${tag}` : `${pending(list)} mensajes`;
+            el.textContent = statText(list);
+        });
+        document.querySelectorAll('.stats-container .stat-card').forEach(c => {
+            const l = c.querySelector('.stat-label'), v = c.querySelector('.stat-value');
+            c.title = compact && l && v ? l.textContent + ': ' + v.textContent : '';
         });
 
         const top = topDonors(base, 1)[0];
@@ -3883,17 +3889,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusFilter = els.dbSelectFilterStatus ? els.dbSelectFilterStatus.value : 'all';
 
         // Filtrar donaciones para la visualización en la BD
+        // Búsqueda sin importar tildes ni mayúsculas; también por monto
+        const fold = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const q = fold(searchQuery);
+        const dFrom = $('db-date-from') && $('db-date-from').value ? new Date($('db-date-from').value + 'T00:00:00').getTime() : null;
+        const dTo = $('db-date-to') && $('db-date-to').value ? new Date($('db-date-to').value + 'T23:59:59.999').getTime() : null;
+        const minAmt = $('db-min-amount') && $('db-min-amount').value !== '' ? Number($('db-min-amount').value) : null;
+        const sort = $('db-sort') ? $('db-sort').value : 'new';
         const filtered = state.donations.filter(d => {
-            if (searchQuery) {
-                const matchNick = (d.nick || '').toLowerCase().includes(searchQuery);
-                const matchMsg = (d.message || '').toLowerCase().includes(searchQuery);
-                if (!matchNick && !matchMsg) return false;
+            if (q) {
+                const hay = fold(d.nick) + '\n' + fold(d.message) + '\n' + fold(d.formattedAmount || d.amount);
+                if (!hay.includes(q)) return false;
             }
             if (platformFilter !== 'all' && d.platform !== platformFilter) return false;
             if (statusFilter === 'unread' && d.isRead) return false;
             if (statusFilter === 'read' && !d.isRead) return false;
+            if (dFrom !== null && !(d.timestamp >= dFrom)) return false;
+            if (dTo !== null && !(d.timestamp <= dTo)) return false;
+            if (minAmt !== null && Number.isFinite(minAmt) && !((toARS(d) != null && !isNaN(toARS(d)) ? toARS(d) : Number(d.amount) || 0) >= minAmt)) return false;
             return true;
         });
+        const cmp = { new: (a, b) => (b.timestamp || 0) - (a.timestamp || 0), old: (a, b) => (a.timestamp || 0) - (b.timestamp || 0),
+            amount: (a, b) => ((toARS(b) || Number(b.amount) || 0) - (toARS(a) || Number(a.amount) || 0)), nick: (a, b) => String(a.nick || '').localeCompare(String(b.nick || ''), 'es') };
+        filtered.sort(cmp[sort] || cmp.new);
+        const anyFilter = !!(q || platformFilter !== 'all' || statusFilter !== 'all' || dFrom !== null || dTo !== null || minAmt !== null);
+        if ($('db-result-count')) $('db-result-count').textContent = anyFilter ? `${filtered.length} de ${state.donations.length}` : `${state.donations.length}`;
+        if ($('db-btn-clear-filters')) $('db-btn-clear-filters').disabled = !anyFilter;
+        // Resalta lo buscado (sobre el texto ya escapado)
+        const mark = (raw) => {
+            const safe = escapeHTML(raw);
+            if (!q) return safe;
+            const f = fold(raw); let out = '', i = 0, k;
+            // se recorre el texto original para no romper tildes ni entidades
+            const src = String(raw);
+            while ((k = f.indexOf(q, i)) !== -1) { out += escapeHTML(src.slice(i, k)) + '<mark>' + escapeHTML(src.slice(k, k + q.length)) + '</mark>'; i = k + q.length; }
+            return f.length === src.length ? out + escapeHTML(src.slice(i)) : safe;
+        };
 
         // Actualizar estadísticas de la base de datos
         const total = state.donations.length;
@@ -3938,12 +3969,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="db-item-platform-tag ${platformKey(d.platform)}">${platformLabel}</span>
                         <div class="db-item-info">
                             <div class="db-item-header">
-                                <span class="db-item-nick">${escapeHTML(d.nick || 'Anónimo')}</span>
+                                <span class="db-item-nick">${mark(d.nick || 'Anónimo')}</span>
                                 <span class="db-item-amount">${formattedAmt}</span>
                                 <span class="db-item-date">${dateStr}</span>
                             </div>
                             <div class="db-item-msg" title="${escapeHTML(d.message || '')}">
-                                ${escapeHTML(d.message || '(Sin mensaje)')}
+                                ${d.message ? mark(d.message) : '(Sin mensaje)'}
                             </div>
                         </div>
                     </div>
@@ -4170,6 +4201,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.dbInputSearch) els.dbInputSearch.addEventListener('input', renderDbList);
     if (els.dbSelectFilterPlatform) els.dbSelectFilterPlatform.addEventListener('change', renderDbList);
     if (els.dbSelectFilterStatus) els.dbSelectFilterStatus.addEventListener('change', renderDbList);
+    ['db-date-from', 'db-date-to', 'db-min-amount', 'db-sort'].forEach(id => { if ($(id)) $(id).addEventListener(id === 'db-min-amount' ? 'input' : 'change', renderDbList); });
+    if ($('db-btn-clear-filters')) $('db-btn-clear-filters').addEventListener('click', () => {
+        els.dbInputSearch.value = ''; els.dbSelectFilterPlatform.value = 'all'; els.dbSelectFilterStatus.value = 'all';
+        ['db-date-from', 'db-date-to', 'db-min-amount'].forEach(id => { $(id).value = ''; }); $('db-sort').value = 'new';
+        renderDbList(); els.dbInputSearch.focus();
+    });
 
     if (els.dbBtnExport) els.dbBtnExport.addEventListener('click', exportDonationsToFile);
     if ($('db-btn-export-csv')) $('db-btn-export-csv').addEventListener('click', () => exportDonationsCSV('all'));
@@ -4774,6 +4811,10 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-lite').checked = !!st.lite;
         setExitChoice(st.obsExit || 'fade');
         load29Form(st);
+        segSet('stats-mode-seg', st.statsMode, ['normal', 'compact', 'hidden'], 'normal');
+        $('cfg-stats-size').value = Math.min(150, Math.max(70, Number(st.statsSize) || 100));
+        $('lbl-stats-size').textContent = $('cfg-stats-size').value + '%';
+        $('row-stats-size').classList.toggle('hidden', $('stats-mode-seg').dataset.v === 'hidden');
         $('cfg-close-tray').checked = !!st.closeToTray;
         if (TAURI) { TAURI.autostart.isEnabled().then(on => { $('cfg-autostart').checked = !!on; }).catch(() => {}); refreshVoz(); }
         $('cfg-banned-words').value = st.bannedWords || '';
@@ -4867,6 +4908,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme();      // si había una vista previa sin guardar, vuelve a lo guardado
         applyLook();
         applyTextScales();
+        applyStatsLook(); updateStats();
         els.modalSettings.classList.add('hidden');
     }
 
@@ -4915,6 +4957,8 @@ document.addEventListener('DOMContentLoaded', () => {
         st.lite = $('cfg-lite').checked;
         st.obsExit = EXIT_TYPES.includes($('exit-seg').dataset.v) ? $('exit-seg').dataset.v : 'fade';
         save29Form(st);
+        st.statsMode = $('stats-mode-seg').dataset.v || 'normal'; st.statsSize = Number($('cfg-stats-size').value) || 100;
+        applyStatsLook(); updateStats();
         st.closeToTray = $('cfg-close-tray').checked;
         applyTauriSettings();
         document.documentElement.classList.toggle('hotkeys-off', !st.hotkeys);
@@ -6468,23 +6512,15 @@ document.addEventListener('DOMContentLoaded', () => {
     $('cfg-obs-card-auto').addEventListener('change', cardAlphaInput);
     // La vista previa se acomoda sola cuando aparece o cambia de tamaño
     if (window.ResizeObserver) new ResizeObserver(() => fitDesignPreview()).observe(document.querySelector('.design-preview-wrap'));
-    // Achicar / mostrar la vista previa fija (se recuerda)
+    // La vista previa queda siempre abierta (se quitó "Achicar": costaba volver a encontrarla)
     (() => {
-        const box = $('obs-live-preview'), btn = $('btn-preview-toggle');
-        const set = (c) => {
-            box.classList.toggle('collapsed', c);
-            btn.innerHTML = c ? '<i class="fa-solid fa-chevron-down"></i> <span>Mostrar</span>' : '<i class="fa-solid fa-chevron-up"></i> <span>Achicar</span>';
-            try { localStorage.setItem('sd_preview_collapsed', c ? '1' : '0'); } catch (e) {}
-            if (!c) setTimeout(fitDesignPreview, 0);
-        };
-        let c0 = false; try { c0 = localStorage.getItem('sd_preview_collapsed') === '1'; } catch (e) {}
-        set(c0);
-        btn.addEventListener('click', () => set(!box.classList.contains('collapsed')));
-        // Alternar el ejemplo: donación común / donación grande
+        $('obs-live-preview').classList.remove('collapsed');
+        try { localStorage.removeItem('sd_preview_collapsed'); } catch (e) {}
+        // Alternar el ejemplo: donación común / destacada
         const sw = $('btn-preview-sample');
         sw.addEventListener('click', () => {
             previewBig = !previewBig;
-            sw.innerHTML = previewBig ? '<i class="fa-solid fa-arrow-down-short-wide"></i> <span>Ver común</span>' : '<i class="fa-solid fa-arrow-up-wide-short"></i> <span>Ver grande</span>';
+            sw.innerHTML = previewBig ? '<i class="fa-solid fa-crown"></i> <span>Ejemplo: destacada</span>' : '<i class="fa-solid fa-crown"></i> <span>Ejemplo: común</span>';
             designPreviewSamples();
             renderPanelPreview();
         });
@@ -7619,11 +7655,12 @@ document.addEventListener('DOMContentLoaded', () => {
         c = c || {};
         const n = (v, a, b, d) => { if (v === undefined || v === null || v === '') return d; v = Number(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : d; };
         return { corner: !!c.corner, cornerPos: c.cornerPos === 'left' ? 'left' : 'right', cornerSize: n(c.cornerSize, 30, 220, 90), cornerAlpha: n(c.cornerAlpha, 10, 100, 100),
+            cornerX: n(c.cornerX, -150, 150, 0), cornerY: n(c.cornerY, -150, 150, 0),
             cornerVer: Number(c.cornerVer) || 0, cornerName: String(c.cornerName || '').slice(0, 80),
             bg: !!c.bg, bgAlpha: n(c.bgAlpha, 5, 100, 100), bgDim: n(c.bgDim, 0, 90, 40), bgVer: Number(c.bgVer) || 0, bgName: String(c.bgName || '').slice(0, 80) };
     }
     function cardFromForm() {
-        return cleanCard({ corner: $('cfg-card-corner').checked, cornerPos: $('corner-pos-seg').dataset.v, cornerSize: $('cfg-card-corner-size').value, cornerAlpha: $('cfg-card-corner-alpha').value,
+        return cleanCard({ corner: $('cfg-card-corner').checked, cornerPos: $('corner-pos-seg').dataset.v, cornerX: $('cc-pad').dataset.x, cornerY: $('cc-pad').dataset.y, cornerSize: $('cfg-card-corner-size').value, cornerAlpha: $('cfg-card-corner-alpha').value,
             cornerVer: $('card-corner-name').dataset.ver, cornerName: $('card-corner-name').dataset.name,
             bg: $('cfg-card-bg').checked, bgAlpha: $('cfg-card-bg-alpha').value, bgDim: $('cfg-card-bg-dim').value, bgVer: $('card-bg-name').dataset.ver, bgName: $('card-bg-name').dataset.name });
     }
@@ -7642,6 +7679,12 @@ document.addEventListener('DOMContentLoaded', () => {
         $('lbl-card-corner-alpha').textContent = $('cfg-card-corner-alpha').value + '%';
         $('lbl-card-bg-alpha').textContent = $('cfg-card-bg-alpha').value + '%';
         $('lbl-card-bg-dim').textContent = $('cfg-card-bg-dim').value + '%';
+        const cx = Number($('cc-pad').dataset.x) || 0, cy = Number($('cc-pad').dataset.y) || 0;
+        const T = (t) => window.SDi18n ? window.SDi18n.t(t) : t;
+        const parts = [];
+        if (cy < 0) parts.push(-cy + ' px ' + T('arriba')); if (cy > 0) parts.push(cy + ' px ' + T('abajo'));
+        if (cx < 0) parts.push(-cx + ' px ' + T('a la izquierda')); if (cx > 0) parts.push(cx + ' px ' + T('a la derecha'));
+        $('lbl-cc-pos').textContent = parts.length ? parts.join(' · ') : T('En la esquina');
     }
     function setCardName(el, name, ver) {
         el.dataset.ver = ver || 0; el.dataset.name = name || '';
@@ -7652,6 +7695,7 @@ document.addEventListener('DOMContentLoaded', () => {
         segSet('enter-seg', st.obsEnter, ENTER_TYPES, 'pop');
         segSet('readicon-seg', st.readIcon, ['check', 'eye'], 'check');
         segSet('corner-pos-seg', c.cornerPos, ['left', 'right'], 'right');
+        $('cc-pad').dataset.x = c.cornerX; $('cc-pad').dataset.y = c.cornerY;
         $('cfg-obs-step').checked = !!st.obsStep; $('cfg-obs-step-dim').checked = st.obsStepDim !== false;
         $('cfg-card-corner').checked = c.corner; $('cfg-card-corner-size').value = c.cornerSize; $('cfg-card-corner-alpha').value = c.cornerAlpha;
         $('cfg-card-bg').checked = c.bg; $('cfg-card-bg-alpha').value = c.bgAlpha; $('cfg-card-bg-dim').value = c.bgDim;
@@ -7665,8 +7709,28 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsCard = cardFromForm();
         applyReadIcon();
     }
+    // ---- Contadores de arriba: normal / compacto / ocultos y tamaño ----
+    function applyStatsLook() {
+        const st = state.settings, box = document.querySelector('.stats-container');
+        if (!box) return;
+        const mode = ['normal', 'compact', 'hidden'].includes(st.statsMode) ? st.statsMode : 'normal';
+        box.classList.toggle('stats-compact', mode === 'compact');
+        box.classList.toggle('hidden', mode === 'hidden');
+        const sz = Math.min(150, Math.max(70, Number(st.statsSize) || 100));
+        box.style.zoom = sz === 100 ? '' : String(sz / 100);
+    }
     function applyReadIcon() { document.documentElement.classList.toggle('read-eye', state.settings.readIcon === 'eye'); }
     applyReadIcon();
+    applyStatsLook();
+    // Vista previa en vivo de los contadores (se confirma con "Guardar cambios")
+    const statsDraft = () => { const st = state.settings, m = st.statsMode, z = st.statsSize; st.statsMode = $('stats-mode-seg').dataset.v || 'normal'; st.statsSize = Number($('cfg-stats-size').value) || 100; applyStatsLook(); updateStats(); st.statsMode = m; st.statsSize = z; };
+    $('stats-mode-seg').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]'); if (!b) return;
+        segSet('stats-mode-seg', b.dataset.v, ['normal', 'compact', 'hidden'], 'normal');
+        $('row-stats-size').classList.toggle('hidden', b.dataset.v === 'hidden');
+        setSettingsDirty(true); statsDraft();
+    });
+    $('cfg-stats-size').addEventListener('input', () => { $('lbl-stats-size').textContent = $('cfg-stats-size').value + '%'; setSettingsDirty(true); statsDraft(); });
     function changed29() { update29Form(); setSettingsDirty(true); sendObsStyle(); if (dzSide !== 'obs') setDzSide('obs'); }
     ['enter-seg', 'readicon-seg', 'corner-pos-seg'].forEach(id => $(id).addEventListener('click', (e) => {
         const b = e.target.closest('button[data-v]'); if (!b) return;
@@ -7684,6 +7748,26 @@ document.addEventListener('DOMContentLoaded', () => {
         SDStore.put(key, f).then(() => { setCardName(nameEl, f.name, Date.now()); toggle.checked = true; changed29(); })
             .catch(() => showToast('No se pudo guardar la imagen', 'warning'));
     }
+    // Flechas para correr la imagen de la esquina (mantener apretado la mueve seguido)
+    (() => {
+        const pad = $('cc-pad'); let rep = 0, wait = 0;
+        const step = (b) => {
+            if (b.dataset.reset) { pad.dataset.x = 0; pad.dataset.y = 0; }
+            else {
+                pad.dataset.x = Math.max(-150, Math.min(150, (Number(pad.dataset.x) || 0) + 5 * Number(b.dataset.dx)));
+                pad.dataset.y = Math.max(-150, Math.min(150, (Number(pad.dataset.y) || 0) + 5 * Number(b.dataset.dy)));
+            }
+            changed29();
+        };
+        const stop = () => { clearTimeout(wait); clearInterval(rep); wait = rep = 0; };
+        pad.addEventListener('pointerdown', (e) => {
+            const b = e.target.closest('button'); if (!b) return;
+            e.preventDefault(); step(b);
+            if (!b.dataset.reset) wait = setTimeout(() => { rep = setInterval(() => step(b), 70); }, 350);
+        });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => pad.addEventListener(ev, stop));
+        pad.addEventListener('keydown', (e) => { const b = e.target.closest('button'); if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); step(b); } });
+    })();
     $('btn-card-corner-pick').addEventListener('click', () => $('card-corner-file').click());
     $('card-corner-file').addEventListener('change', () => pickCardImage($('card-corner-file'), 'cardCorner', $('card-corner-name'), $('cfg-card-corner'), /^image\/(png|gif|webp)$/, 'Elegí un PNG con fondo transparente (también sirve GIF o WEBP)'));
     $('btn-card-bg-pick').addEventListener('click', () => $('card-bg-file').click());

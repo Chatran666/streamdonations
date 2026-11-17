@@ -396,3 +396,9 @@
 /* En los diseños de papel claro (letras oscuras) el velo sobre la imagen de fondo es blanco, así las letras se siguen leyendo */
 :root.card-bg[data-design="comic"] .obs-cb, :root.card-bg[data-design="pastel"] .obs-cb, :root.card-bg[data-design="ticket"] .obs-cb, :root.card-bg[data-design="postit"] .obs-cb {
     background: linear-gradient(rgba(255, 255, 255, var(--cb-dim, 0.4)), rgba(255, 255, 255, var(--cb-dim, 0.4))), var(--cb-url) center / cover no-repeat; }
+
+/* 2.9.1: la imagen de la esquina vive en su propia capa (puede sobresalir de la tarjeta) */
+.obs-cc { display: none !important; }
+#cc-layer { position: absolute; left: 0; top: 0; width: 0; height: 0; overflow: visible; pointer-events: none; z-index: 30; }
+#cc-layer .cc-img { position: absolute; background: var(--cc-url) top right / contain no-repeat; will-change: transform, opacity; }
+:root.card-corner #alerts-container { margin-top: var(--cc-pt, 0px); margin-right: var(--cc-pr, 0px); margin-left: var(--cc-pl, 0px); }
