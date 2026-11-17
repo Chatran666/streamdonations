@@ -171,7 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
             readIcon: 'check', // Ícono de "leído": tilde u ojo
             obsStep: false, obsStepDim: true, // Leer de a una con la rueda en la ventana OBS
             obsCard: null, // Imagen de esquina y de fondo de las tarjetas de OBS
-            statsMode: 'normal', statsSize: 100 // Contadores de arriba: normal, compacto u ocultos, y su tamaño
+            statsMode: 'normal', statsSize: 100, // Contadores de arriba: normal, compacto u ocultos, y su tamaño
+            obsGap: null // Separación entre tarjetas de OBS en px (null = la del diseño)
         },
         lastReadId: null
     };
@@ -7651,6 +7652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const g = $(id); g.dataset.v = list.includes(v) ? v : def;
         g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === g.dataset.v));
     }
+    function cleanGap(v) { if (v === null || v === undefined || v === '') return null; v = Number(v); return Number.isFinite(v) ? Math.min(100, Math.max(0, Math.round(v))) : null; }
     function cleanCard(c) {
         c = c || {};
         const n = (v, a, b, d) => { if (v === undefined || v === null || v === '') return d; v = Number(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : d; };
@@ -7667,9 +7669,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function style29() {
         const st = state.settings;
         if (!els.modalSettings.classList.contains('hidden') && $('enter-seg').dataset.v) {
-            return { enterFx: $('enter-seg').dataset.v, readIcon: $('readicon-seg').dataset.v || 'check', step: $('cfg-obs-step').checked, stepDim: $('cfg-obs-step-dim').checked, card: cardFromForm() };
+            return { enterFx: $('enter-seg').dataset.v, readIcon: $('readicon-seg').dataset.v || 'check', step: $('cfg-obs-step').checked, stepDim: $('cfg-obs-step-dim').checked, card: cardFromForm(), gap: $('cfg-obs-gap-auto').checked ? null : Number($('cfg-obs-gap').value) };
         }
-        return { enterFx: ENTER_TYPES.includes(st.obsEnter) ? st.obsEnter : 'pop', readIcon: st.readIcon === 'eye' ? 'eye' : 'check', step: !!st.obsStep, stepDim: st.obsStepDim !== false, card: cleanCard(st.obsCard) };
+        return { enterFx: ENTER_TYPES.includes(st.obsEnter) ? st.obsEnter : 'pop', readIcon: st.readIcon === 'eye' ? 'eye' : 'check', step: !!st.obsStep, stepDim: st.obsStepDim !== false, card: cleanCard(st.obsCard), gap: cleanGap(st.obsGap) };
     }
     function update29Form() {
         $('card-corner-opts').classList.toggle('hidden', !$('cfg-card-corner').checked);
@@ -7679,6 +7681,8 @@ document.addEventListener('DOMContentLoaded', () => {
         $('lbl-card-corner-alpha').textContent = $('cfg-card-corner-alpha').value + '%';
         $('lbl-card-bg-alpha').textContent = $('cfg-card-bg-alpha').value + '%';
         $('lbl-card-bg-dim').textContent = $('cfg-card-bg-dim').value + '%';
+        $('lbl-obs-gap').textContent = $('cfg-obs-gap').value + ' px';
+        $('cfg-obs-gap').disabled = $('cfg-obs-gap-auto').checked;
         const cx = Number($('cc-pad').dataset.x) || 0, cy = Number($('cc-pad').dataset.y) || 0;
         const T = (t) => window.SDi18n ? window.SDi18n.t(t) : t;
         const parts = [];
@@ -7696,6 +7700,7 @@ document.addEventListener('DOMContentLoaded', () => {
         segSet('readicon-seg', st.readIcon, ['check', 'eye'], 'check');
         segSet('corner-pos-seg', c.cornerPos, ['left', 'right'], 'right');
         $('cc-pad').dataset.x = c.cornerX; $('cc-pad').dataset.y = c.cornerY;
+        const gp = cleanGap(st.obsGap); $('cfg-obs-gap-auto').checked = gp === null; $('cfg-obs-gap').value = gp === null ? 14 : gp;
         $('cfg-obs-step').checked = !!st.obsStep; $('cfg-obs-step-dim').checked = st.obsStepDim !== false;
         $('cfg-card-corner').checked = c.corner; $('cfg-card-corner-size').value = c.cornerSize; $('cfg-card-corner-alpha').value = c.cornerAlpha;
         $('cfg-card-bg').checked = c.bg; $('cfg-card-bg-alpha').value = c.bgAlpha; $('cfg-card-bg-dim').value = c.bgDim;
@@ -7705,6 +7710,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function save29Form(st) {
         st.obsEnter = ENTER_TYPES.includes($('enter-seg').dataset.v) ? $('enter-seg').dataset.v : 'pop';
         st.readIcon = $('readicon-seg').dataset.v === 'eye' ? 'eye' : 'check';
+        st.obsGap = $('cfg-obs-gap-auto').checked ? null : cleanGap($('cfg-obs-gap').value);
         st.obsStep = $('cfg-obs-step').checked; st.obsStepDim = $('cfg-obs-step-dim').checked;
         st.obsCard = cardFromForm();
         applyReadIcon();
@@ -7738,7 +7744,8 @@ document.addEventListener('DOMContentLoaded', () => {
         changed29();
         if (id === 'enter-seg') setTimeout(() => { const w = $('design-preview') && $('design-preview').contentWindow; try { w.postMessage({ type: 'PREVIEW_ENTER' }, '*'); } catch (err) {} }, 150);
     }));
-    ['cfg-obs-step', 'cfg-obs-step-dim', 'cfg-card-corner', 'cfg-card-bg'].forEach(id => $(id).addEventListener('change', changed29));
+    ['cfg-obs-step', 'cfg-obs-step-dim', 'cfg-card-corner', 'cfg-card-bg', 'cfg-obs-gap-auto'].forEach(id => $(id).addEventListener('change', changed29));
+    $('cfg-obs-gap').addEventListener('input', changed29);
     ['cfg-card-corner-size', 'cfg-card-corner-alpha', 'cfg-card-bg-alpha', 'cfg-card-bg-dim'].forEach(id => $(id).addEventListener('input', changed29));
     function pickCardImage(input, key, nameEl, toggle, types, hint) {
         const f = input.files && input.files[0]; input.value = '';

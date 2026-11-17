@@ -3211,3 +3211,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 #modal-db .db-item { padding: 12px 14px; }
 #modal-db .db-item-msg { white-space: normal; }
 #modal-db #db-btn-clear-filters { height: 41px; padding: 0 14px; font-size: 0.85rem; }
+.gap-ctl { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.gap-ctl input[type="range"] { width: 200px; }
+.gap-ctl .range-value { min-width: 52px; }
+.setting-row > .gap-ctl { flex-direction: row; align-items: center; gap: 10px; }

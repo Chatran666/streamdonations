@@ -721,6 +721,10 @@
             document.documentElement.classList.toggle('read-eye', st.readIcon === 'eye');
             setStep(!!st.step, st.stepDim !== false);
             applyCard(st.card);
+            // Separación entre tarjetas elegida a mano (si no, la del diseño)
+            const gp = Number(st.gap);
+            document.documentElement.classList.toggle('gap-custom', st.gap !== null && st.gap !== undefined && Number.isFinite(gp));
+            if (Number.isFinite(gp)) document.documentElement.style.setProperty('--obs-gap', Math.min(100, Math.max(0, gp)) + 'px');
             // Modo liviano: sin efectos animados ni animaciones decorativas
             if (!!st.lite !== LITE) { LITE = !!st.lite; document.documentElement.classList.toggle('lite', LITE); applyFx(); }
             applyObsBg(st.obsBg);

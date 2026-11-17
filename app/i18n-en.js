@@ -1115,6 +1115,8 @@ window.SD_I18N_EN = {
     'Monto más alto primero': 'Highest amount first',
     'Nombre (A-Z)': 'Name (A-Z)',
     'Limpiar filtros': 'Clear filters',
+    'Separación entre tarjetas': 'Space between cards',
+    'El espacio entre una donación y la siguiente en OBS. Agrandalo si la imagen de la esquina sobresale y tapa la tarjeta de arriba. "Automático" usa la del diseño.': 'The space between one donation and the next in OBS. Make it bigger if the corner image sticks out and covers the card above. "Automatic" uses the design\'s own.',
     'Modo experto': 'Expert mode', 'Muestra todas las opciones (filtros, destacar, transparencias, efectos…)': 'Shows every option (filters, highlight, transparency, effects…)',
     'Tenés ajustes avanzados funcionando:': 'You have advanced settings running:', 'Siguen activos aunque no se vean.': 'They stay on even if hidden.', 'Ver todo': 'Show all',
     'Primeros pasos': 'First steps', 'Tres pasos y queda lista para tu directo.': 'Three steps and it is ready for your stream.',

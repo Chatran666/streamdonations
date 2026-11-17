@@ -1,3 +1,6 @@
+Novedades de la 2.9.2:
+- Separación entre tarjetas en OBS: elegí el espacio entre una donación y la siguiente (de 0 a 100 px), o dejalo en "Automático" para usar el del diseño. Sirve para que la imagen de la esquina que sobresale no tape la tarjeta de arriba. Está en Diseño → OBS (modo experto).
+
 Novedades de la 2.9.1:
 - La imagen de la esquina de cada donación ahora puede sobresalir de la tarjeta: con flechas la movés hacia arriba, abajo, izquierda o derecha (mantené apretado para moverla seguido). Ya no la recorta ningún diseño.
 - Contadores de arriba (Total, plataformas y Top Donador): normales, compactos (solo ícono y número) u ocultos, y con tamaño a elección. Está en Opciones → Pantalla.

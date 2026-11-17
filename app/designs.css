@@ -402,3 +402,4 @@
 #cc-layer { position: absolute; left: 0; top: 0; width: 0; height: 0; overflow: visible; pointer-events: none; z-index: 30; }
 #cc-layer .cc-img { position: absolute; background: var(--cc-url) top right / contain no-repeat; will-change: transform, opacity; }
 :root.card-corner #alerts-container { margin-top: var(--cc-pt, 0px); margin-right: var(--cc-pr, 0px); margin-left: var(--cc-pl, 0px); }
+:root.gap-custom #alerts-container { gap: var(--obs-gap, 14px) !important; }

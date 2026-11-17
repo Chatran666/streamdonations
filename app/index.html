@@ -1327,6 +1327,14 @@
                             </div>
                             <small class="pane-note">Las imágenes quedan guardadas en esta PC. Máximo 4 MB cada una. Con el link de la fuente de navegador viajan solas a OBS.</small>
                         </div>
+                        <div class="setting-row adv" id="row-obs-gap">
+                            <div><strong>Separación entre tarjetas</strong><small>El espacio entre una donación y la siguiente en OBS. Agrandalo si la imagen de la esquina sobresale y tapa la tarjeta de arriba. "Automático" usa la del diseño.</small></div>
+                            <div class="gap-ctl">
+                                <input type="range" id="cfg-obs-gap" min="0" max="100" step="2" value="14">
+                                <span class="range-value" id="lbl-obs-gap">14 px</span>
+                                <label class="inline-check"><input type="checkbox" id="cfg-obs-gap-auto" checked> Automático</label>
+                            </div>
+                        </div>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-image"></i> Fondo de la ventana "Modo OBS"</div>
                         <div class="bg-picker" data-bg-target="obs">
