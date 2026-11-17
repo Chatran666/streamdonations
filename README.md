@@ -28,14 +28,6 @@ Desde la versión 2 es un programa propio (hecho con [Tauri](https://tauri.app))
 - Interfaz en español e inglés.
 - Copia completa de la configuración y del historial.
 
-## Política de firma de código / Code signing policy
-
-Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
-
-- **Autor, revisor y aprobador / Committers, reviewers and approvers:** [Chatran666](https://github.com/Chatran666)
-- Solo se firman instaladores armados por GitHub Actions desde este repositorio, a partir del código publicado acá. Cada firma la aprueba el autor a mano.
-- Only installers built by GitHub Actions from this repository's source are signed. Every signing request is approved manually.
-
 ## Privacidad / Privacy
 
 La app no tiene servidor propio ni junta datos de uso. Qué se conecta y para qué: **[PRIVACY.md](PRIVACY.md)**.
