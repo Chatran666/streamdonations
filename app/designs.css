@@ -403,3 +403,4 @@
 #cc-layer .cc-img { position: absolute; background: var(--cc-url) top right / contain no-repeat; will-change: transform, opacity; }
 :root.card-corner #alerts-container { margin-top: var(--cc-pt, 0px); margin-right: var(--cc-pr, 0px); margin-left: var(--cc-pl, 0px); }
 :root.gap-custom #alerts-container { gap: var(--obs-gap, 14px) !important; }
+:root.card-corner:not(.gap-custom) #alerts-container > .obs-alert + .obs-alert { margin-top: var(--cc-up, 0px); }

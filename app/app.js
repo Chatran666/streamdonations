@@ -7747,12 +7747,34 @@ document.addEventListener('DOMContentLoaded', () => {
     ['cfg-obs-step', 'cfg-obs-step-dim', 'cfg-card-corner', 'cfg-card-bg', 'cfg-obs-gap-auto'].forEach(id => $(id).addEventListener('change', changed29));
     $('cfg-obs-gap').addEventListener('input', changed29);
     ['cfg-card-corner-size', 'cfg-card-corner-alpha', 'cfg-card-bg-alpha', 'cfg-card-bg-dim'].forEach(id => $(id).addEventListener('input', changed29));
+    // Achica y comprime la imagen al cargarla (así viaja rápido a OBS). Mantiene la transparencia.
+    // Los GIF no se tocan, para no perder la animación.
+    function shrinkImage(f, maxSide) {
+        if (f.type === 'image/gif') return Promise.resolve(f);
+        return new Promise((resolve) => {
+            const url = URL.createObjectURL(f), img = new Image();
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const k = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+                const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+                const c = document.createElement('canvas'); c.width = w; c.height = h;
+                const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, w, h);
+                c.toBlob(b => resolve(b && b.size < f.size ? b : f), 'image/webp', 0.9);
+            };
+            img.onerror = () => { URL.revokeObjectURL(url); resolve(f); };
+            img.src = url;
+        });
+    }
     function pickCardImage(input, key, nameEl, toggle, types, hint) {
         const f = input.files && input.files[0]; input.value = '';
         if (!f) return;
         if (!types.test(f.type)) { showToast(hint, 'warning'); return; }
-        if (f.size > 4 * 1024 * 1024) { showToast('La imagen pesa ' + (f.size / 1048576).toFixed(1) + ' MB. El máximo es 4 MB.', 'warning'); return; }
-        SDStore.put(key, f).then(() => { setCardName(nameEl, f.name, Date.now()); toggle.checked = true; changed29(); })
+        const isGif = f.type === 'image/gif';
+        const max = isGif ? 4 : 30;
+        if (f.size > max * 1024 * 1024) { showToast('La imagen pesa ' + (f.size / 1048576).toFixed(1) + ' MB. El máximo es ' + max + ' MB.', 'warning'); return; }
+        // Esquina: hasta 480 px (se muestra a 220 como mucho). Fondo: hasta 1280 px.
+        shrinkImage(f, key === 'cardCorner' ? 480 : 1280).then(img => SDStore.put(key, img))
+            .then(() => { setCardName(nameEl, f.name, Date.now()); toggle.checked = true; changed29(); })
             .catch(() => showToast('No se pudo guardar la imagen', 'warning'));
     }
     // Flechas para correr la imagen de la esquina (mantener apretado la mueve seguido)

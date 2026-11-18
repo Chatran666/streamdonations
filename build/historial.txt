@@ -1,3 +1,8 @@
+Novedades de la 2.9.3:
+- Imagen de la esquina: con la separación en "Automático", cada tarjeta deja arriba el lugar que ocupa la imagen que sobresale, así ya no tapa la tarjeta de arriba.
+- Las imágenes de las tarjetas se achican y comprimen solas al cargarlas (mantienen la transparencia), así cargan mucho más rápido. Los GIF quedan tal cual.
+- Arriba, el botón de la barra de filtros va primero, y los íconos rápidos son más grandes.
+
 Novedades de la 2.9.2:
 - Separación entre tarjetas en OBS: elegí el espacio entre una donación y la siguiente (de 0 a 100 px), o dejalo en "Automático" para usar el del diseño. Sirve para que la imagen de la esquina que sobresale no tape la tarjeta de arriba. Está en Diseño → OBS (modo experto).
 

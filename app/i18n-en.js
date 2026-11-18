@@ -1117,6 +1117,7 @@ window.SD_I18N_EN = {
     'Limpiar filtros': 'Clear filters',
     'Separación entre tarjetas': 'Space between cards',
     'El espacio entre una donación y la siguiente en OBS. Agrandalo si la imagen de la esquina sobresale y tapa la tarjeta de arriba. "Automático" usa la del diseño.': 'The space between one donation and the next in OBS. Make it bigger if the corner image sticks out and covers the card above. "Automatic" uses the design\'s own.',
+    'Las imágenes quedan guardadas en esta PC y se achican solas para que carguen rápido (los GIF, hasta 4 MB, van tal cual). Con el link de la fuente de navegador viajan solas a OBS.': 'Images are stored on this PC and are shrunk automatically so they load fast (GIFs, up to 4 MB, are kept as they are). With the browser source link they travel to OBS on their own.',
     'Modo experto': 'Expert mode', 'Muestra todas las opciones (filtros, destacar, transparencias, efectos…)': 'Shows every option (filters, highlight, transparency, effects…)',
     'Tenés ajustes avanzados funcionando:': 'You have advanced settings running:', 'Siguen activos aunque no se vean.': 'They stay on even if hidden.', 'Ver todo': 'Show all',
     'Primeros pasos': 'First steps', 'Tres pasos y queda lista para tu directo.': 'Three steps and it is ready for your stream.',

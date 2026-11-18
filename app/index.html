@@ -68,14 +68,14 @@
             <!-- Quick Action Controls -->
             <div class="header-actions">
                 <div class="icon-group" role="group" aria-label="Controles rápidos">
+                    <button class="btn-icon active" id="btn-toggle-toolbar" title="Barra de filtros: visible">
+                        <i class="fa-solid fa-filter" id="toolbar-icon"></i>
+                    </button>
                     <button class="btn-icon" id="btn-toggle-sound" title="Sonido de alerta: desactivado">
                         <i class="fa-solid fa-volume-high" id="sound-icon"></i>
                     </button>
                     <button class="btn-icon" id="btn-toggle-tts" title="Lectura en voz alta: desactivada">
                         <i class="fa-solid fa-comment-dots" id="tts-icon"></i>
-                    </button>
-                    <button class="btn-icon active" id="btn-toggle-toolbar" title="Barra de filtros: visible">
-                        <i class="fa-solid fa-filter" id="toolbar-icon"></i>
                     </button>
                     <button class="btn-icon" id="btn-quick-test" title="Mandar una donación de prueba (se borra sola al tildarla)">
                         <i class="fa-solid fa-flask"></i>
@@ -1325,7 +1325,7 @@
                                 <div class="bg-dim-row"><label for="cfg-card-bg-alpha">Opacidad</label><input type="range" id="cfg-card-bg-alpha" min="5" max="100" step="5" value="100"><span class="range-value" id="lbl-card-bg-alpha">100%</span></div>
                                 <div class="bg-dim-row"><label for="cfg-card-bg-dim">Oscurecer</label><input type="range" id="cfg-card-bg-dim" min="0" max="90" step="5" value="40"><span class="range-value" id="lbl-card-bg-dim">40%</span></div>
                             </div>
-                            <small class="pane-note">Las imágenes quedan guardadas en esta PC. Máximo 4 MB cada una. Con el link de la fuente de navegador viajan solas a OBS.</small>
+                            <small class="pane-note">Las imágenes quedan guardadas en esta PC y se achican solas para que carguen rápido (los GIF, hasta 4 MB, van tal cual). Con el link de la fuente de navegador viajan solas a OBS.</small>
                         </div>
                         <div class="setting-row adv" id="row-obs-gap">
                             <div><strong>Separación entre tarjetas</strong><small>El espacio entre una donación y la siguiente en OBS. Agrandalo si la imagen de la esquina sobresale y tapa la tarjeta de arriba. "Automático" usa la del diseño.</small></div>

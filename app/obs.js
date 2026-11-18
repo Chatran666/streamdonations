@@ -860,6 +860,8 @@
             // Lugar extra para que lo que sobresale no lo corte el borde de la ventana
             const r = document.documentElement.style;
             r.setProperty('--cc-pt', Math.max(0, -ccPos.y) + 'px');
+            // Con la separación en Automático, cada tarjeta deja arriba el lugar que ocupa la imagen que sobresale
+            r.setProperty('--cc-up', Math.max(0, -ccPos.y) + 'px');
             r.setProperty('--cc-pr', (ccPos.left ? 0 : Math.max(0, ccPos.x)) + 'px');
             r.setProperty('--cc-pl', (ccPos.left ? Math.max(0, -ccPos.x) : 0) + 'px');
         }
