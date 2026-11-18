@@ -2358,7 +2358,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const money = list => formatSummary(summarize(list.filter(d => base.includes(d))));
 
         // En modo compacto queda solo el número (y el monto si se muestran montos); el nombre va en el globito
-        const compact = state.settings.statsMode === 'compact';
+        // Ventana angosta: también queda solo el número, para que entren en una fila
+        const compact = state.settings.statsMode === 'compact' || window.innerWidth <= 1240;
         const statText = list => compact
             ? (state.showAmounts ? `${pending(list)} · ${money(list)}` : `${pending(list)}`)
             : (state.showAmounts ? `${pending(list)} pend. · ${money(list)}${tag}` : `${pending(list)} mensajes`);
@@ -2371,7 +2372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         document.querySelectorAll('.stats-container .stat-card').forEach(c => {
             const l = c.querySelector('.stat-label'), v = c.querySelector('.stat-value');
-            c.title = compact && l && v ? l.textContent + ': ' + v.textContent : '';
+            c.title = l && v ? l.textContent.trim() + ': ' + v.textContent : '';
         });
 
         const top = topDonors(base, 1)[0];
@@ -7728,6 +7729,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyReadIcon() { document.documentElement.classList.toggle('read-eye', state.settings.readIcon === 'eye'); }
     applyReadIcon();
     applyStatsLook();
+    { let rz = 0, wasNarrow = window.innerWidth <= 1240; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const n = window.innerWidth <= 1240; if (n !== wasNarrow) { wasNarrow = n; updateStats(); } }, 150); }); }
     // Vista previa en vivo de los contadores (se confirma con "Guardar cambios")
     const statsDraft = () => { const st = state.settings, m = st.statsMode, z = st.statsSize; st.statsMode = $('stats-mode-seg').dataset.v || 'normal'; st.statsSize = Number($('cfg-stats-size').value) || 100; applyStatsLook(); updateStats(); st.statsMode = m; st.statsSize = z; };
     $('stats-mode-seg').addEventListener('click', (e) => {

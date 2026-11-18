@@ -1,2 +1,3 @@
-Novedades de la 2.9.4:
-- Arriba a la izquierda queda solo el ícono de la app (sin el nombre "StreamDonations"), así hay más lugar para los contadores y los botones.
+Novedades de la 2.9.5:
+- Diseño Zócalo: un nombre muy largo ya no queda tapado por la etiqueta de la plataforma, y con la app en inglés la placa dice "DONATION".
+- Con la ventana angosta, los contadores de arriba quedan en una sola fila (solo el número; al pasar el mouse dice de qué es cada uno), y en ventanas muy angostas pasan a una fila propia.

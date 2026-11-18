@@ -404,3 +404,8 @@
 :root.card-corner #alerts-container { margin-top: var(--cc-pt, 0px); margin-right: var(--cc-pr, 0px); margin-left: var(--cc-pl, 0px); }
 :root.gap-custom #alerts-container { gap: var(--obs-gap, 14px) !important; }
 :root.card-corner:not(.gap-custom) #alerts-container > .obs-alert + .obs-alert { margin-top: var(--cc-up, 0px); }
+/* Zócalo: el nombre largo no se mete abajo de la etiqueta de la plataforma, y la placa dice DONATION en inglés */
+:root[data-design="zocalo"] .obs-donor-text { padding-right: 150px; min-width: 0; }
+:root.obs-ws[data-design="zocalo"] .obs-donor-text { padding-right: 120px; }
+:root[data-design="zocalo"] .obs-nick > span:first-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+:root[lang="en"][data-design="zocalo"] .obs-amount::before { content: 'DONATION'; }
