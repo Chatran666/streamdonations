@@ -7658,12 +7658,12 @@ document.addEventListener('DOMContentLoaded', () => {
         c = c || {};
         const n = (v, a, b, d) => { if (v === undefined || v === null || v === '') return d; v = Number(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : d; };
         return { corner: !!c.corner, cornerPos: c.cornerPos === 'left' ? 'left' : 'right', cornerSize: n(c.cornerSize, 30, 220, 90), cornerAlpha: n(c.cornerAlpha, 10, 100, 100),
-            cornerX: n(c.cornerX, -150, 150, 0), cornerY: n(c.cornerY, -150, 150, 0),
+            cornerX: n(c.cornerX, -150, 150, 0), cornerY: n(c.cornerY, -150, 150, 0), cornerLayer: c.cornerLayer === 'back' ? 'back' : 'front',
             cornerVer: Number(c.cornerVer) || 0, cornerName: String(c.cornerName || '').slice(0, 80),
             bg: !!c.bg, bgAlpha: n(c.bgAlpha, 5, 100, 100), bgDim: n(c.bgDim, 0, 90, 40), bgVer: Number(c.bgVer) || 0, bgName: String(c.bgName || '').slice(0, 80) };
     }
     function cardFromForm() {
-        return cleanCard({ corner: $('cfg-card-corner').checked, cornerPos: $('corner-pos-seg').dataset.v, cornerX: $('cc-pad').dataset.x, cornerY: $('cc-pad').dataset.y, cornerSize: $('cfg-card-corner-size').value, cornerAlpha: $('cfg-card-corner-alpha').value,
+        return cleanCard({ corner: $('cfg-card-corner').checked, cornerPos: $('corner-pos-seg').dataset.v, cornerX: $('cc-pad').dataset.x, cornerY: $('cc-pad').dataset.y, cornerLayer: $('corner-layer-seg').dataset.v, cornerSize: $('cfg-card-corner-size').value, cornerAlpha: $('cfg-card-corner-alpha').value,
             cornerVer: $('card-corner-name').dataset.ver, cornerName: $('card-corner-name').dataset.name,
             bg: $('cfg-card-bg').checked, bgAlpha: $('cfg-card-bg-alpha').value, bgDim: $('cfg-card-bg-dim').value, bgVer: $('card-bg-name').dataset.ver, bgName: $('card-bg-name').dataset.name });
     }
@@ -7700,6 +7700,7 @@ document.addEventListener('DOMContentLoaded', () => {
         segSet('enter-seg', st.obsEnter, ENTER_TYPES, 'pop');
         segSet('readicon-seg', st.readIcon, ['check', 'eye'], 'check');
         segSet('corner-pos-seg', c.cornerPos, ['left', 'right'], 'right');
+        segSet('corner-layer-seg', c.cornerLayer, ['front', 'back'], 'front');
         $('cc-pad').dataset.x = c.cornerX; $('cc-pad').dataset.y = c.cornerY;
         const gp = cleanGap(st.obsGap); $('cfg-obs-gap-auto').checked = gp === null; $('cfg-obs-gap').value = gp === null ? 14 : gp;
         $('cfg-obs-step').checked = !!st.obsStep; $('cfg-obs-step-dim').checked = st.obsStepDim !== false;
@@ -7740,7 +7741,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     $('cfg-stats-size').addEventListener('input', () => { $('lbl-stats-size').textContent = $('cfg-stats-size').value + '%'; setSettingsDirty(true); statsDraft(); });
     function changed29() { update29Form(); setSettingsDirty(true); sendObsStyle(); if (dzSide !== 'obs') setDzSide('obs'); }
-    ['enter-seg', 'readicon-seg', 'corner-pos-seg'].forEach(id => $(id).addEventListener('click', (e) => {
+    ['enter-seg', 'readicon-seg', 'corner-pos-seg', 'corner-layer-seg'].forEach(id => $(id).addEventListener('click', (e) => {
         const b = e.target.closest('button[data-v]'); if (!b) return;
         segSet(id, b.dataset.v, Array.from($(id).querySelectorAll('button')).map(x => x.dataset.v), b.dataset.v);
         changed29();

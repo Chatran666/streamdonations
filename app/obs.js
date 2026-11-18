@@ -825,6 +825,7 @@
             const num = (v, a, b, d) => { v = parseFloat(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, v)) : d; };
             const on = { corner: !!(c && c.corner), bg: !!(c && c.bg) };
             root.classList.toggle('corner-left', !!c && c.cornerPos === 'left');
+            root.classList.toggle('cc-behind', !!c && c.cornerLayer === 'back');
             root.style.setProperty('--cc-size', num(c && c.cornerSize, 30, 220, 90) + 'px');
             root.style.setProperty('--cc-alpha', String(num(c && c.cornerAlpha, 10, 100, 100) / 100));
             ccPos.x = num(c && c.cornerX, -150, 150, 0); ccPos.y = num(c && c.cornerY, -150, 150, 0); ccPos.size = num(c && c.cornerSize, 30, 220, 90); ccPos.left = !!c && c.cornerPos === 'left';

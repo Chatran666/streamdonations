@@ -1,3 +1,6 @@
+Novedades de la 2.9.8:
+- Imagen de la esquina: nueva opción "Capa" para elegir si va delante de la tarjeta (tapa lo que tenga debajo) o detrás (asoma solo por donde sobresale). En los dos casos el botón de "leído" funciona igual.
+
 Novedades de la 2.9.7:
 - La imagen de la esquina vuelve a ir delante de todo, sin hueco. Aunque tape el botón de "leído", el clic la atraviesa y el botón funciona igual.
 

@@ -409,3 +409,6 @@
 :root.obs-ws[data-design="zocalo"] .obs-donor-text { padding-right: 120px; }
 :root[data-design="zocalo"] .obs-nick > span:first-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 :root[lang="en"][data-design="zocalo"] .obs-amount::before { content: 'DONATION'; }
+/* Imagen de la esquina detrás de la tarjeta (asoma por donde sobresale) */
+:root.cc-behind #cc-layer { z-index: 1; }
+:root.cc-behind #alerts-container { position: relative; z-index: 2; }
