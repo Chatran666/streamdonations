@@ -1,4 +1,2 @@
-Novedades de la 2.9.3:
-- Imagen de la esquina: con la separación en "Automático", cada tarjeta deja arriba el lugar que ocupa la imagen que sobresale, así ya no tapa la tarjeta de arriba.
-- Las imágenes de las tarjetas se achican y comprimen solas al cargarlas (mantienen la transparencia), así cargan mucho más rápido. Los GIF quedan tal cual.
-- Arriba, el botón de la barra de filtros va primero, y los íconos rápidos son más grandes.
+Novedades de la 2.9.4:
+- Arriba a la izquierda queda solo el ícono de la app (sin el nombre "StreamDonations"), así hay más lugar para los contadores y los botones.
