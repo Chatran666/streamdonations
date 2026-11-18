@@ -1,3 +1,6 @@
+Novedades de la 2.9.7:
+- La imagen de la esquina vuelve a ir delante de todo, sin hueco. Aunque tape el botón de "leído", el clic la atraviesa y el botón funciona igual.
+
 Novedades de la 2.9.6:
 - La imagen de la esquina ya no tapa el botón de "leído": se le abre un hueco justo donde está el botón, que se ve y se puede tocar siempre.
 - Efecto Rayos: ahora llueve todo el tiempo y los rayos caen más seguido, así nunca queda la pantalla vacía (también con el fondo apagado).
