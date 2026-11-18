@@ -663,9 +663,11 @@
             }
         },
         rayos: {
-            init: function () { extra.bolt = null; extra.next = rand(1, 2.5); extra.flash = 0; },
+            init: function () { extra.bolt = null; extra.next = rand(0.4, 1.2); extra.flash = 0; KINDS.lluvia && KINDS.lluvia.init && KINDS.lluvia.init(); },
             step: function (dt) {
-                if (T > extra.next) { extra.bolt = bolt(rand(W * 0.1, W * 0.9), 0, rand(H * 0.4, H * 0.8)); extra.life = 0; extra.flash = 0.35; extra.next = T + rand(2.5, 6); }
+                // Llovizna de tormenta siempre, así nunca queda vacío entre rayo y rayo
+                if (KINDS.lluvia && KINDS.lluvia.step) KINDS.lluvia.step(dt);
+                if (T > extra.next) { extra.bolt = bolt(rand(W * 0.1, W * 0.9), 0, rand(H * 0.4, H * 0.8)); extra.life = 0; extra.flash = 0.35; extra.next = T + rand(1.6, 3.6); }
                 if (extra.bolt) {
                     extra.life += dt;
                     if (extra.life < 0.08 || (extra.life > 0.14 && extra.life < 0.22)) {

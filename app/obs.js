@@ -883,7 +883,21 @@
                     const cs = getComputedStyle(card);
                     const o = (cs.transformOrigin || '50% 50%').split(' ');
                     const ox = parseFloat(o[0]) + x - ix, oy = parseFloat(o[1]) + y - iy;
-                    im.style.cssText = `left:${ix}px;top:${iy}px;width:${s}px;height:${s}px;transform-origin:${ox}px ${oy}px;transform:${cs.transform === 'none' ? '' : cs.transform};opacity:${(parseFloat(cs.opacity) || 0) * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cc-alpha')) || 1)};filter:${cs.filter === 'none' ? '' : cs.filter};background-position:${ccPos.left ? 'top left' : 'top right'}`;
+                    // Si la imagen pasa por arriba del botón de "leído", se le abre un hueco: el botón se ve y se puede tocar
+                    let hole = '';
+                    const btn = card.querySelector('.obs-btn-dismiss');
+                    if (btn && btn.offsetParent !== null) {
+                        let bx = 0, by = 0, e2 = btn;
+                        while (e2 && e2 !== card) { bx += e2.offsetLeft; by += e2.offsetTop; e2 = e2.offsetParent; }
+                        if (e2 === card) {
+                            const hx = bx + x - ix - 4, hy = by + y - iy - 4, hw = btn.offsetWidth + 8, hh = btn.offsetHeight + 8;
+                            if (hx < s && hy < s && hx + hw > 0 && hy + hh > 0) {
+                                const m = `linear-gradient(#000 0 0) ${hx}px ${hy}px / ${hw}px ${hh}px no-repeat, linear-gradient(#000 0 0)`;
+                                hole = `-webkit-mask:${m};-webkit-mask-composite:xor;mask:${m};mask-composite:exclude;`;
+                            }
+                        }
+                    }
+                    im.style.cssText = `left:${ix}px;top:${iy}px;width:${s}px;height:${s}px;transform-origin:${ox}px ${oy}px;transform:${cs.transform === 'none' ? '' : cs.transform};opacity:${(parseFloat(cs.opacity) || 0) * (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cc-alpha')) || 1)};filter:${cs.filter === 'none' ? '' : cs.filter};background-position:${ccPos.left ? 'top left' : 'top right'};${hole}`;
                 });
             }
             ccMap.forEach((im, card) => { if (!seen.has(card)) { im.remove(); ccMap.delete(card); } });
