@@ -1,3 +1,6 @@
+Novedades de la 2.9.9:
+- Al elegir cualquier efecto animado (o un estilo rápido con efecto), "Mostrar el fondo del efecto" viene prendido. Si las donaciones van sobre tu juego o tu cámara, lo apagás a mano.
+
 Novedades de la 2.9.8:
 - Imagen de la esquina: nueva opción "Capa" para elegir si va delante de la tarjeta (tapa lo que tenga debajo) o detrás (asoma solo por donde sobresale). En los dos casos el botón de "leído" funciona igual.
 

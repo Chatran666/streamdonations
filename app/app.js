@@ -6479,8 +6479,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const ts = $('cfg-obs-theme');
         if (tk && THEMES[tk] && ts && ts.value !== tk && ts.value !== 'custom') { ts.value = tk; ts.dispatchEvent(new Event('change', { bubbles: true })); }
         $('cfg-obs-bg-fx').value = b.dataset.fx;
-        // El fondo del efecto se acomoda solo: prendido para los cielos de noche, apagado para el resto (después lo cambiás)
-        $('cfg-obs-fx-bg').checked = ['estrellas', 'aurora', 'tormenta', 'luciernagas', 'xfiles'].includes(b.dataset.fx);
+        // Al elegir un efecto, su fondo viene prendido (muchos usan las donaciones en un recuadro aparte); se puede apagar a mano
+        $('cfg-obs-fx-bg').checked = !!b.dataset.fx && b.dataset.fx !== 'none';
         $('cfg-obs-bg-fx').dispatchEvent(new Event('change', { bubbles: true }));
     });
     document.querySelectorAll('.alpha-quick[data-alpha-target]').forEach(q => q.addEventListener('click', (e) => {
@@ -7877,7 +7877,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ds = $('cfg-obs-design'); ds.value = q.design; ds.dispatchEvent(new Event('change', { bubbles: true }));
         const ps = $('cfg-panel-design'); if (ps.value !== 'same') { ps.value = 'same'; ps.dispatchEvent(new Event('change', { bubbles: true })); }
         const fs = $('cfg-obs-bg-fx'); fs.value = q.fx; fs.dispatchEvent(new Event('change', { bubbles: true }));
-        $('cfg-obs-fx-bg').checked = false;
+        $('cfg-obs-fx-bg').checked = !!q.fx && q.fx !== 'none';
         $('cfg-obs-fx-alpha').value = 100; $('cfg-obs-fx-alpha').dispatchEvent(new Event('input', { bubbles: true }));
         $('cfg-obs-bg-front').value = 0; $('cfg-obs-bg-front').dispatchEvent(new Event('input', { bubbles: true }));
         const ca = $('cfg-obs-card-auto'); if (!ca.checked) { ca.checked = true; ca.dispatchEvent(new Event('change', { bubbles: true })); }
