@@ -3247,3 +3247,10 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .sl-collapse:not([open]) { opacity: 0.8; }
 .obs-way-status { margin-top: 6px; font-size: 0.72rem; padding: 3px 9px; }
 .obs-way .obs-way-status i { font-size: 0.5rem; color: currentColor; margin: 0; }
+
+/* 2.9.11: modo simple más liviano: sin "Tu efecto" (emojis) */
+#modal-settings.simple-mode .fx-tile[data-fx="propio"], #modal-settings.simple-mode #custom-fx { display: none !important; }
+/* Flechas de la imagen de la esquina, en una sola fila */
+.cc-pad { display: flex; grid-template-columns: none; grid-template-rows: none; gap: 4px; flex-wrap: nowrap; }
+.cc-pad button { width: 34px; height: 30px; flex: 0 0 auto; }
+.cc-pad [data-reset] { margin-left: 4px; }

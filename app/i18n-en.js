@@ -1172,7 +1172,7 @@ window.SD_I18N_EN = {
     'Detalles del panel principal. Los colores, temas, fondos y diseños están en la sección': 'Main panel details. Colors, themes, backgrounds and designs are in the',
     'Cómo llegan las donaciones a OBS y qué se muestra en cada una. Los colores, temas y diseños están en la sección': 'How donations get to OBS and what each one shows. Colors, themes and designs are in the',
     'Listo: OBS ahora usa el diseño, el tema y los colores del panel. Tocá "Guardar cambios".': 'Done: OBS now uses the panel design, theme and colors. Click "Save changes".',
-    'El color del fondo se cambia en Opciones → Diseño → OBS → Fondo de la ventana. Si mostrás donaciones de Kick (verde), no uses verde.': 'The background color is changed in Options → Design → OBS → Window background. If you show Kick donations (green), do not use green.',
+    'El color del fondo se cambia en Opciones → Diseño → OBS → Fondo de la ventana (con el modo experto prendido). Si mostrás donaciones de Kick (verde), no uses verde.': 'The background color is changed in Options → Design → OBS → Window background (with expert mode on). If you show Kick donations (green), do not use green.',
     'Vista previa': 'Preview', 'Ver grande': 'Show big', 'Ver común': 'Show regular',
     'Cambiar el ejemplo entre una donación común y una grande': 'Switch the example between a regular and a big donation', 'Achicar': 'Shrink', 'Mostrar': 'Show',
     'Colores de la tarjeta': 'Card colors',
