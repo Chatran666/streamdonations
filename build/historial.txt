@@ -1,3 +1,9 @@
+Novedades de la 2.9.10:
+- "Barra de plataformas arriba de OBS" se mudó al menú OBS, en la sección nueva Ventana "Modo OBS".
+- "Recomendado" ahora es verde y con un brillo suave, en StreamElements (Conexión) y en Link (OBS).
+- En Conexión, Streamlabs aparece minimizado (se abre al tocarlo o si ya tenés un token cargado).
+- En el menú OBS, la tarjeta Link muestra "Conectado" cuando OBS está recibiendo las donaciones por el link.
+
 Novedades de la 2.9.9:
 - Al elegir cualquier efecto animado (o un estilo rápido con efecto), "Mostrar el fondo del efecto" viene prendido. Si las donaciones van sobre tu juego o tu cámara, lo apagás a mano.
 

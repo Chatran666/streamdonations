@@ -7270,9 +7270,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Lo que manda la fuente de navegador (por OBS o por el servidor interno)
     function handleFromSource(msg, via) {
-        if (msg.type === 'ALIVE') { noteObsAlive(); return; }
+        if (msg.type === 'ALIVE') { noteObsAlive(via); return; }
         if (msg.type === 'HELLO') {
-            noteObsAlive();
+            noteObsAlive(via);
             if (via === 'obs') obsWs.sentIcons = new Set(); else sdRelay.sentIcons = new Set();
             obsWsSyncAll(via);
         } else if (msg.type === 'MARK_READ' && typeof msg.id === 'string') markReadFromObs(msg.id.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) || 'x');
@@ -7562,8 +7562,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2.4.0: OBS conectado, prueba rápida, primeros pasos, modo experto, estilos rápidos
     // ==========================================================================
     var obsAliveAt = 0;
-    function noteObsAlive() {
+    // Cuándo avisó por última vez la fuente de navegador (el "Link" o el modo automático), para mostrar "Conectado"
+    let obsLinkAt = 0;
+    function noteObsAlive(via) {
         obsAliveAt = Date.now();
+        if (via) obsLinkAt = Date.now();
         try { if (localStorage.getItem('sd_obs_seen') !== '1') localStorage.setItem('sd_obs_seen', '1'); } catch (e) {}
         updateObsPill();
     }
@@ -7573,6 +7576,14 @@ document.addEventListener('DOMContentLoaded', () => {
         pill.classList.toggle('ok', ok); pill.classList.toggle('off', !ok);
         pill.title = ok ? 'OBS conectado: la fuente está recibiendo las donaciones' : 'OBS todavía no se conectó (o está cerrado). Tocá para ver cómo agregarlo.';
         if (!$('modal-guide').classList.contains('hidden')) renderGuide();
+        // Estado en la tarjeta "Link" del menú OBS, igual que en Conexión
+        const ls = $('obs-link-status');
+        if (ls) {
+            const on = Date.now() - obsLinkAt < 13000;
+            ls.classList.toggle('connected', on);
+            ls.querySelector('span').textContent = window.SDi18n ? window.SDi18n.t(on ? 'Conectado' : 'Sin conectar') : (on ? 'Conectado' : 'Sin conectar');
+            ls.title = on ? (window.SDi18n ? window.SDi18n.t('OBS está recibiendo las donaciones por el link') : 'OBS está recibiendo las donaciones por el link') : '';
+        }
     }
     setInterval(updateObsPill, 3000);
     $('obs-live-pill').addEventListener('click', () => openSettings('obs'));

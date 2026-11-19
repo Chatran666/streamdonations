@@ -1121,6 +1121,8 @@ window.SD_I18N_EN = {
     'Capa': 'Layer', 'Delante de la tarjeta': 'In front of the card', 'Detrás de la tarjeta': 'Behind the card',
     'Ventana "Modo OBS"': 'The "OBS mode" window',
     'Solo si ya usás Streamlabs · tocá para abrir': 'Only if you already use Streamlabs · tap to open',
+    'Sin conectar': 'Not connected',
+    'OBS está recibiendo las donaciones por el link': 'OBS is receiving the donations through the link',
     'Modo experto': 'Expert mode', 'Muestra todas las opciones (filtros, destacar, transparencias, efectos…)': 'Shows every option (filters, highlight, transparency, effects…)',
     'Tenés ajustes avanzados funcionando:': 'You have advanced settings running:', 'Siguen activos aunque no se vean.': 'They stay on even if hidden.', 'Ver todo': 'Show all',
     'Primeros pasos': 'First steps', 'Tres pasos y queda lista para tu directo.': 'Three steps and it is ready for your stream.',
