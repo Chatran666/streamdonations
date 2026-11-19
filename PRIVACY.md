@@ -24,7 +24,7 @@ Las fotos de perfil de los donadores se cargan desde las direcciones que manda S
 
 **Cómo borrar todo:** Opciones → Restablecer → "Restablecer de fábrica", o desinstalar la app (borra la carpeta y el perfil).
 
-Consultas: mrlasheras@gmail.com
+Consultas: padeca@gmail.com
 
 ## English
 
@@ -46,4 +46,4 @@ The app only connects to these services, and only for the stated purpose:
 
 **To delete everything:** Settings → Reset → "Factory reset", or uninstall the app.
 
-Contact: mrlasheras@gmail.com
+Contact: padeca@gmail.com
