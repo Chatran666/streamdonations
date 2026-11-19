@@ -604,8 +604,8 @@
 
                         <div class="service-divider"><span>Otro servicio, aparte</span></div>
 
-                        <div class="service-block">
-                        <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Streamlabs <span class="pill-opt">Opcional</span></div>
+                        <details class="service-block sl-collapse" id="sl-details">
+                        <summary class="pane-subtitle"><i class="fa-solid fa-plug"></i> Streamlabs <span class="pill-opt">Opcional</span><span class="sl-collapse-hint">Solo si ya usás Streamlabs · tocá para abrir</span><i class="fa-solid fa-chevron-down sl-chev"></i></summary>
                         <div class="status-card">
                             <span class="sl-status" id="sl-status-settings"><i class="fa-solid fa-circle"></i> <span>Sin configurar</span></span>
                         </div>
@@ -617,7 +617,7 @@
                             </div>
                             <small>Streamlabs → Settings → API Settings → API Tokens → <em>Your Socket API Token</em>.</small>
                         </div>
-                        </div>
+                        </details>
 
                         <div class="service-divider"><span>Stream entre dos personas</span></div>
 
@@ -1539,7 +1539,7 @@
                         <p class="pane-note">Elegí una de estas tres formas y tocala para ver los pasos. Con una sola alcanza.</p>
                         <div class="obs-ways">
                             <button type="button" class="obs-way tauri-only" data-way="link">
-                                <span class="obs-way-badge">Recomendado</span>
+                                <span class="obs-way-badge pill-rec">Recomendado</span>
                                 <i class="fa-solid fa-link"></i>
                                 <strong>Link</strong>
                                 <small>Pegás un link en OBS o Streamlabs una sola vez. Sin fondo y se ve perfecto.</small>

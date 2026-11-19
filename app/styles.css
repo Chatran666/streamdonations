@@ -3227,3 +3227,21 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
     .stat-value { white-space: nowrap; }
 }
 @media (max-width: 960px) { .stats-container { order: 3; flex-basis: 100%; } }
+
+/* "Recomendado": verde y con un brillo suave que respira */
+.pill-rec { animation: rec-breathe 2.6s ease-in-out infinite; }
+@keyframes rec-breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } 50% { box-shadow: 0 0 10px 2px rgba(16, 185, 129, 0.45); } }
+@media (prefers-reduced-motion: reduce) { .pill-rec { animation: none; } }
+:root.lite .pill-rec { animation: none; }
+.obs-way-badge.pill-rec { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+.obs-way[data-way="link"] { border-color: rgba(16, 185, 129, 0.55); }
+.obs-way[data-way="link"] > i { color: #34D399; }
+
+/* Streamlabs minimizado en Conexión */
+.sl-collapse > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
+.sl-collapse > summary::-webkit-details-marker { display: none; }
+.sl-collapse-hint { font-size: 0.72rem; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--text-secondary); margin-left: 4px; }
+.sl-chev { margin-left: auto; transition: transform 0.2s; font-size: 0.8rem; }
+.sl-collapse[open] .sl-chev { transform: rotate(180deg); }
+.sl-collapse[open] .sl-collapse-hint { display: none; }
+.sl-collapse:not([open]) { opacity: 0.8; }

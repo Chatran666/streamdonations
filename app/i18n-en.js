@@ -1120,6 +1120,7 @@ window.SD_I18N_EN = {
     'Las imágenes quedan guardadas en esta PC y se achican solas para que carguen rápido (los GIF, hasta 4 MB, van tal cual). Con el link de la fuente de navegador viajan solas a OBS.': 'Images are stored on this PC and are shrunk automatically so they load fast (GIFs, up to 4 MB, are kept as they are). With the browser source link they travel to OBS on their own.',
     'Capa': 'Layer', 'Delante de la tarjeta': 'In front of the card', 'Detrás de la tarjeta': 'Behind the card',
     'Ventana "Modo OBS"': 'The "OBS mode" window',
+    'Solo si ya usás Streamlabs · tocá para abrir': 'Only if you already use Streamlabs · tap to open',
     'Modo experto': 'Expert mode', 'Muestra todas las opciones (filtros, destacar, transparencias, efectos…)': 'Shows every option (filters, highlight, transparency, effects…)',
     'Tenés ajustes avanzados funcionando:': 'You have advanced settings running:', 'Siguen activos aunque no se vean.': 'They stay on even if hidden.', 'Ver todo': 'Show all',
     'Primeros pasos': 'First steps', 'Tres pasos y queda lista para tu directo.': 'Three steps and it is ready for your stream.',

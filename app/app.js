@@ -4730,6 +4730,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fillLookForm();
         renderSyncForm();
         $('cfg-sl-token').value = st.slToken || '';
+        // Streamlabs queda minimizado (StreamElements es el recomendado); se abre solo si ya hay un token cargado
+        if ($('sl-details')) $('sl-details').open = !!st.slToken;
         $('cfg-sl-token').type = 'password';
         $('cfg-sound-enabled').checked = state.soundEnabled;
         $('cfg-sound-choice').value = st.soundChoice || 'campana';
