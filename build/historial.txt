@@ -1,3 +1,12 @@
+Novedades de la 2.9.11:
+- Ancho de las tarjetas configurable (en OBS): automático, a medida (300 a 1900 px) o todo el ancho, y la columna se puede ubicar a la izquierda, al centro o a la derecha. La app te indica el tamaño de la fuente de OBS que corresponde.
+- Nuevo diseño LHDA: monto grande a la izquierda, nick con ícono y el mensaje abajo, ideal para tarjetas anchas.
+- "Opacar las demás al 50 %" ahora siempre destaca una tarjeta: si no hacés scroll, se destaca la primera.
+- Imagen de la esquina: las flechas para moverla quedan en una sola fila.
+- Diseño en modo simple más liviano: las opciones finas pasan al modo experto.
+- Se sacó el diseño Compacto (era casi igual a Tarjeta). Si lo tenías elegido, pasa solo a Tarjeta.
+- Nuevo mail de contacto: padeca@gmail.com.
+
 Novedades de la 2.9.10:
 - "Barra de plataformas arriba de OBS" se mudó al menú OBS, en la sección nueva Ventana "Modo OBS".
 - "Recomendado" ahora es verde y con un brillo suave, en StreamElements (Conexión) y en Link (OBS).
