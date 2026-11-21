@@ -42,15 +42,6 @@
 :root[data-design="barra"] .obs-tag { position: absolute; top: 8px; right: 10px; }
 :root[data-design="barra"] .obs-btn-dismiss { position: absolute; right: 8px; bottom: 8px; width: 28px; height: 28px; }
 
-/* ===================== COMPACTO (ocupa lo mínimo) ===================== */
-:root[data-design="compacto"] #alerts-container { gap: 6px; }
-:root[data-design="compacto"] .obs-alert { padding: 7px 12px; gap: 3px; border-width: 1px; border-radius: 9px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); }
-:root[data-design="compacto"] .obs-header { gap: 8px; }
-:root[data-design="compacto"] .obs-avatar { width: calc(26px * var(--obs-scale)) !important; height: calc(26px * var(--obs-scale)) !important; font-size: calc(0.75rem * var(--obs-scale)) !important; }
-:root[data-design="compacto"] .obs-nick { font-size: calc(0.98rem * var(--obs-scale)) !important; }
-:root[data-design="compacto"] .obs-amount { padding: 1px 8px !important; font-size: calc(1.05rem * var(--obs-scale)) !important; }
-:root[data-design="compacto"] .obs-msg { background: none !important; border: none; padding: 0 0 0 calc(34px * var(--obs-scale)); font-size: calc(0.92rem * var(--obs-scale)) !important; line-height: 1.35; }
-:root[data-design="compacto"] .obs-btn-dismiss { width: 26px; height: 26px; font-size: 0.75rem; }
 
 /* ===================== BURBUJA (globo de chat) ===================== */
 :root[data-design="burbuja"] .obs-alert { isolation: isolate; background: none; border: none; box-shadow: none; overflow: visible; padding: 10px 14px 12px calc(66px * var(--obs-scale)); gap: 6px; backdrop-filter: none; }
@@ -242,7 +233,7 @@
 :root.light-card .obs-btn-dismiss { background: rgba(17, 24, 39, 0.08); border-color: rgba(17, 24, 39, 0.25); color: #111827; }
 
 /* Borde negro de 1 px alrededor del borde de color (así no se pierde si la tarjeta o la escena son del mismo color) */
-:root:not([data-design]) .obs-alert, :root[data-design="tarjeta"] .obs-alert, :root[data-design="compacto"] .obs-alert, :root[data-design="cristal"] .obs-alert { outline: 1px solid rgba(0, 0, 0, 0.9); outline-offset: 0; }
+:root:not([data-design]) .obs-alert, :root[data-design="tarjeta"] .obs-alert, :root[data-design="cristal"] .obs-alert { outline: 1px solid rgba(0, 0, 0, 0.9); outline-offset: 0; }
 :root[data-design="burbuja"] .obs-alert::after { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9), 0 8px 20px rgba(0, 0, 0, 0.45); }
 :root[data-design="franja"] .obs-alert, :root[data-design="barra"] .obs-alert, :root[data-design="ticket"] .obs-alert { outline: 1px solid rgba(0, 0, 0, 0.75); }
 :root[data-design="sticker"] #alerts-container { filter: drop-shadow(0 0 1px #000) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45)); }

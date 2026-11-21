@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsPlatformStyle: 'tag', panelPlatformStyle: 'tag',
             obsWsEnabled: false, obsWsPort: 4455, obsWsPassword: '',
             obsTextShadow: true, // sombra suave en las letras en modo transparente real
-            obsDesign: 'tarjeta', // forma de las donaciones en OBS (Tarjeta, Barra, Compacto…)
+            obsDesign: 'tarjeta', // forma de las donaciones en OBS (Tarjeta, Barra, Burbuja…)
             obsAccum: 'off', // chip con lo que donó cada uno: off | session (este directo) | today | 30
             obsCardAlpha: -1, // fondo detrás de cada donación: -1 automático (según el diseño) o 0…100
             panelDesign: 'tarjeta', // diseño de las donaciones en el panel ('same' = igual que OBS)
@@ -301,6 +301,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) { state.settings = { ...state.settings, ...parsed }; savedFxOn = parsed.fxEnabled === true && !Array.isArray(parsed.styles); }
         }
     } catch (e) {}
+    // 2.9.11: el diseño "Compacto" se sacó; quien lo tenía pasa a "Tarjeta"
+    if (state.settings.obsDesign === 'compacto') state.settings.obsDesign = 'tarjeta';
+    if (state.settings.panelDesign === 'compacto') state.settings.panelDesign = 'tarjeta';
     // Cada opción tiene que ser del tipo que espera la app (una copia vieja, rota o armada a propósito no la rompe)
     Object.keys(SETTINGS_DEFAULTS).forEach(k => {
         const def = SETTINGS_DEFAULTS[k], v = state.settings[k];
@@ -6071,7 +6074,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const OBS_DESIGNS = [
         { k: 'tarjeta', label: 'Tarjeta', icon: 'fa-id-card', desc: 'La de siempre: foto, nick, monto y mensaje' },
         { k: 'barra', label: 'Barra', icon: 'fa-grip-lines', desc: 'Monto grande a la izquierda, ancha y baja' },
-        { k: 'compacto', label: 'Compacto', icon: 'fa-compress', desc: 'Lo más chico posible, ideal con mucho chat' },
         { k: 'burbuja', label: 'Burbuja', icon: 'fa-comment', desc: 'Globo de chat con la foto al costado' },
         { k: 'neon', label: 'Neón', icon: 'fa-bolt', desc: 'Esquinas cortadas y brillo, estilo gamer' },
         { k: 'cristal', label: 'Cristal', icon: 'fa-gem', desc: 'Vidrio translúcido, redondeado y suave' },

@@ -17,13 +17,6 @@
     font-size: calc(1.35rem * var(--panel-scale, 1)); white-space: nowrap; }
 :root[data-pdesign="barra"] .card-message { background: none; border: none; padding: 0; }
 
-/* ===== Compacto: entran muchas más ===== */
-:root[data-pdesign="compacto"] .donation-card { padding: 7px 10px 7px 14px; gap: 3px; }
-:root[data-pdesign="compacto"] .donor-avatar { width: 24px; height: 24px; font-size: 0.7rem; }
-:root[data-pdesign="compacto"] .timestamp { display: none; }
-:root[data-pdesign="compacto"] .card-message { background: none; border: none; padding: 0 0 0 34px; font-size: 0.9em; line-height: 1.35; }
-:root[data-pdesign="compacto"] .btn-card-action { font-size: 0; padding: 4px 8px; }
-:root[data-pdesign="compacto"] .btn-card-action i { font-size: 0.8rem; }
 
 /* ===== Burbuja: globo de chat con la foto afuera ===== */
 :root[data-pdesign="burbuja"] .donation-card { margin-left: 46px; border-radius: 16px 16px 16px 4px; border: 1px solid rgba(var(--pcur-rgb), 0.55); }
