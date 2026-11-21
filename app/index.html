@@ -350,7 +350,7 @@
                             <ol class="obsws-steps">
                                 <li>Tocá <strong>Copiar link</strong>.</li>
                                 <li>En OBS: en <strong>Fuentes</strong> tocá <strong>+</strong> → <strong>Navegador</strong>. En Streamlabs: <strong>Agregar fuente</strong> → <strong>Navegador web</strong>.</li>
-                                <li>Pegá el link en <strong>URL</strong>, poné ancho <strong>600</strong> y alto <strong>1000</strong> y aceptá. Acomodala y achicala como quieras.</li>
+                                <li>Pegá el link en <strong>URL</strong>, poné ancho <strong class="obs-src-w">600</strong> y alto <strong class="obs-src-h">1000</strong> y aceptá. Acomodala y achicala como quieras.</li>
                             </ol>
                             <div class="obsws-actions">
                                 <span class="conn-status obsws-status wait" id="relay-status"><span class="status-dot"></span> Arrancando…</span>
@@ -1286,7 +1286,7 @@
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-step"><span class="toggle-slider"></span></span>
                         </label>
                         <label class="setting-row toggle-row adv" id="row-obs-step-dim">
-                            <div><strong>Opacar las demás al 50 %</strong><small>Mientras leés de a una, la donación elegida queda al 100 % y el resto se atenúa. Tu audiencia también lo ve.</small></div>
+                            <div><strong>Opacar las demás al 50 %</strong><small>Siempre queda una donación al 100 % y el resto se atenúa: sin tocar nada se destaca la primera, y al marcarla leída pasa a la siguiente. Con la rueda elegís otra. Tu audiencia también lo ve.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-step-dim"><span class="toggle-slider"></span></span>
                         </label>
 
@@ -1324,6 +1324,19 @@
                             </div>
                             <small class="pane-note">Las imágenes quedan guardadas en esta PC y se achican solas para que carguen rápido (los GIF, hasta 4 MB, van tal cual). Con el link de la fuente de navegador viajan solas a OBS.</small>
                         </div>
+                        <div class="setting-row adv" id="row-obs-cardw">
+                            <div><strong>Ancho de las tarjetas</strong><small>"Automático" usa el del diseño (una columna). Elegí un ancho para tarjetas más anchas, o "Todo el ancho" para un banner que cruce la pantalla. Abajo te digo qué medida poner en OBS.</small></div>
+                            <div class="seg" id="cardw-seg"><button type="button" data-v="auto">Automático</button><button type="button" data-v="custom">Elegir ancho</button><button type="button" data-v="full">Todo el ancho</button></div>
+                        </div>
+                        <div class="setting-row adv cardw-sub" id="row-obs-cardw-px">
+                            <div><strong>Ancho</strong></div>
+                            <div class="gap-ctl"><input type="range" id="cfg-obs-cardw" min="300" max="1900" step="10" value="550"><span class="range-value" id="lbl-obs-cardw">550 px</span></div>
+                        </div>
+                        <div class="setting-row adv cardw-sub" id="row-obs-cardw-align">
+                            <div><strong>Ubicación de la columna</strong><small>Dentro de la fuente de OBS, cuando las tarjetas son más angostas que la fuente.</small></div>
+                            <div class="seg" id="cardalign-seg"><button type="button" data-v="left"><i class="fa-solid fa-align-left"></i> Izquierda</button><button type="button" data-v="center"><i class="fa-solid fa-align-center"></i> Centro</button><button type="button" data-v="right"><i class="fa-solid fa-align-right"></i> Derecha</button></div>
+                        </div>
+                        <div class="pane-note adv cardw-tip" id="cardw-tip"></div>
                         <div class="setting-row adv" id="row-obs-gap">
                             <div><strong>Separación entre tarjetas</strong><small>El espacio entre una donación y la siguiente en OBS. Agrandalo si la imagen de la esquina sobresale y tapa la tarjeta de arriba. "Automático" usa la del diseño.</small></div>
                             <div class="gap-ctl">

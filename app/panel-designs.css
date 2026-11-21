@@ -178,3 +178,13 @@
 :root[data-pdesign="pastel"] .test-tag, :root[data-pdesign="comic"] .test-tag, :root[data-pdesign="capsula"] .test-tag { background: #FFE9B0; color: #7A4B00; border-color: #B8860B; }
 :root[data-pdesign="pastel"] .donor-avatar, :root[data-pdesign="comic"] .donor-avatar, :root[data-pdesign="capsula"] .donor-avatar { background: rgba(var(--pcur-rgb), 0.3); color: #1B1B2A; }
 :root[data-pdesign="comic"] .donation-card { outline: 1px solid rgba(255, 255, 255, 0.4); }
+
+/* LHDA (panel): monto en bloque a la izquierda y mensaje grande */
+:root[data-pdesign="lhda"] .donation-card { position: relative; padding-left: 158px; min-height: 104px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08); border-left: 5px solid rgb(var(--pcur-rgb)); }
+:root[data-pdesign="lhda"] .donation-card::before { display: none; }
+:root[data-pdesign="lhda"] .donor-avatar { display: none; }
+:root[data-pdesign="lhda"] .amount-badge { font-family: inherit !important; position: absolute; left: 16px; top: 16px; width: 124px; box-sizing: border-box; text-align: center; font-size: 1.25rem; font-weight: 800; padding: 14px 6px; border-radius: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background: rgba(var(--pcur-rgb), 0.15) !important; color: rgb(var(--pcur-rgb)) !important; border: none !important; }
+:root[data-pdesign="lhda"] .donor-nick-text { font-size: 1.1rem; font-weight: 800; }
+:root[data-pdesign="lhda"] .donor-nick-text::before { content: "\f007"; font-family: "Font Awesome 6 Free"; font-weight: 400; margin-right: 8px; opacity: 0.55; font-size: 0.85em; }
+:root[data-pdesign="lhda"] .card-message { background: none; border: none; padding: 6px 0 0; font-size: 1.05rem; line-height: 1.45; }

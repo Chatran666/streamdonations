@@ -172,7 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
             obsStep: false, obsStepDim: true, // Leer de a una con la rueda en la ventana OBS
             obsCard: null, // Imagen de esquina y de fondo de las tarjetas de OBS
             statsMode: 'normal', statsSize: 100, // Contadores de arriba: normal, compacto u ocultos, y su tamaño
-            obsGap: null // Separación entre tarjetas de OBS en px (null = la del diseño)
+            obsGap: null, // Separación entre tarjetas de OBS en px (null = la del diseño)
+            obsCardWidth: 'auto', obsCardAlign: 'center' // Ancho de las tarjetas de OBS: 'auto' (el del diseño), un número en px o 'full'
         },
         lastReadId: null
     };
@@ -6087,7 +6088,8 @@ document.addEventListener('DOMContentLoaded', () => {
         { k: 'glitch', label: 'Glitch', icon: 'fa-bug', desc: 'Ciberpunk con aberración de color y barrido' },
         { k: 'holo', label: 'Holográfico', icon: 'fa-gem', desc: 'Borde tornasolado y un brillo que cruza' },
         { k: 'comic', label: 'Cómic', icon: 'fa-comment-dots', desc: 'Viñeta blanca con borde grueso y puntos de imprenta' },
-        { k: 'capsula', label: 'Cápsula', icon: 'fa-capsules', desc: 'Mitad de color con el nombre, mitad blanca con el mensaje' }
+        { k: 'capsula', label: 'Cápsula', icon: 'fa-capsules', desc: 'Mitad de color con el nombre, mitad blanca con el mensaje' },
+        { k: 'lhda', label: 'LHDA', icon: 'fa-table-columns', desc: 'Monto grande a la izquierda y mensaje en letra grande: ideal para tarjetas anchas' }
     ];
     function currentDesign() { return obsDesignDraft || state.settings.obsDesign || 'tarjeta'; }
     // Diseño del panel: uno propio o "igual que OBS"
@@ -6317,10 +6319,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function fitDesignPreview() {
         const wrap = document.querySelector('.design-preview-wrap'), f = $('design-preview');
         if (!wrap || !f) return;
+        // El ancho "real" de la vista previa sigue al de las tarjetas (y se achica para entrar)
+        let PW = 600;
+        try { const cw = ($('cardw-seg') && $('cardw-seg').dataset.v) ? cardWFromForm() : cleanCardW(state.settings.obsCardWidth); PW = cw === 'full' ? 1100 : cw === 'auto' ? 600 : Math.max(600, cw + 50); } catch (e) {}
+        f.style.width = PW + 'px';
         if (wrap.classList.contains('pv-zoom')) {
             // Ampliada: el doble de lo normal, sin pasarse de la ventana
-            const z = Math.max(0.5, Math.min(2 * Math.min(1, 440 / 600), (window.innerWidth - 60) / 600, (window.innerHeight - 140) / previewH));
-            wrap.style.width = Math.round(600 * z) + 'px';
+            const z = Math.max(0.3, Math.min(2 * Math.min(1, 440 / PW), (window.innerWidth - 60) / PW, (window.innerHeight - 140) / previewH));
+            wrap.style.width = Math.round(PW * z) + 'px';
             f.style.transform = 'scale(' + z + ')';
             f.style.height = previewH + 'px';
             wrap.style.height = Math.round(previewH * z) + 'px';
@@ -6328,7 +6334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         wrap.style.width = '';
         if (!wrap.clientWidth) return;
-        const k = Math.min(1, wrap.clientWidth / 600);
+        const k = Math.min(1, wrap.clientWidth / PW);
         f.style.transform = 'scale(' + k + ')';
         f.style.height = previewH + 'px';
         wrap.style.height = Math.round(previewH * k) + 'px';
@@ -7290,7 +7296,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const sc = await obsWsRequest('GetCurrentProgramScene');
             const sceneName = sc.currentProgramSceneName || sc.sceneName;
-            const settings = { is_local_file: false, url, width: 600, height: 1000, css: '', shutdown: false, restart_when_active: false, reroute_audio: false };
+            const sz = obsSourceSize();
+            const settings = { is_local_file: false, url, width: sz.w, height: sz.h, css: '', shutdown: false, restart_when_active: false, reroute_audio: false };
             try {
                 await obsWsRequest('CreateInput', { sceneName, inputName: name, inputKind: 'browser_source', inputSettings: settings, sceneItemEnabled: true });
                 showToast(`Listo: agregué la fuente "${name}" a la escena "${escapeHTML(sceneName)}". Acomodala y achicala en OBS como quieras.`, 'success');
@@ -7521,7 +7528,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = obsSourceUrl();
             if (!sdRelay.info) { showToast('El servidor interno todavía no arrancó', 'warning'); return; }
             (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
-                () => showToast('Link copiado. En OBS: Fuentes → + → Navegador → pegalo en URL (ancho 600, alto 1000).', 'success'),
+                () => { const sz = obsSourceSize(); showToast(`Link copiado. En OBS: Fuentes → + → Navegador → pegalo en URL (ancho ${sz.w}, alto ${sz.h}).`, 'success'); },
                 () => prompt('Copiá el link:', url));
         };
         $('btn-relay-copy').addEventListener('click', copyRelay);
@@ -7666,6 +7673,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const g = $(id); g.dataset.v = list.includes(v) ? v : def;
         g.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === g.dataset.v));
     }
+    function cleanCardW(v) { if (v === 'full' || v === 'auto') return v; v = Number(v); return Number.isFinite(v) && v > 0 ? Math.min(1900, Math.max(300, Math.round(v / 10) * 10)) : 'auto'; }
+    // Medida sugerida para la fuente de OBS según el ancho de las tarjetas
+    function sizeFor(w) { return w === 'full' ? { w: 1920, h: 400 } : w === 'auto' ? { w: 600, h: 1000 } : { w: Math.max(600, w + 50), h: 1000 }; }
+    function obsSourceSize() { return sizeFor(cleanCardW(state.settings.obsCardWidth)); }
+    function cardWFromForm() { const m = $('cardw-seg').dataset.v || 'auto'; return m === 'custom' ? cleanCardW($('cfg-obs-cardw').value) : m; }
+    function updateCardWForm() {
+        const m = $('cardw-seg').dataset.v || 'auto';
+        $('row-obs-cardw-px').classList.toggle('hidden', m !== 'custom');
+        $('row-obs-cardw-align').classList.toggle('hidden', m === 'full');
+        $('lbl-obs-cardw').textContent = $('cfg-obs-cardw').value + ' px';
+        const w = cardWFromForm(), T = (t) => window.SDi18n ? window.SDi18n.t(t) : t, sz = sizeFor(w);
+        $('cardw-tip').innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + T('En OBS poné la fuente de navegador en') + ' <strong>' + sz.w + ' × ' + sz.h + '</strong>' + (w === 'full' ? ' ' + T('(o el ancho de tu escena y el alto que quieras para el banner).') : '.');
+    }
     function cleanGap(v) { if (v === null || v === undefined || v === '') return null; v = Number(v); return Number.isFinite(v) ? Math.min(100, Math.max(0, Math.round(v))) : null; }
     function cleanCard(c) {
         c = c || {};
@@ -7683,9 +7703,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function style29() {
         const st = state.settings;
         if (!els.modalSettings.classList.contains('hidden') && $('enter-seg').dataset.v) {
-            return { enterFx: $('enter-seg').dataset.v, readIcon: $('readicon-seg').dataset.v || 'check', step: $('cfg-obs-step').checked, stepDim: $('cfg-obs-step-dim').checked, card: cardFromForm(), gap: $('cfg-obs-gap-auto').checked ? null : Number($('cfg-obs-gap').value) };
+            return { enterFx: $('enter-seg').dataset.v, readIcon: $('readicon-seg').dataset.v || 'check', step: $('cfg-obs-step').checked, stepDim: $('cfg-obs-step-dim').checked, card: cardFromForm(), gap: $('cfg-obs-gap-auto').checked ? null : Number($('cfg-obs-gap').value), cardWidth: cardWFromForm(), cardAlign: $('cardalign-seg').dataset.v || 'center' };
         }
-        return { enterFx: ENTER_TYPES.includes(st.obsEnter) ? st.obsEnter : 'pop', readIcon: st.readIcon === 'eye' ? 'eye' : 'check', step: !!st.obsStep, stepDim: st.obsStepDim !== false, card: cleanCard(st.obsCard), gap: cleanGap(st.obsGap) };
+        return { enterFx: ENTER_TYPES.includes(st.obsEnter) ? st.obsEnter : 'pop', readIcon: st.readIcon === 'eye' ? 'eye' : 'check', step: !!st.obsStep, stepDim: st.obsStepDim !== false, card: cleanCard(st.obsCard), gap: cleanGap(st.obsGap), cardWidth: cleanCardW(st.obsCardWidth), cardAlign: ['left', 'right'].includes(st.obsCardAlign) ? st.obsCardAlign : 'center' };
     }
     function update29Form() {
         $('card-corner-opts').classList.toggle('hidden', !$('cfg-card-corner').checked);
@@ -7715,6 +7735,11 @@ document.addEventListener('DOMContentLoaded', () => {
         segSet('corner-pos-seg', c.cornerPos, ['left', 'right'], 'right');
         segSet('corner-layer-seg', c.cornerLayer, ['front', 'back'], 'front');
         $('cc-pad').dataset.x = c.cornerX; $('cc-pad').dataset.y = c.cornerY;
+        const cw = cleanCardW(st.obsCardWidth);
+        segSet('cardw-seg', typeof cw === 'number' ? 'custom' : cw, ['auto', 'custom', 'full'], 'auto');
+        $('cfg-obs-cardw').value = typeof cw === 'number' ? cw : 550;
+        segSet('cardalign-seg', st.obsCardAlign, ['left', 'center', 'right'], 'center');
+        updateCardWForm();
         const gp = cleanGap(st.obsGap); $('cfg-obs-gap-auto').checked = gp === null; $('cfg-obs-gap').value = gp === null ? 14 : gp;
         $('cfg-obs-step').checked = !!st.obsStep; $('cfg-obs-step-dim').checked = st.obsStepDim !== false;
         $('cfg-card-corner').checked = c.corner; $('cfg-card-corner-size').value = c.cornerSize; $('cfg-card-corner-alpha').value = c.cornerAlpha;
@@ -7726,6 +7751,8 @@ document.addEventListener('DOMContentLoaded', () => {
         st.obsEnter = ENTER_TYPES.includes($('enter-seg').dataset.v) ? $('enter-seg').dataset.v : 'pop';
         st.readIcon = $('readicon-seg').dataset.v === 'eye' ? 'eye' : 'check';
         st.obsGap = $('cfg-obs-gap-auto').checked ? null : cleanGap($('cfg-obs-gap').value);
+        st.obsCardWidth = cardWFromForm(); st.obsCardAlign = $('cardalign-seg').dataset.v || 'center';
+        applyObsSizeHints();
         st.obsStep = $('cfg-obs-step').checked; st.obsStepDim = $('cfg-obs-step-dim').checked;
         st.obsCard = cardFromForm();
         applyReadIcon();
@@ -7753,8 +7780,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setSettingsDirty(true); statsDraft();
     });
     $('cfg-stats-size').addEventListener('input', () => { $('lbl-stats-size').textContent = $('cfg-stats-size').value + '%'; setSettingsDirty(true); statsDraft(); });
-    function changed29() { update29Form(); setSettingsDirty(true); sendObsStyle(); if (dzSide !== 'obs') setDzSide('obs'); }
-    ['enter-seg', 'readicon-seg', 'corner-pos-seg', 'corner-layer-seg'].forEach(id => $(id).addEventListener('click', (e) => {
+    function changed29() { update29Form(); updateCardWForm(); fitDesignPreview(); setSettingsDirty(true); sendObsStyle(); if (dzSide !== 'obs') setDzSide('obs'); }
+    ['enter-seg', 'readicon-seg', 'corner-pos-seg', 'corner-layer-seg', 'cardw-seg', 'cardalign-seg'].forEach(id => $(id).addEventListener('click', (e) => {
         const b = e.target.closest('button[data-v]'); if (!b) return;
         segSet(id, b.dataset.v, Array.from($(id).querySelectorAll('button')).map(x => x.dataset.v), b.dataset.v);
         changed29();
@@ -7762,6 +7789,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     ['cfg-obs-step', 'cfg-obs-step-dim', 'cfg-card-corner', 'cfg-card-bg', 'cfg-obs-gap-auto'].forEach(id => $(id).addEventListener('change', changed29));
     $('cfg-obs-gap').addEventListener('input', changed29);
+    $('cfg-obs-cardw').addEventListener('input', changed29);
+    // Textos de ayuda con la medida que corresponde para la fuente de OBS
+    function applyObsSizeHints() { const sz = obsSourceSize(); document.querySelectorAll('.obs-src-w').forEach(e => { e.textContent = sz.w; }); document.querySelectorAll('.obs-src-h').forEach(e => { e.textContent = sz.h; }); }
+    applyObsSizeHints();
     ['cfg-card-corner-size', 'cfg-card-corner-alpha', 'cfg-card-bg-alpha', 'cfg-card-bg-dim'].forEach(id => $(id).addEventListener('input', changed29));
     // Achica y comprime la imagen al cargarla (así viaja rápido a OBS). Mantiene la transparencia.
     // Los GIF no se tocan, para no perder la animación.

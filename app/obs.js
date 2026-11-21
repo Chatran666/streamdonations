@@ -664,8 +664,8 @@
         const LAYOUT_SPOTS = ['name', 'below', 'right', 'hidden'];
         let obsLayout = { amount: 'right', platform: 'right', rankIcons: 'name', rankName: 'name' };
         // Diseños que necesitan cosas en un lugar fijo (en "Barra" el monto va siempre en su bloque de la izquierda)
-        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja', 'pixel', 'hud', 'zocalo', 'sticker', 'postit', 'pastel', 'mono', 'glitch', 'holo', 'comic', 'capsula'];
-        const DESIGN_FORCE = { barra: { amount: 'right' }, zocalo: { amount: 'right', platform: 'right' } };
+        const DESIGNS = ['tarjeta', 'barra', 'compacto', 'burbuja', 'neon', 'cristal', 'ticket', 'subtitulo', 'franja', 'pixel', 'hud', 'zocalo', 'sticker', 'postit', 'pastel', 'mono', 'glitch', 'holo', 'comic', 'capsula', 'lhda'];
+        const DESIGN_FORCE = { barra: { amount: 'right' }, zocalo: { amount: 'right', platform: 'right' }, lhda: { amount: 'right', platform: 'right' } };
         let obsDesign = 'tarjeta';
         function placeElements(card) {
             const zones = { name: card.querySelector('.obs-nick'), below: card.querySelector('.obs-sub'), right: card.querySelector('.obs-header-right') };
@@ -721,6 +721,12 @@
             document.documentElement.classList.toggle('read-eye', st.readIcon === 'eye');
             setStep(!!st.step, st.stepDim !== false);
             applyCard(st.card);
+            // Ancho de las tarjetas: el del diseño, uno elegido o todo el ancho; y dónde va la columna
+            const cw = st.cardWidth, rt = document.documentElement;
+            rt.classList.toggle('cw-full', cw === 'full');
+            rt.classList.toggle('cw-custom', typeof cw === 'number' && cw > 0);
+            if (typeof cw === 'number' && cw > 0) rt.style.setProperty('--obs-card-w', Math.min(1900, Math.max(300, cw)) + 'px');
+            rt.dataset.calign = ['left', 'right'].includes(st.cardAlign) ? st.cardAlign : 'center';
             // Separación entre tarjetas elegida a mano (si no, la del diseño)
             const gp = Number(st.gap);
             document.documentElement.classList.toggle('gap-custom', st.gap !== null && st.gap !== undefined && Number.isFinite(gp));
@@ -899,33 +905,46 @@
         // ---- Leer de a una: la rueda salta de donación en donación y opaca las demás ----
         let STEP = false, STEP_DIM = true;
         function stepCards() { return Array.from(container.querySelectorAll('.obs-alert')).filter(el => !el.dataset.leaving && el.offsetParent !== null); }
-        function stepFocus(el) {
+        function stepFocus(el, noScroll) {
             container.querySelectorAll('.obs-alert.step-focus').forEach(x => x.classList.remove('step-focus'));
             document.documentElement.classList.toggle('step-on', !!el && STEP_DIM);
             if (!el) return;
             el.classList.add('step-focus');
-            if (scrollArea) scrollArea.scrollTo({ top: Math.max(0, el.offsetTop - container.offsetTop - 8), behavior: 'smooth' });
+            if (scrollArea && !noScroll) scrollArea.scrollTo({ top: Math.max(0, el.offsetTop - container.offsetTop - 8), behavior: 'smooth' });
         }
+        // Con "Opacar las demás" prendido siempre hay una destacada: si no elegiste ninguna, la primera (sin mover la pantalla)
+        // Mientras no uses la rueda, la destacada es siempre la primera de la lista (también cuando llegan nuevas)
+        let stepAuto = true;
+        function stepEnsure() {
+            if (!STEP || !STEP_DIM) return;
+            const list = stepCards();
+            if (!list.length) { document.documentElement.classList.remove('step-on'); return; }
+            if (stepAuto) { if (!list[0].classList.contains('step-focus')) stepFocus(list[0], true); }
+            else if (!list.some(x => x.classList.contains('step-focus'))) stepFocus(list[0], true);
+        }
+        new MutationObserver(() => { if (STEP && STEP_DIM) setTimeout(stepEnsure, 0); }).observe(container, { childList: true });
         function stepAfterLeave(el) {
             const list = stepCards().filter(x => x !== el), all = Array.from(container.querySelectorAll('.obs-alert')), i = all.indexOf(el);
             const next = all.slice(i + 1).find(x => list.includes(x)) || all.slice(0, i).reverse().find(x => list.includes(x)) || null;
             el.classList.remove('step-focus');
-            setTimeout(() => stepFocus(STEP ? next : null), 0);
+            setTimeout(() => { if (!(STEP && STEP_DIM && stepAuto)) stepFocus(STEP ? next : null); stepEnsure(); }, 0);
         }
         function setStep(on, dim) {
             STEP_DIM = dim;
-            if (on === STEP) { if (!on || !container.querySelector('.step-focus')) document.documentElement.classList.remove('step-on'); else document.documentElement.classList.toggle('step-on', dim); return; }
+            if (on === STEP) { if (!on || !container.querySelector('.step-focus')) document.documentElement.classList.remove('step-on'); else document.documentElement.classList.toggle('step-on', dim); stepEnsure(); return; }
             STEP = on;
             if (!on) stepFocus(null);
+            stepEnsure();
         }
         if (scrollArea && !PREVIEW) scrollArea.addEventListener('wheel', (e) => {
             if (!STEP || e.ctrlKey) return;
             const list = stepCards(); if (!list.length) return;
             e.preventDefault();
             const cur = list.findIndex(x => x.classList.contains('step-focus')), dir = e.deltaY > 0 ? 1 : -1;
+            stepAuto = false;
             if (cur < 0) { if (dir > 0) stepFocus(list[0]); return; }
             const ni = cur + dir;
-            if (ni < 0) { stepFocus(null); scrollArea.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+            if (ni < 0) { stepAuto = true; if (STEP_DIM) stepFocus(list[0]); else stepFocus(null); scrollArea.scrollTo({ top: 0, behavior: 'smooth' }); return; }
             if (ni < list.length) stepFocus(list[ni]);
         }, { passive: false });
         let lastBgCfg = null;

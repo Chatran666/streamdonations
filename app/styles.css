@@ -3254,3 +3254,14 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .cc-pad { display: flex; grid-template-columns: none; grid-template-rows: none; gap: 4px; flex-wrap: nowrap; }
 .cc-pad button { width: 34px; height: 30px; flex: 0 0 auto; }
 .cc-pad [data-reset] { margin-left: 4px; }
+
+.cardw-tip { margin-top: -4px; }
+.cardw-tip strong { color: var(--text-primary); }
+#cardw-seg, #cardalign-seg { display: inline-flex !important; flex-direction: row !important; flex-shrink: 0; }
+
+/* Miniatura LHDA */
+.dzm-lhda::before { background: #15161A; border: 1px solid rgba(255,255,255,0.12); border-left: 4px solid var(--a); border-radius: 9px; }
+.dzm-lhda .dzm-av { display: none; }
+.dzm-lhda .dzm-amt { left: 12%; right: auto; top: 15px; width: 20%; height: 22px; border-radius: 5px; background: color-mix(in srgb, var(--a) 40%, #15161A); }
+.dzm-lhda .dzm-nick { left: 38%; top: 17px; width: 26%; background: #fff; }
+.dzm-lhda .dzm-msg { left: 38%; right: 12%; top: 29px; height: 6px; background: #8A8A96; }
