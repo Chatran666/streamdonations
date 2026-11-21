@@ -7304,9 +7304,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 await obsWsRequest('CreateInput', { sceneName, inputName: name, inputKind: 'browser_source', inputSettings: settings, sceneItemEnabled: true });
                 showToast(`Listo: agregué la fuente "${name}" a la escena "${escapeHTML(sceneName)}". Acomodala y achicala en OBS como quieras.`, 'success');
             } catch (e) {
-                if (e.code === 601) { // ya existe: se actualiza el link
-                    await obsWsRequest('SetInputSettings', { inputName: name, inputSettings: { is_local_file: false, url } });
-                    showToast(`La fuente "${name}" ya estaba en OBS: le actualicé el link.`, 'success');
+                if (e.code === 601) { // ya existe: se actualiza el link y la medida (por si cambió el ancho de las tarjetas)
+                    await obsWsRequest('SetInputSettings', { inputName: name, inputSettings: { is_local_file: false, url, width: sz.w, height: sz.h } });
+                    showToast(`La fuente "${name}" ya estaba en OBS: le actualicé el link y la medida (${sz.w} × ${sz.h}).`, 'success');
                 } else throw e;
             }
         } catch (e) {

@@ -838,7 +838,7 @@ window.SD_I18N_EN = {
     'Contraseña incorrecta': 'Wrong password', 'OBS no responde: ¿está abierto y con el servidor WebSocket activado?': "OBS isn't responding: is it open with the WebSocket server enabled?",
     'Conectado{}': 'Connected{}', 'Conectado (OBS {})': 'Connected (OBS {})',
     'Listo: agregué la fuente "{}" a la escena "{}". Acomodala y achicala en OBS como quieras.': 'Done: I added the "{}" source to the "{}" scene. Move and resize it in OBS as you like.',
-    'La fuente "{}" ya estaba en OBS: le actualicé el link.': 'The "{}" source was already in OBS: I updated its link.',
+    'La fuente "{}" ya estaba en OBS: le actualicé el link y la medida ({} × {}).': 'The "{}" source was already in OBS: I updated its link and size ({} × {}).',
     'No pude crear la fuente en OBS ({}). Usá "Copiar link de la fuente" y agregala a mano.': 'I couldn\'t create the source in OBS ({}). Use "Copy source link" and add it manually.',
     'Link copiado. En OBS: + → Navegador → destildá "Archivo local" y pegalo en URL.': 'Link copied. In OBS: + → Browser → uncheck "Local file" and paste it in URL.',
 
