@@ -1,3 +1,6 @@
+Novedades de la 2.9.12:
+- "Agregar a mi escena" (conexión directa con OBS): si la fuente StreamDonations ya existe, además del link le actualiza el ancho y el alto según el ancho de las tarjetas que elegiste. Así, si cambiás el ancho, apretás el botón y OBS queda con la medida justa.
+
 Novedades de la 2.9.11:
 - Ancho de las tarjetas configurable (en OBS): automático, a medida (300 a 1900 px) o todo el ancho, y la columna se puede ubicar a la izquierda, al centro o a la derecha. La app te indica el tamaño de la fuente de OBS que corresponde.
 - Nuevo diseño LHDA: monto grande a la izquierda, nick con ícono y el mensaje abajo, ideal para tarjetas anchas.
