@@ -1,3 +1,8 @@
+Novedades de la 2.9.16 (seguridad):
+- Los links de los mensajes (donaciones y chat) se abren siempre en tu navegador predeterminado, nunca en una ventana de la app.
+- Los links que apuntan a tu propia PC (localhost, 127.0.0.1, la propia app) ya no se muestran como botón: quedan como texto.
+- Exportar a planilla (CSV): ningún mensaje o nick puede convertirse en una fórmula de Excel o LibreOffice, aunque traiga comas o saltos de línea raros.
+
 Novedades de la 2.9.15:
 - Configuración más ordenada: cada grupo de opciones tiene su título y una línea que lo separa del siguiente, y las opciones del mismo tema quedan juntas en una sola caja.
 - Títulos nuevos donde faltaban (Retraso, Sonido, Voz, Contadores, Rendimiento, Animaciones y lectura, Tamaño y ubicación de las tarjetas, entre otros).
