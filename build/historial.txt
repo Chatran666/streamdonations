@@ -1,3 +1,6 @@
+Novedades de la 2.9.14:
+- LHDA: el fondo de color detrás del monto ahora es más chico, a la medida del número (en OBS y en el panel).
+
 Novedades de la 2.9.13:
 - LHDA ahora usa el mismo tamaño de letra que el resto de los diseños (antes era bastante más grande).
 - Etiqueta de la plataforma (YouTube, Twitch, Kick, Ceneka) más grande y legible en todos los diseños.

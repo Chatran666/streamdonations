@@ -1,8 +1,2 @@
-Novedades de la 2.9.13:
-- LHDA ahora usa el mismo tamaño de letra que el resto de los diseños (antes era bastante más grande).
-- Etiqueta de la plataforma (YouTube, Twitch, Kick, Ceneka) más grande y legible en todos los diseños.
-- Los nicks largos ya no se cortan a 2 o 3 letras: si no entra todo, el rango y el acumulado bajan a la línea de abajo.
-- El acumulado ("acum.") y el nombre del rango se leen mejor.
-- Calcomanía: la esquina doblada ya no tapa el monto.
-- Franja: el acumulado ahora se lee sobre cualquier color.
-- Zócalo: las donaciones sin mensaje también muestran la franja.
+Novedades de la 2.9.14:
+- LHDA: el fondo de color detrás del monto ahora es más chico, a la medida del número (en OBS y en el panel).
