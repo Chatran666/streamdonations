@@ -218,7 +218,7 @@
 :root.obs-preview .obs-alert { animation: none; opacity: 1; }
 
 /* Etiqueta de la plataforma: bloque de color sólido con su logo, se lee igual sobre cualquier diseño y fondo */
-:root .obs-alert .obs-tag { display: inline-flex; align-items: center; gap: 4px; font-size: calc(0.66rem * var(--obs-head-scale, 0.75) / 0.75); padding: 2px 7px; border-radius: 4px;
+:root .obs-alert .obs-tag { display: inline-flex; align-items: center; gap: 4px; font-size: calc(0.66rem * var(--obs-head-scale, 0.75) / 0.75); padding: 3px 9px; border-radius: 5px;
     background: var(--cur) !important; color: var(--cur-ink) !important; border: none !important; text-shadow: none !important; letter-spacing: 0.04em;
     /* Borde negro de 1 px: se despega del fondo aunque la tarjeta sea del mismo color */
     box-shadow: 0 0 0 1px #000, 0 1px 3px rgba(0, 0, 0, 0.35); }
@@ -430,9 +430,27 @@
 :root[data-design="lhda"] .obs-tag { grid-area: tag; align-self: center; opacity: 0.85; }
 :root[data-design="lhda"] .obs-btn-dismiss { grid-area: btn; align-self: center; }
 :root[data-design="lhda"] .obs-msg { grid-area: msg; background: none; border: none; padding: 6px 0 0; margin: 0; font-size: 1.32em; line-height: 1.5; color: var(--obs-text-custom, rgba(255, 255, 255, 0.9)); }
-:root[data-design="lhda"] .obs-accum { font-size: 0.6em; }
 /* LHDA: letras más grandes que en las otras (siguen al "Tamaño del texto") */
 :root[data-design="lhda"] .obs-nick { font-size: calc(1.15rem * var(--obs-scale) * var(--obs-head-scale, 0.75)) !important; }
 :root[data-design="lhda"] .obs-amount { font-size: calc(1.35rem * var(--obs-scale) * var(--obs-amount-scale, 0.8)) !important; }
 :root[data-design="lhda"] .obs-msg { font-size: calc(1.02rem * var(--obs-scale)) !important; }
-:root[data-design="lhda"] .obs-tag { font-size: calc(0.62rem * var(--obs-scale) * var(--obs-head-scale, 0.75)) !important; }
+
+/* ===================== 2.9.13: arreglos de legibilidad en todos los diseños ===================== */
+/* Nick largo: ya no queda en 2-3 letras; si no entra todo, el rango y el acumulado bajan a otra línea */
+.obs-nick { flex-wrap: wrap; row-gap: 4px; }
+.obs-nick > span:first-child { max-width: 100%; }
+/* Acumulado y nombre del rango legibles (antes ~8-9 px) */
+.obs-accum { font-size: 0.78em; padding: 2px 9px; }
+.obs-nick .rank-badge .rank-name { font-size: 0.95em; padding: 2px 8px; }
+/* Franja: el acumulado se perdía sobre el color de la plataforma */
+:root[data-design="franja"] .obs-accum { color: #fff !important; background: rgba(0, 0, 0, 0.35); border-color: rgba(255, 255, 255, 0.4); }
+/* Calcomanía: la esquina doblada tapaba el monto en las tarjetas sin mensaje */
+:root[data-design="sticker"] .obs-header-right { padding-right: 26px; }
+:root[data-design="sticker"] .obs-btn-dismiss { margin-right: 0; }
+/* LHDA: el ícono va pegado al nick (no queda solo en una línea) */
+:root[data-design="lhda"] .obs-nick::before { content: none; }
+:root[data-design="lhda"] .obs-nick > span:first-child::before { content: "\f007"; font-family: "Font Awesome 6 Free"; font-weight: 400; font-size: 0.8em; opacity: 0.55; margin-right: 10px; }
+:root[data-design="lhda"] .obs-accum { font-size: 0.78em; }
+/* Zócalo sin mensaje: igual se ve la franja azul (antes quedaban el nick y la etiqueta flotando) */
+:root[data-design="zocalo"] .obs-alert.no-msg::after { content: ''; grid-area: msg; align-self: stretch; min-height: calc(30px * var(--obs-scale)); position: relative; z-index: 1;
+    background: rgba(var(--obs-card-rgb, 11, 79, 179), var(--obs-card-alpha, 0.96)); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4); outline: 1px solid rgba(0, 0, 0, 0.6); }

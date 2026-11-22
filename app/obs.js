@@ -268,6 +268,7 @@
                 </div>
                 ${(!d.obsHideMessage && d.message) ? '<div class="obs-msg' + (sty.msg ? ' sfx-host' : '') + '">' + ringHTML(sty.msg) + escapeHTML(d.message) + '</div>' : ''}
             `;
+            if (!alertEl.querySelector('.obs-msg')) alertEl.classList.add('no-msg');
 
             placeElements(alertEl);
 
@@ -571,6 +572,7 @@
                 let msgEl = el.querySelector('.obs-msg');
                 if (item.obsHideMessage || !item.message) {
                     if (msgEl) msgEl.remove();
+                    el.classList.add('no-msg');
                     return;
                 }
                 if (!msgEl) {
@@ -578,6 +580,7 @@
                     msgEl.className = 'obs-msg';
                     el.appendChild(msgEl);
                 }
+                el.classList.remove('no-msg');
                 msgEl.textContent = item.message;
             });
         }
