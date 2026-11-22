@@ -418,7 +418,7 @@
     border-radius: 24px; padding: 24px 28px; backdrop-filter: none; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55); }
 :root[data-design="lhda"] .obs-header, :root[data-design="lhda"] .obs-donor, :root[data-design="lhda"] .obs-donor-text, :root[data-design="lhda"] .obs-header-right { display: contents; }
 :root[data-design="lhda"] .obs-avatar { display: none; }
-:root[data-design="lhda"] .obs-amount { grid-area: amt; align-self: start; font-family: inherit !important; font-size: 2.1em; font-weight: 800; letter-spacing: -0.01em; padding: 16px 24px; min-height: 1.9em; display: flex; align-items: center; justify-content: center; border-radius: 18px; white-space: nowrap; min-width: 130px;
+:root[data-design="lhda"] .obs-amount { grid-area: amt; align-self: start; font-family: inherit !important; font-size: 2.1em; font-weight: 800; letter-spacing: -0.01em; padding: calc(16px * var(--obs-scale)) calc(20px * var(--obs-scale)) !important; min-height: calc(64px * var(--obs-scale)); display: flex; align-items: center; justify-content: center; border-radius: 18px; white-space: nowrap; min-width: calc(120px * var(--obs-scale));
     background: color-mix(in srgb, var(--cur) 16%, rgba(0, 0, 0, 0.35)) !important; color: var(--cur) !important; border: none !important; box-shadow: none !important; text-shadow: none !important; }
 :root[data-design="lhda"] .obs-amount.has-amt-color { color: var(--amt-color) !important; background: color-mix(in srgb, var(--amt-color) 16%, rgba(0, 0, 0, 0.35)) !important; }
 :root[data-design="lhda"] .obs-nick { grid-area: nick; align-self: center; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; font-size: 1.45em; min-width: 0; }
@@ -432,7 +432,7 @@
 :root[data-design="lhda"] .obs-msg { grid-area: msg; background: none; border: none; padding: 6px 0 0; margin: 0; font-size: 1.32em; line-height: 1.5; color: var(--obs-text-custom, rgba(255, 255, 255, 0.9)); }
 :root[data-design="lhda"] .obs-accum { font-size: 0.6em; }
 /* LHDA: letras más grandes que en las otras (siguen al "Tamaño del texto") */
-:root[data-design="lhda"] .obs-nick { font-size: calc(1.15rem * 1.3 * var(--obs-scale) * var(--obs-head-scale, 1)) !important; }
-:root[data-design="lhda"] .obs-amount { font-size: calc(1.35rem * 1.55 * var(--obs-scale) * var(--obs-amount-scale, 1)) !important; }
-:root[data-design="lhda"] .obs-msg { font-size: calc(1.02rem * 1.38 * var(--obs-scale)) !important; }
-:root[data-design="lhda"] .obs-tag { font-size: calc(0.62rem * 1.15 * var(--obs-scale) * var(--obs-head-scale, 1)) !important; }
+:root[data-design="lhda"] .obs-nick { font-size: calc(1.15rem * var(--obs-scale) * var(--obs-head-scale, 0.75)) !important; }
+:root[data-design="lhda"] .obs-amount { font-size: calc(1.35rem * var(--obs-scale) * var(--obs-amount-scale, 0.8)) !important; }
+:root[data-design="lhda"] .obs-msg { font-size: calc(1.02rem * var(--obs-scale)) !important; }
+:root[data-design="lhda"] .obs-tag { font-size: calc(0.62rem * var(--obs-scale) * var(--obs-head-scale, 0.75)) !important; }
