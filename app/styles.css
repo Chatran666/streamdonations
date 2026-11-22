@@ -3263,3 +3263,17 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .dzm-lhda .dzm-amt { left: 12%; right: auto; top: 15px; width: 20%; height: 22px; border-radius: 5px; background: color-mix(in srgb, var(--a) 40%, #15161A); }
 .dzm-lhda .dzm-nick { left: 38%; top: 17px; width: 26%; background: #fff; }
 .dzm-lhda .dzm-msg { left: 38%; right: 12%; top: 29px; height: 6px; background: #8A8A96; }
+
+/* ===== 2.9.15: Configuración más ordenada ===== */
+/* Cada grupo de opciones arranca con su título y una línea que cruza todo el ancho */
+.settings-pane > .pane-subtitle, .dz-side > .pane-subtitle {
+    border-top: 1px solid var(--border-color); padding-top: 18px; margin-top: 12px;
+    font-size: 0.8rem; color: var(--text-primary); letter-spacing: 0.06em;
+}
+.settings-pane > .pane-subtitle i, .dz-side > .pane-subtitle i { color: var(--accent, #8B5CF6); opacity: 0.9; }
+/* Opciones seguidas del mismo tema: una sola caja con una línea fina entre cada una */
+.setting-row.grp-top, .setting-row.grp-mid { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.setting-row.grp-mid, .setting-row.grp-bot { border-top-left-radius: 0; border-top-right-radius: 0; margin-top: calc(-1 * var(--grp-gap, 14px) - 1px); }
+.setting-row.grp-top, .setting-row.grp-mid, .setting-row.grp-bot { position: relative; }
+.setting-row.grp-top:hover, .setting-row.grp-mid:hover, .setting-row.grp-bot:hover { z-index: 1; }
+.pane-subtitle.grp-empty { display: none !important; }

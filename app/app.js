@@ -4868,7 +4868,52 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (name === 'destacar') { name = 'diseno'; setTimeout(() => setDzSide('destacar'), 0); }
         document.querySelectorAll('#settings-nav .settings-tab[data-pane]').forEach(b => b.classList.toggle('active', b.dataset.pane === name));
         document.querySelectorAll('.settings-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === name));
+        // Cada sección arranca desde arriba, y se recuerda para la próxima vez que abras Configuración
+        const sc = document.querySelector('.settings-panes'); if (sc) sc.scrollTop = 0;
+        try { localStorage.setItem('sd_last_pane', name); } catch (e) {}
+        groupSettingRows();
     }
+
+    // Opciones seguidas del mismo tema quedan juntas en una sola caja (con una línea fina entre ellas);
+    // las que tienen algo en el medio (una nota, un selector) o un título de grupo quedan separadas
+    var grpObserver = null;
+    function groupSettingRows() {
+        const pane = document.querySelector('.settings-pane.active');
+        if (!pane) return;
+        const visible = el => el.getClientRects().length > 0;
+        document.querySelectorAll('.setting-row.grp-top, .setting-row.grp-mid, .setting-row.grp-bot').forEach(r => r.classList.remove('grp-top', 'grp-mid', 'grp-bot'));
+        const parents = new Set();
+        pane.querySelectorAll('.setting-row').forEach(r => parents.add(r.parentElement));
+        parents.forEach(par => {
+            if (!visible(par)) return;
+            const gap = parseFloat(getComputedStyle(par).rowGap) || 0;
+            let run = [];
+            const flush = () => {
+                if (run.length > 1) run.forEach((r, i) => { r.classList.add(i === 0 ? 'grp-top' : i === run.length - 1 ? 'grp-bot' : 'grp-mid'); r.style.setProperty('--grp-gap', gap + 'px'); });
+                run = [];
+            };
+            Array.from(par.children).forEach(ch => {
+                if (!visible(ch)) return;               // lo oculto no corta el grupo
+                if (ch.classList.contains('setting-row')) run.push(ch); else flush();
+            });
+            flush();
+        });
+        // Un título de grupo sin ninguna opción visible abajo (por ejemplo en modo simple) no se muestra
+        pane.querySelectorAll('.pane-subtitle').forEach(t => t.classList.remove('grp-empty'));
+        pane.querySelectorAll(':scope > .pane-subtitle, .dz-side > .pane-subtitle').forEach(t => {
+            let n = t.nextElementSibling, any = false;
+            while (n && !n.classList.contains('pane-subtitle')) { if (visible(n)) { any = true; break; } n = n.nextElementSibling; }
+            t.classList.toggle('grp-empty', !any);
+        });
+        if (grpObserver) grpObserver.takeRecords();     // los cambios de recién no cuentan como "algo cambió"
+    }
+    (function watchSettingRows() {
+        const sc = document.querySelector('.settings-panes');
+        if (!sc || !window.MutationObserver) return;
+        let raf = 0;
+        grpObserver = new MutationObserver(() => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; groupSettingRows(); }); });
+        grpObserver.observe(sc, { subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'], childList: true });
+    })();
 
     // Donaciones que entran mientras Configuración tapa el panel: se avisan arriba
     let settingsNewCount = 0;
@@ -4883,10 +4928,22 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsNewCount = 0;
         $('settings-new').classList.add('hidden');
         fillSettingsForm();
-        switchSettingsPane(pane || 'conexion');
+        // Sin una sección pedida, vuelve a la última que usaste y al mismo lugar (la primera vez, Conexión)
+        let target = pane, scroll = 0;
+        if (!target) { try { target = localStorage.getItem('sd_last_pane'); scroll = parseInt(localStorage.getItem('sd_last_scroll'), 10) || 0; } catch (e) {} }
+        if (!target || !document.querySelector('.settings-pane[data-pane="' + target + '"]')) { target = 'conexion'; scroll = 0; }
+        switchSettingsPane(target);
         els.modalSettings.classList.remove('hidden');
         try { updateConnAttention(); applyExpertMode(); renderQuickStyles(); } catch (e) {}
         try { syncAlphaQuick(); bgAlphaInputUi(); } catch (e) {}
+        groupSettingRows();
+        if (scroll > 0) {
+            const sc = document.querySelector('.settings-panes');
+            const same = () => { const a = document.querySelector('#settings-nav .settings-tab.active'); return a && a.dataset.pane === target; };
+            // dos veces: la vista previa del diseño termina de cargar un poco después y cambia la altura
+            requestAnimationFrame(() => { if (same()) sc.scrollTop = scroll; });
+            setTimeout(() => { if (same() && sc.scrollTop < scroll - 2) sc.scrollTop = scroll; }, 350);
+        }
     }
 
     let settingsDirty = false;
@@ -4904,6 +4961,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeSettings() {
+        try { const sc = document.querySelector('.settings-panes'); if (sc) localStorage.setItem('sd_last_scroll', String(Math.round(sc.scrollTop))); } catch (e) {}
         setSettingsDirty(false);
         lookDraft = null;
         obsLayoutDraft = null;
@@ -7883,6 +7941,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cur = document.querySelector('#settings-nav .settings-tab.active');
         if (!on && cur && ADV_PANES.includes(cur.dataset.pane)) switchSettingsPane('conexion');
         if (!on && typeof dzSide !== 'undefined' && dzSide === 'destacar') setDzSide('panel');
+        groupSettingRows();
         const act = on ? [] : advancedActive();
         const note = $('adv-active-note');
         note.classList.toggle('hidden', !act.length);

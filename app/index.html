@@ -656,6 +656,7 @@
                     <section class="settings-pane" data-pane="filtros">
                         <h3 class="pane-title">Filtros</h3>
                         <p class="pane-desc">Qué donaciones se muestran, cuáles se leen en voz alta y qué palabras o personas se tapan.</p>
+                        <div class="pane-subtitle"><i class="fa-solid fa-hourglass-half"></i> Retraso</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Retraso antes de mostrar en OBS</strong><small>Cada donación aparece primero en tu panel y sale en OBS (con sonido y voz) unos segundos después, así podés descartarla antes de que la vea tu audiencia.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-obs-delay-on"><span class="toggle-slider"></span></span>
@@ -762,6 +763,7 @@
                         <h3 class="pane-title">Sonido y voz</h3>
                         <p class="pane-desc">Cómo te avisa la app cuando llega una donación.</p>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-volume-high"></i> Sonido</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Sonido de alerta</strong><small>Un tono corto con cada donación.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-sound-enabled"><span class="toggle-slider"></span></span>
@@ -806,6 +808,7 @@
                             </div>
                         </div>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-sack-dollar"></i> Donaciones grandes</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Sonido especial para donaciones grandes</strong><small>Suena otro sonido (en lugar del normal) cuando la donación llega a un monto.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-big-sound-enabled"><span class="toggle-slider"></span></span>
@@ -855,6 +858,7 @@
                             <small class="pane-note">Los Super Chats en dólares, los Bits y los KICKs cuentan si cargaste la cotización del dólar en Opciones → Filtros → Montos mínimos.</small>
                         </div>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-microphone"></i> Voz</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Leer donaciones en voz alta</strong><small>Lee el nombre, el monto y el mensaje.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-tts-enabled"><span class="toggle-slider"></span></span>
@@ -913,6 +917,7 @@
 
                         <p class="pane-note chrome-only"><i class="fa-solid fa-lightbulb"></i> En Chrome, las voces que empiezan con <strong>"Google"</strong> (ej. "Google español de Estados Unidos") suenan más naturales que las de Windows. "Automática" ya elige la mejor que encuentre.</p>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-bell"></i> Avisos en el panel</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Aviso emergente en el panel</strong><small>Muestra un cartelito abajo cuando llega una donación nueva. Desactivalo si ya la ves en la lista o en OBS.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-donation-toasts"><span class="toggle-slider"></span></span>
@@ -944,6 +949,7 @@
                             <div><strong>Mostrar "Top Donador" en el encabezado</strong><small>El recuadro de arriba con quien más donó. Apagalo para que no ocupe lugar.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-show-top-donor"><span class="toggle-slider"></span></span>
                         </label>
+                        <div class="pane-subtitle"><i class="fa-solid fa-chart-simple"></i> Contadores</div>
                         <div class="setting-row">
                             <div><strong>Contadores de arriba</strong><small>Los recuadros de Total, cada plataforma y Top Donador. "Compacto" deja solo el ícono y el número (pasá el mouse por arriba para ver de qué es).</small></div>
                             <div class="seg" id="stats-mode-seg"><button type="button" data-v="normal">Normal</button><button type="button" data-v="compact">Compacto</button><button type="button" data-v="hidden">Ocultos</button></div>
@@ -967,6 +973,7 @@
                                 <option value="en">English</option>
                             </select>
                         </div>
+                        <div class="pane-subtitle"><i class="fa-solid fa-gauge-high"></i> Rendimiento</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Modo liviano (PC con pocos recursos)</strong><small>Apaga los efectos animados (en el panel y en OBS), las animaciones de las tarjetas y usa la voz de Windows en lugar de Daniela. Ideal si la PC se pone lenta mientras transmitís.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-lite"><span class="toggle-slider"></span></span>
@@ -1269,6 +1276,7 @@
                         </div>
 
 
+                        <div class="pane-subtitle adv"><i class="fa-solid fa-film"></i> Animaciones y lectura</div>
                         <div class="setting-row adv exit-row">
                             <div><strong>Cómo aparece cada donación</strong><small>El efecto con el que entra a OBS. Tocá uno y miralo en la vista previa. En modo simple es "Aparecer".</small></div>
                             <div class="seg exit-seg" id="enter-seg"><button type="button" data-v="pop"><i class="fa-solid fa-wand-sparkles"></i> Aparecer</button><button type="button" data-v="fade"><i class="fa-solid fa-droplet"></i> Desvanecer</button><button type="button" data-v="slide"><i class="fa-solid fa-arrow-left"></i> Deslizar</button><button type="button" data-v="slidel"><i class="fa-solid fa-arrow-right"></i> Desde la izquierda</button><button type="button" data-v="bounce"><i class="fa-solid fa-basketball"></i> Rebotar</button><button type="button" data-v="grow"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Crecer</button><button type="button" data-v="drop"><i class="fa-solid fa-arrow-down"></i> Caer</button><button type="button" data-v="flip"><i class="fa-solid fa-repeat"></i> Voltear</button><button type="button" data-v="spin"><i class="fa-solid fa-rotate"></i> Girar</button><button type="button" data-v="blur"><i class="fa-solid fa-eye-low-vision"></i> Enfocar</button></div>
@@ -1324,6 +1332,7 @@
                             </div>
                             <small class="pane-note">Las imágenes quedan guardadas en esta PC y se achican solas para que carguen rápido (los GIF, hasta 4 MB, van tal cual). Con el link de la fuente de navegador viajan solas a OBS.</small>
                         </div>
+                        <div class="pane-subtitle adv"><i class="fa-solid fa-arrows-left-right"></i> Tamaño y ubicación de las tarjetas</div>
                         <div class="setting-row adv" id="row-obs-cardw">
                             <div><strong>Ancho de las tarjetas</strong><small>"Automático" usa el del diseño (una columna). Elegí un ancho para tarjetas más anchas, o "Todo el ancho" para un banner que cruce la pantalla. Abajo te digo qué medida poner en OBS.</small></div>
                             <div class="seg" id="cardw-seg"><button type="button" data-v="auto">Automático</button><button type="button" data-v="custom">Elegir ancho</button><button type="button" data-v="full">Todo el ancho</button></div>
@@ -1336,7 +1345,6 @@
                             <div><strong>Ubicación de la columna</strong><small>Dentro de la fuente de OBS, cuando las tarjetas son más angostas que la fuente.</small></div>
                             <div class="seg" id="cardalign-seg"><button type="button" data-v="left"><i class="fa-solid fa-align-left"></i> Izquierda</button><button type="button" data-v="center"><i class="fa-solid fa-align-center"></i> Centro</button><button type="button" data-v="right"><i class="fa-solid fa-align-right"></i> Derecha</button></div>
                         </div>
-                        <div class="pane-note adv cardw-tip" id="cardw-tip"></div>
                         <div class="setting-row adv" id="row-obs-gap">
                             <div><strong>Separación entre tarjetas</strong><small>El espacio entre una donación y la siguiente en OBS. Agrandalo si la imagen de la esquina sobresale y tapa la tarjeta de arriba. "Automático" usa la del diseño.</small></div>
                             <div class="gap-ctl">
@@ -1345,6 +1353,7 @@
                                 <label class="inline-check"><input type="checkbox" id="cfg-obs-gap-auto" checked> Automático</label>
                             </div>
                         </div>
+                        <div class="pane-note adv cardw-tip" id="cardw-tip"></div>
 
                         <div class="pane-subtitle adv"><i class="fa-solid fa-image"></i> Fondo de la ventana "Modo OBS"</div>
                         <div class="bg-picker adv" data-bg-target="obs">
