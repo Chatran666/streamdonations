@@ -139,6 +139,17 @@ fn debug_log(msg: String) {
     }
 }
 
+/// Links de los mensajes (donaciones, chat): siempre en el navegador predeterminado, nunca en una
+/// ventana de la app (si no, un link a tauri.localhost abriría páginas internas con datos guardados)
+#[tauri::command]
+fn open_link(app: AppHandle, url: String) -> Result<(), String> {
+    let u = Url::parse(&url).map_err(|_| "Link inválido".to_string())?;
+    if !matches!(u.scheme(), "http" | "https") {
+        return Err("Solo links http/https".into());
+    }
+    app.opener().open_url(u.as_str(), None::<&str>).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn set_close_to_tray(on: bool) {
     CLOSE_TO_TRAY.store(on, Ordering::Relaxed);
@@ -402,6 +413,7 @@ pub fn run() {
             legacy_info,
             legacy_migrate,
             set_close_to_tray,
+            open_link,
             debug_log,
             voz::voz_status,
             voz::voz_install,

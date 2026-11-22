@@ -4003,9 +4003,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Exportar base de datos a archivo .json descargable
     // Exportar a planilla (.csv con ; para Excel en español, con BOM para que respete las tildes)
     function csvCell(v) {
-        let t = String(v == null ? '' : v).replace(/\r?\n/g, ' ');
-        if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; // evita que Excel lo tome como fórmula
-        return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+        // Todo salto de línea (también un \r suelto) pasa a espacio: así nadie arma una fila nueva desde un mensaje
+        let t = String(v == null ? '' : v).replace(/\r\n|[\r\n\u2028\u2029]/g, ' ');
+        // Si la planilla se abre separando por coma (Excel en inglés), "x,=1+1" sería otra celda con fórmula
+        t = t.replace(/([,;\t])([=+\-@])/g, "$1'$2");
+        if (/^\s*[=+\-@\t]/.test(t)) t = "'" + t; // evita que Excel lo tome como fórmula
+        // Siempre entre comillas: una coma o un ; dentro del texto no crean otra celda
+        return '"' + t.replace(/"/g, '""') + '"';
     }
     function exportDonationsCSV(range) {
         let list = state.donations.slice();
@@ -5402,12 +5406,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return raw.replace(/[.,;:!?)\]]+$/, '');
     }
 
+    function isLocalHost(hostname) {
+        const h = String(hostname || '').toLowerCase().replace(/\.+$/, '').replace(/^\[|\]$/g, '');
+        return h === 'localhost' || h.endsWith('.localhost') || /^127\./.test(h) || h === '0.0.0.0' ||
+            h === '::' || h === '::1' || /^::ffff:(127\.|7f)/.test(h);
+    }
+
     function parseLink(raw) {
         let href = cleanUrlMatch(raw);
         if (!/^https?:\/\//i.test(href)) href = 'https://' + href;
         try {
             const u = new URL(href);
             if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+            // Links a esta misma PC (localhost, 127.x, la propia app) no se muestran como link
+            if (isLocalHost(u.hostname)) return null;
             const host = u.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '');
             const known = KNOWN_SITES.some(d => host === d || host.endsWith('.' + d));
             const shortener = SHORTENERS.includes(host);
@@ -5525,7 +5537,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('modal-link').addEventListener('mousedown', (e) => { if (e.target.id === 'modal-link') closeLinkModal(); });
         $('btn-link-open').addEventListener('click', () => {
             if (!pendingLink) return;
-            window.open(pendingLink.href, '_blank', 'noopener,noreferrer');
+            // Siempre en el navegador predeterminado de la persona, nunca en una ventana de la app
+            if (TAURI) TAURI.core.invoke('open_link', { url: pendingLink.href }).catch(() => showToast('No se pudo abrir el link', 'warning'));
+            else window.open(pendingLink.href, '_blank', 'noopener,noreferrer');
             closeLinkModal();
         });
         $('btn-link-copy').addEventListener('click', () => {
