@@ -418,7 +418,7 @@
     border-radius: 24px; padding: 24px 28px; backdrop-filter: none; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55); }
 :root[data-design="lhda"] .obs-header, :root[data-design="lhda"] .obs-donor, :root[data-design="lhda"] .obs-donor-text, :root[data-design="lhda"] .obs-header-right { display: contents; }
 :root[data-design="lhda"] .obs-avatar { display: none; }
-:root[data-design="lhda"] .obs-amount { grid-area: amt; align-self: start; font-family: inherit !important; font-size: 2.1em; font-weight: 800; letter-spacing: -0.01em; padding: calc(16px * var(--obs-scale)) calc(20px * var(--obs-scale)) !important; min-height: calc(64px * var(--obs-scale)); display: flex; align-items: center; justify-content: center; border-radius: 18px; white-space: nowrap; min-width: calc(120px * var(--obs-scale));
+:root[data-design="lhda"] .obs-amount { grid-area: amt; align-self: start; font-family: inherit !important; font-size: 2.1em; font-weight: 800; letter-spacing: -0.01em; padding: calc(8px * var(--obs-scale)) calc(14px * var(--obs-scale)) !important; min-height: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; white-space: nowrap; min-width: calc(84px * var(--obs-scale));
     background: color-mix(in srgb, var(--cur) 16%, rgba(0, 0, 0, 0.35)) !important; color: var(--cur) !important; border: none !important; box-shadow: none !important; text-shadow: none !important; }
 :root[data-design="lhda"] .obs-amount.has-amt-color { color: var(--amt-color) !important; background: color-mix(in srgb, var(--amt-color) 16%, rgba(0, 0, 0, 0.35)) !important; }
 :root[data-design="lhda"] .obs-nick { grid-area: nick; align-self: center; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; font-size: 1.45em; min-width: 0; }
