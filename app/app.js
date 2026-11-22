@@ -1362,6 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statWrap) {
             statWrap.innerHTML = '';
             platformStatEls = {};
+            statsSqueeze = false; { const sc = document.querySelector('.stats-container'); if (sc) sc.classList.remove('stats-squeeze'); }
             en.forEach(k => {
                 const info = PLATFORMS[k];
                 const card = document.createElement('div');
@@ -1369,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.innerHTML = `
                     <div class="stat-icon"><i class="${info.icon}"></i></div>
                     <div class="stat-data">
-                        <span class="stat-label">${k === 'youtube' ? 'Super Chats' : info.label}</span>
+                        <span class="stat-label">${info.label}</span>
                         <span class="stat-value">0 mensajes</span>
                     </div>`;
                 statWrap.appendChild(card);
@@ -1724,7 +1725,7 @@ document.addEventListener('DOMContentLoaded', () => {
                    <i class="fa-solid fa-arrow-rotate-left"></i> Restaurar
                </button>`
             : `<button class="btn-card-action is-read-btn" data-act="toggle-read" data-id="${item.id}" title="Marcar como leído y quitar de la vista">
-                   <i class="fa-solid fa-check ico-check"></i>${EYE_SVG} Marcar Leído
+                   <i class="fa-solid fa-check ico-check"></i>${EYE_SVG} Marcar leída
                </button>`;
 
         // Estilo (rango y/o donación grande): los bordes animados solo mientras está pendiente
@@ -2347,6 +2348,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     applyTopDonorVisibility();
 
+    // Si los contadores de arriba no entran en una fila (por ejemplo 5 plataformas en 1366 px), se achican
+    var statsSqueeze = false;
+    function fitStatsRow() {
+        const c = document.querySelector('.stats-container');
+        if (!c || statsSqueeze) return;
+        const cards = Array.from(c.querySelectorAll('.stat-card')).filter(x => x.offsetParent);
+        if (cards.length < 2) return;
+        if (cards.some(x => x.offsetTop !== cards[0].offsetTop)) { statsSqueeze = true; c.classList.add('stats-squeeze'); updateStats(); }
+    }
+    // Algo de al lado cambia de tamaño (por ejemplo aparece "Actualización"): se vuelve a medir
+    if (window.ResizeObserver) { const sc0 = document.querySelector('.stats-container'); if (sc0) new ResizeObserver(() => requestAnimationFrame(fitStatsRow)).observe(sc0); }
+    { let rzs = 0; window.addEventListener('resize', () => { clearTimeout(rzs); rzs = setTimeout(() => {
+        const c = document.querySelector('.stats-container'); if (!c) return;
+        statsSqueeze = false; c.classList.remove('stats-squeeze'); updateStats();
+    }, 200); }); }
     function updateStats() {
         const real = state.donations.filter(d => !d.isTest);
         const tests = state.donations.filter(d => d.isTest);
@@ -2363,7 +2379,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // En modo compacto queda solo el número (y el monto si se muestran montos); el nombre va en el globito
         // Ventana angosta: también queda solo el número, para que entren en una fila
-        const compact = state.settings.statsMode === 'compact' || window.innerWidth <= 1240;
+        const compact = state.settings.statsMode === 'compact' || window.innerWidth <= 1240 || statsSqueeze;
         const statText = list => compact
             ? (state.showAmounts ? `${pending(list)} · ${money(list)}` : `${pending(list)}`)
             : (state.showAmounts ? `${pending(list)} pend. · ${money(list)}${tag}` : `${pending(list)} mensajes`);
@@ -2378,6 +2394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const l = c.querySelector('.stat-label'), v = c.querySelector('.stat-value');
             c.title = l && v ? l.textContent.trim() + ': ' + v.textContent : '';
         });
+        fitStatsRow();
 
         const top = topDonors(base, 1)[0];
         if (top) {
@@ -2435,7 +2452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         els.focusCardBody.style.setProperty('--focus-accent', pInfo.color);
 
         els.btnFocusToggleRead.innerHTML = item.isRead 
-            ? `<i class="fa-solid fa-arrow-rotate-left"></i> Restaurar a Pendientes` 
+            ? `<i class="fa-solid fa-arrow-rotate-left"></i> Restaurar a pendientes` 
             : `<i class="fa-solid fa-check-circle ico-check"></i>${EYE_SVG} Marcar como Leído`;
 
         els.modalFocus.classList.remove('hidden');
@@ -3669,13 +3686,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.showOnlyRead) {
                 els.btnToggleReadView.classList.add('active-archive');
                 if (els.readViewIcon) els.readViewIcon.className = 'fa-solid fa-inbox';
-                if (els.readViewText) els.readViewText.textContent = 'Ver Pendientes';
-                showToast('Mostrando historial de chats leídos', 'info');
+                if (els.readViewText) els.readViewText.textContent = 'Ver pendientes';
+                showToast('Mostrando las donaciones leídas', 'info');
             } else {
                 els.btnToggleReadView.classList.remove('active-archive');
                 if (els.readViewIcon) els.readViewIcon.className = 'fa-solid fa-box-archive';
-                if (els.readViewText) els.readViewText.textContent = 'Chats Leídos';
-                showToast('Mostrando chats pendientes', 'info');
+                if (els.readViewText) els.readViewText.textContent = 'Leídas';
+                showToast('Mostrando las donaciones pendientes', 'info');
             }
             render();
         });
@@ -4623,6 +4640,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateGoalFieldsState() {
         const on = $('cfg-goal-enabled').checked;
         $('goal-fields').classList.toggle('disabled', !on);
+        if ($('goal-off-note')) $('goal-off-note').classList.toggle('hidden', on);
         const g = summarize(goalDonations());
         const start = new Date(state.settings.goalStart || Date.now());
         $('goal-progress-text').textContent = `${formatSummary(g)} desde el ${start.toLocaleDateString('es-AR')} ${start.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;

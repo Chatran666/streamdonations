@@ -26,7 +26,7 @@
     
     --text-primary: #F3F4F6;
     --text-secondary: #9CA3AF;
-    --text-muted: #6B7280;
+    --text-muted: #8A92A0;
 
     /* Brand Colors */
     --ceneka-purple: #F59E0B; /* (se llama así por historia: ahora es ámbar) */
@@ -327,9 +327,9 @@ body {
 }
 
 .btn-accent {
-    background: linear-gradient(135deg, #2563EB, #1D4ED8);
-    color: #fff;
-    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: var(--on-accent, #fff);
+    box-shadow: 0 3px 10px rgba(var(--accent-rgb), 0.3);
 }
 .btn-accent:hover {
     filter: brightness(1.1);
@@ -402,7 +402,7 @@ body {
     padding: 4px 8px 4px 26px;
     color: var(--text-primary);
     font-size: 0.75rem;
-    width: 170px;
+    width: 190px;
     transition: all 0.2s ease;
 }
 .search-box input:focus {
@@ -1570,7 +1570,7 @@ body {
 .sl-status.connecting { color: #F59E0B; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); }
 .sl-status.error { color: #EF4444; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); }
 .sl-status-row { margin-top: 8px; }
-.help-link { color: var(--accent); font-weight: 600; }
+.help-link { color: var(--accent-soft, #C4B5FD); font-weight: 600; }
 a.btn { text-decoration: none; }
 
 /* ==========================================================================
@@ -3277,3 +3277,24 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .setting-row.grp-top, .setting-row.grp-mid, .setting-row.grp-bot { position: relative; }
 .setting-row.grp-top:hover, .setting-row.grp-mid:hover, .setting-row.grp-bot:hover { z-index: 1; }
 .pane-subtitle.grp-empty { display: none !important; }
+
+/* ===== 2.9.17: arreglos de la revisión de diseño ===== */
+/* Contadores de arriba: si no entran en una fila, se achican (queda el número; el nombre va en el globito) */
+.stats-container.stats-squeeze { flex-wrap: nowrap; min-width: 0; }
+.stats-container.stats-squeeze .stat-card { min-width: 0; padding: 5px 9px; }
+.stats-container.stats-squeeze .stat-label { display: none; }
+.stats-container.stats-squeeze .stat-value { white-space: nowrap; }
+/* Tarjeta del panel: el monto es el dato principal (antes era lo más chico); etiqueta y hora legibles */
+.donation-card .donor-nick .amount-badge { font-size: calc(1rem * var(--panel-scale) * var(--panel-head-scale)); }
+.donation-card .donor-nick .platform-tag, .donation-card .donor-nick .test-tag { font-size: calc(0.76rem * var(--panel-scale) * var(--panel-head-scale)); padding: 2px 7px; }
+.donation-card .timestamp { font-size: calc(0.8rem * var(--panel-scale) * var(--panel-head-scale)); color: var(--text-secondary); }
+/* Meta apagada: se lee lo que hay, y los interruptores no parecen encendidos */
+.goal-fields.disabled { opacity: 0.62; }
+.goal-fields.disabled .toggle-switch input:checked + .toggle-slider { background: rgba(var(--ink-rgb), 0.18); }
+.goal-off-note { margin: -4px 0 2px; }
+/* Teclado: siempre se ve dónde estás parado */
+.settings-panes input:focus-visible, .settings-panes select:focus-visible, .settings-panes textarea:focus-visible,
+.settings-panes button:focus-visible, .settings-panes summary:focus-visible, .toolbar input:focus-visible, .toolbar select:focus-visible,
+.min-card-input input:focus-visible, input[type="range"]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+}

@@ -115,7 +115,7 @@
                 <!-- Search Box -->
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="input-search" placeholder="Buscar por usuario o mensaje...">
+                    <input type="text" id="input-search" placeholder="Buscar nick o mensaje">
                 </div>
 
                 <!-- Sort Order Selector -->
@@ -179,7 +179,7 @@
                 <!-- Botón de Vista de Chats Leídos -->
                 <button class="btn btn-sm btn-outline" id="btn-toggle-read-view" title="Ver historial de chats leídos">
                     <i class="fa-solid fa-box-archive" id="read-view-icon"></i>
-                    <span id="read-view-text">Chats Leídos</span>
+                    <span id="read-view-text">Leídas</span>
                     <span class="count-badge" id="badge-read-count">0</span>
                 </button>
 
@@ -199,8 +199,8 @@
                 </button>
 
                 <!-- Mark All Read Button -->
-                <button class="btn btn-sm btn-outline-danger" id="btn-mark-all-read">
-                    <i class="fa-solid fa-check-double"></i> Marcar Todo Leído
+                <button class="btn btn-sm btn-outline" id="btn-mark-all-read">
+                    <i class="fa-solid fa-check-double"></i> Marcar todo como leído
                 </button>
 
                 <!-- OBS Overlay Generator -->
@@ -226,7 +226,7 @@
             <div class="feed-column unified-column hidden" id="col-unified">
                 <div class="column-header">
                     <div class="column-title">
-                        <i class="fa-solid fa-stream"></i> Feed Unificado en Tiempo Real
+                        <i class="fa-solid fa-stream"></i> Todas las donaciones
                         <span class="count-badge" id="badge-count-unified">0</span>
                     </div>
                     <button class="btn-ghost btn-header-action" id="btn-mark-unified-read" title="Marcar todos los chats como leídos">
@@ -271,7 +271,7 @@
     <!-- AVISO PARA ACTIVAR SONIDO Y VOZ (Chrome los bloquea hasta el primer clic) -->
     <button class="audio-unlock hidden" id="audio-unlock" type="button">
         <i class="fa-solid fa-bell"></i>
-        <span><strong>Activar sonidos y notificaciones</strong><br><small>Tocá acá (o en cualquier parte) para escuchar las alertas y la voz de las donaciones. Chrome lo pide una vez cada vez que abrís la app.</small></span>
+        <span><strong>Activar sonidos y notificaciones</strong><br><small>Tocá acá (o en cualquier parte) para escuchar las alertas y la voz de las donaciones. Hace falta una vez cada vez que abrís la app.</small></span>
     </button>
 
     <!-- MODAL CONFIRMAR LINK -->
@@ -525,7 +525,7 @@
                 </div>
                 <div class="info-help-box">
                     <i class="fa-solid fa-circle-info help-icon"></i>
-                    <div><strong>Empezar nuevo directo</strong> marca todo lo anterior como leído y reinicia este resumen. El historial no se borra: sigue en "Chats Leídos" y en la Base de Datos.</div>
+                    <div><strong>Empezar nuevo directo</strong> marca todo lo anterior como leído y reinicia este resumen. El historial no se borra: sigue en "Leídas" y en la Base de Datos.</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1158,7 +1158,7 @@
                                 <button type="button" class="btn btn-outline btn-sm" data-scale-reset="cfg-panel-head" data-scale-default="0.85" title="Volver al tamaño recomendado">85%</button>
                             </div>
                             <input type="range" id="cfg-panel-head" min="0.6" max="1.4" step="0.05">
-                            <small>La parte de arriba de cada tarjeta (nombre, red, monto, foto y "Marcar Leído"), sin cambiar el tamaño del mensaje.</small>
+                            <small>La parte de arriba de cada tarjeta (nombre, red, monto, foto y "Marcar leída"), sin cambiar el tamaño del mensaje.</small>
                         </div>
 
                         </div>
@@ -1624,6 +1624,7 @@
                             <span class="toggle-switch"><input type="checkbox" id="cfg-goal-enabled"><span class="toggle-slider"></span></span>
                         </label>
 
+                        <p class="pane-note goal-off-note hidden" id="goal-off-note"><i class="fa-solid fa-circle-info"></i> Activá la meta para cambiar estas opciones.</p>
                         <div class="goal-fields" id="goal-fields">
                             <div class="form-grid">
                                 <div class="form-group">
@@ -1698,7 +1699,7 @@
                             </div>
                         </div>
 
-                        <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Hacé una copia de vez en cuando. Si se borran los datos de navegación de Chrome, el historial se pierde.</p>
+                        <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Hacé una copia de vez en cuando. Si cambiás de PC, reinstalás Windows o restablecés de fábrica, el historial se pierde.</p>
 
                         <div class="danger-zone">
                             <div><strong>Borrar todo el historial</strong><small>Elimina todas las donaciones guardadas, reales y de prueba. No se puede deshacer.</small></div>
@@ -1822,7 +1823,7 @@
                             </div>
                         </div>
 
-                        <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Restablecer no afecta tu cuenta de Streamlabs ni la de Ceneka: solo lo que guarda esta app en Chrome. Los archivos de la carpeta tampoco se tocan.</p>
+                        <p class="pane-note"><i class="fa-solid fa-lightbulb"></i> Restablecer no afecta tu cuenta de Streamlabs ni la de Ceneka: solo lo que guarda esta app en esta PC. Los archivos de la carpeta tampoco se tocan.</p>
                     </section>
                 </div>
             </div>
