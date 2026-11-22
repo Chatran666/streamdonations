@@ -1,3 +1,9 @@
+Novedades de la 2.9.15:
+- Configuración más ordenada: cada grupo de opciones tiene su título y una línea que lo separa del siguiente, y las opciones del mismo tema quedan juntas en una sola caja.
+- Títulos nuevos donde faltaban (Retraso, Sonido, Voz, Contadores, Rendimiento, Animaciones y lectura, Tamaño y ubicación de las tarjetas, entre otros).
+- Configuración recuerda dónde la dejaste: al abrirla vuelve a la misma sección, a la misma altura (también después de cerrar la app).
+- Al cambiar de sección, la nueva arranca desde arriba.
+
 Novedades de la 2.9.14:
 - LHDA: el fondo de color detrás del monto ahora es más chico, a la medida del número (en OBS y en el panel).
 
