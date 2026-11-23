@@ -1,3 +1,12 @@
+Novedades de la 2.9.18:
+- Pruebas renovadas: "Prueba a medida" para elegir plataforma, monto (común, grande o el que quieras), mensaje (corto, largo, con link o sin mensaje) y nick.
+- Pruebas puntuales: el mismo donante 3 veces (para ver el acumulado y el rango) y completar la meta.
+- Simulador con más opciones: qué plataformas participan, si trae links y cuántas donaciones grandes.
+- Las donaciones de prueba se borran solas al marcarlas leídas, y la meta las suma mientras existen.
+- Los links de prueba llevan al sitio de cada plataforma.
+- La donación de prueba del frasquito ahora se llama "Donante de prueba".
+- Corrección de errores y mejoras.
+
 Novedades de la 2.9.17:
 - Panel más claro: el monto se ve más grande que el resto, y la etiqueta de plataforma y la hora se leen mejor.
 - Los contadores de arriba siempre entran en una fila (si falta lugar, quedan el ícono y el número).
