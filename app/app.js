@@ -4621,6 +4621,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addDonation({ platform: k, nick, amount, currency: testCurrency(k), message, isTest: true });
         }, i * 1500));
         try { localStorage.setItem('sd_quicktest_done', '1'); } catch (e) {}
+        if (window.closeTestMenu) window.closeTestMenu();
         showToast(list.length > 1 ? T('Mandando una prueba por plataforma') + ` (${list.length})` : T('Prueba enviada'), 'success');
     }
 
@@ -4629,6 +4630,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const k = testPlatforms()[0];
         const nick = T('Donante frecuente');
         initAudioContext();
+        if (window.closeTestMenu) window.closeTestMenu();
         [1, 2, 3].forEach(i => setTimeout(() => addDonation({ platform: k, nick, amount: testNormalAmount(k), currency: testCurrency(k), message: T('Donación de prueba') + ` ${i}/3`, isTest: true }), (i - 1) * 1500));
     }
 
@@ -4640,6 +4642,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (rest <= 0) { showToast('La meta ya está completa', 'info'); return; }
         const k = testPlatforms().find(x => x === 'ceneka' || x === 'youtube') || 'ceneka';
         initAudioContext();
+        if (window.closeTestMenu) window.closeTestMenu();
         addDonation({ platform: k, nick: T('Donante de prueba'), amount: rest, currency: 'ARS', message: T('¡Completando la meta de prueba!'), isTest: true });
     }
 
@@ -7798,6 +7801,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!$('modal-guide').classList.contains('hidden')) renderGuide();
     }
     $('btn-quick-test').addEventListener('click', sendQuickTest);
+    // Menú "Prueba a medida" al lado del frasquito: se prueba mirando el panel (no tapado por Configuración)
+    (function testMenu() {
+        const pop = $('test-pop'), caret = $('btn-test-menu');
+        if (!pop || !caret) return;
+        function place() {
+            const r = caret.getBoundingClientRect();
+            const w = Math.min(470, window.innerWidth - 24);
+            pop.style.width = w + 'px';
+            pop.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.right - w)) + 'px';
+            pop.style.top = (r.bottom + 8) + 'px';
+        }
+        function open() { pop.classList.toggle('tp-simple', !expertOn()); place(); pop.classList.remove('hidden'); caret.setAttribute('aria-expanded', 'true'); caret.classList.add('active'); }
+        function close() { pop.classList.add('hidden'); caret.setAttribute('aria-expanded', 'false'); caret.classList.remove('active'); }
+        window.closeTestMenu = close;
+        caret.addEventListener('click', (e) => { e.stopPropagation(); pop.classList.contains('hidden') ? open() : close(); });
+        $('btn-test-pop-close').addEventListener('click', close);
+        document.addEventListener('mousedown', (e) => { if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !caret.contains(e.target)) close(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.classList.contains('hidden')) { close(); caret.focus(); } });
+        window.addEventListener('resize', () => { if (!pop.classList.contains('hidden')) place(); });
+    })();
 
     // ---- Primeros pasos ----
     function renderGuide() {

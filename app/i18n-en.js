@@ -1199,6 +1199,8 @@ window.SD_I18N_EN = {
     'Algunas donaciones simuladas traen un link al sitio de su plataforma (y de vez en cuando uno desconocido, para ver el aviso).': 'Some simulated donations include a link to their platform\'s site (and now and then an unknown one, to see the warning).',
     'Mandar una prueba': 'Send a test',
     'De qué plataforma viene esta prueba': 'Which platform this test comes from',
+    'Las donaciones de prueba salen marcadas como "PRUEBA", no se mezclan con las reales y se borran solas al marcarlas leídas. Para mandar una prueba suelta (y elegir plataforma, monto, mensaje y nick) usá el frasquito de arriba del panel y la flechita de al lado.': 'Test donations are marked "TEST", don\'t mix with real ones and disappear when you mark them as read. To send a single test (and choose platform, amount, message and nick) use the flask at the top of the panel and the little arrow next to it.',
+    'Prueba a medida: elegir plataforma, monto, mensaje y nick': 'Custom test: choose platform, amount, message and nick',
     'Modo experto': 'Expert mode', 'Muestra todas las opciones (filtros, destacar, transparencias, efectos…)': 'Shows every option (filters, highlight, transparency, effects…)',
     'Tenés ajustes avanzados funcionando:': 'You have advanced settings running:', 'Siguen activos aunque no se vean.': 'They stay on even if hidden.', 'Ver todo': 'Show all',
     'Primeros pasos': 'First steps', 'Tres pasos y queda lista para tu directo.': 'Three steps and it is ready for your stream.',

@@ -3374,3 +3374,26 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 :root.pcard-light .donation-card .amount-badge, :root.pcard-light .donation-card .platform-tag, :root.pcard-light .donation-card .test-tag { filter: brightness(0.6) saturate(1.4); }
 :root.pcard-light .donation-card .btn-card-action { color: #5B21B6; border-color: rgba(91, 33, 182, 0.5); background: rgba(91, 33, 182, 0.06); }
 :root.pcard-light .donation-card .timestamp { color: #4B5563; }
+/* ===== Menú "Prueba a medida" (al lado del frasquito) ===== */
+.btn-test-caret { width: 22px !important; margin-left: -4px; font-size: 0.8rem !important; }
+.btn-test-caret.active { color: var(--accent-soft); background: rgba(var(--accent-rgb), 0.15); }
+.test-pop { position: fixed; z-index: 300; background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 120px); overflow: auto; }
+.test-pop.hidden { display: none; }
+.tp-head { display: flex; align-items: center; justify-content: space-between; }
+.tp-head strong { font-size: 0.95rem; display: inline-flex; gap: 8px; align-items: center; }
+.tp-head strong i { color: var(--accent-soft); }
+.tp-row { display: flex; flex-direction: column; gap: 6px; }
+.tp-row > div:first-child strong { font-size: 0.85rem; }
+.tp-row > div:first-child small { display: block; font-size: 0.76rem; color: var(--text-muted); margin-top: 1px; }
+.tp-row .seg { align-self: flex-start; }
+.tp-row #test-nick { width: 100%; }
+.tp-send { display: flex; justify-content: flex-end; }
+.tp-send .btn { width: 100%; justify-content: center; }
+.tp-sub { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 0.82rem; font-weight: 700; color: var(--text-primary); display: flex; gap: 8px; align-items: center; }
+.tp-sub i { color: var(--accent-soft); }
+.tp-row.tp-adv { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+.test-pop.tp-simple .tp-adv { display: none !important; }
+.test-pop .test-amount-ctl { justify-content: flex-start; }
+.test-pop { background: #151A24; }
+:root[data-theme="light"] .test-pop { background: #FFFFFF; }
+.header-actions .btn-test-caret.active::after { display: none !important; }

@@ -80,6 +80,9 @@
                     <button class="btn-icon" id="btn-quick-test" title="Mandar una donación de prueba (se borra sola al tildarla)">
                         <i class="fa-solid fa-flask"></i>
                     </button>
+                    <button class="btn-icon btn-test-caret" id="btn-test-menu" title="Prueba a medida: elegir plataforma, monto, mensaje y nick" aria-haspopup="dialog" aria-expanded="false">
+                        <i class="fa-solid fa-caret-down"></i>
+                    </button>
                 </div>
                 <button class="btn btn-outline" id="btn-open-session" title="Resumen del directo y empezar uno nuevo">
                     <i class="fa-solid fa-tower-broadcast"></i> <span class="btn-label">Directo</span>
@@ -87,6 +90,43 @@
                 <button class="btn btn-outline" id="btn-open-db" title="Base de datos: ver, editar, exportar o importar el historial">
                     <i class="fa-solid fa-database"></i> <span class="btn-label">Base de datos</span>
                 </button>
+                <div class="test-pop hidden" id="test-pop" role="dialog" aria-label="Prueba a medida">
+                    <div class="tp-head"><strong><i class="fa-solid fa-flask"></i> Prueba a medida</strong><button type="button" class="btn-icon" id="btn-test-pop-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button></div>
+                        
+                        <div class="tp-row">
+                            <div><strong>Plataforma</strong><small>"Todas" manda una de cada plataforma activa.</small></div>
+                            <div class="seg" id="test-plat-seg"><button type="button" data-v="all">Todas</button><button type="button" data-v="ceneka">Ceneka</button><button type="button" data-v="youtube">YouTube</button><button type="button" data-v="twitch">Twitch</button><button type="button" data-v="kick">Kick</button></div>
+                        </div>
+                        <div class="tp-row">
+                            <div><strong>Monto</strong><small>"Grande" sirve para escuchar el sonido especial y ver cómo se destaca.</small></div>
+                            <div class="test-amount-ctl">
+                                <div class="seg" id="test-amount-seg"><button type="button" data-v="normal">Común</button><button type="button" data-v="big">Grande</button><button type="button" data-v="custom">Elegir</button></div>
+                                <input type="number" id="test-amount" min="1" step="1" placeholder="Monto" class="hidden" aria-label="Monto de la prueba">
+                            </div>
+                        </div>
+                        <div class="tp-row">
+                            <div><strong>Mensaje</strong><small>"Con link" trae un link al sitio de esa plataforma, para probar el botón y el aviso.</small></div>
+                            <div class="seg" id="test-msg-seg"><button type="button" data-v="short">Corto</button><button type="button" data-v="long">Largo</button><button type="button" data-v="link">Con link</button><button type="button" data-v="none">Sin mensaje</button></div>
+                        </div>
+                        <div class="tp-row">
+                            <div><strong>Nick</strong><small>Vacío = "Donante de prueba". Sirve para probar un bloqueo o un rango.</small></div>
+                            <input type="text" id="test-nick" maxlength="40" placeholder="Donante de prueba" aria-label="Nick de la prueba">
+                        </div>
+                        <div class="tp-send">
+                            <button type="button" class="btn btn-primary" id="btn-test-send"><i class="fa-solid fa-paper-plane"></i> Mandar prueba</button>
+                        </div>
+
+                        <div class="tp-sub tp-adv"><i class="fa-solid fa-wand-magic-sparkles"></i> Pruebas puntuales</div>
+                        <div class="tp-row tp-adv">
+                            <div><strong>Mismo donante 3 veces</strong><small>Para ver cómo sube el acumulado y aparece el rango.</small></div>
+                            <button type="button" class="btn btn-outline" id="btn-test-repeat"><i class="fa-solid fa-repeat"></i> Probar</button>
+                        </div>
+                        <div class="tp-row tp-adv">
+                            <div><strong>Completar la meta</strong><small>Suma lo que falta para llegar al 100 %. Al marcarla leída (o al borrar las pruebas), la meta vuelve a como estaba.</small></div>
+                            <button type="button" class="btn btn-outline" id="btn-test-goal"><i class="fa-solid fa-flag-checkered"></i> Probar</button>
+                        </div>
+
+                </div>
                 <div class="settings-btn-wrap">
                     <button type="button" class="update-pill hidden" id="update-pill" title="Hay una versión nueva. Te avisamos cuando termines el directo (o tocá para verla ahora)."><i class="fa-solid fa-circle-arrow-up"></i> <span>Actualización</span></button>
                     <button type="button" class="sim-indicator hidden" id="sim-indicator" title="El simulador está generando donaciones de prueba. Tocá para ir a Pruebas.">
@@ -1710,7 +1750,7 @@
                     <!-- PRUEBAS -->
                     <section class="settings-pane" data-pane="pruebas">
                         <h3 class="pane-title">Pruebas</h3>
-                        <p class="pane-desc">Para probar sonidos, voz, links, la meta y la ventana de OBS antes del directo. Las donaciones de prueba salen marcadas como "PRUEBA", no se mezclan con las reales y se borran solas al marcarlas leídas.</p>
+                        <p class="pane-desc">Las donaciones de prueba salen marcadas como "PRUEBA", no se mezclan con las reales y se borran solas al marcarlas leídas. Para mandar una prueba suelta (y elegir plataforma, monto, mensaje y nick) usá el frasquito de arriba del panel y la flechita de al lado.</p>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-tower-broadcast"></i> Simular un directo</div>
                         <div class="setting-row sim-main-row">
@@ -1737,40 +1777,6 @@
                         <div class="setting-row adv">
                             <div><strong>Donaciones grandes</strong><small>Cuántas de las simuladas llegan al monto del sonido especial.</small></div>
                             <div class="seg" id="sim-big-seg"><button type="button" data-v="few">Pocas</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="many">Muchas</button></div>
-                        </div>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-paper-plane"></i> Mandar una prueba</div>
-                        <div class="setting-row test-row">
-                            <div><strong>De qué plataforma viene esta prueba</strong><small>"Todas" manda una de cada plataforma activa.</small></div>
-                            <div class="seg" id="test-plat-seg"><button type="button" data-v="all">Todas</button><button type="button" data-v="ceneka">Ceneka</button><button type="button" data-v="youtube">YouTube</button><button type="button" data-v="twitch">Twitch</button><button type="button" data-v="kick">Kick</button></div>
-                        </div>
-                        <div class="setting-row test-row">
-                            <div><strong>Monto</strong><small>"Grande" sirve para escuchar el sonido especial y ver cómo se destaca.</small></div>
-                            <div class="test-amount-ctl">
-                                <div class="seg" id="test-amount-seg"><button type="button" data-v="normal">Común</button><button type="button" data-v="big">Grande</button><button type="button" data-v="custom">Elegir</button></div>
-                                <input type="number" id="test-amount" min="1" step="1" placeholder="Monto" class="hidden" aria-label="Monto de la prueba">
-                            </div>
-                        </div>
-                        <div class="setting-row test-row">
-                            <div><strong>Mensaje</strong><small>"Con link" trae un link al sitio de esa plataforma, para probar el botón y el aviso.</small></div>
-                            <div class="seg" id="test-msg-seg"><button type="button" data-v="short">Corto</button><button type="button" data-v="long">Largo</button><button type="button" data-v="link">Con link</button><button type="button" data-v="none">Sin mensaje</button></div>
-                        </div>
-                        <div class="setting-row test-row">
-                            <div><strong>Nick</strong><small>Vacío = "Donante de prueba". Sirve para probar un bloqueo o un rango.</small></div>
-                            <input type="text" id="test-nick" maxlength="40" placeholder="Donante de prueba" aria-label="Nick de la prueba">
-                        </div>
-                        <div class="test-send-row">
-                            <button type="button" class="btn btn-primary" id="btn-test-send"><i class="fa-solid fa-paper-plane"></i> Mandar prueba</button>
-                        </div>
-
-                        <div class="pane-subtitle adv"><i class="fa-solid fa-wand-magic-sparkles"></i> Pruebas puntuales</div>
-                        <div class="setting-row adv">
-                            <div><strong>Mismo donante 3 veces</strong><small>Para ver cómo sube el acumulado y aparece el rango.</small></div>
-                            <button type="button" class="btn btn-outline" id="btn-test-repeat"><i class="fa-solid fa-repeat"></i> Probar</button>
-                        </div>
-                        <div class="setting-row adv">
-                            <div><strong>Completar la meta</strong><small>Suma lo que falta para llegar al 100 %. Al marcarla leída (o al borrar las pruebas), la meta vuelve a como estaba.</small></div>
-                            <button type="button" class="btn btn-outline" id="btn-test-goal"><i class="fa-solid fa-flag-checkered"></i> Probar</button>
                         </div>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-broom"></i> Limpiar</div>
