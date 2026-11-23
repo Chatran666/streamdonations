@@ -3345,3 +3345,17 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .sl-collapse small, .sl-collapse em { color: var(--text-secondary); }
 .app-header { position: relative; z-index: 60; }
 .settings-btn-wrap [data-tip]:hover::after, .settings-btn-wrap [data-tip]:focus-visible::after { left: auto; right: 0; transform: none; }
+/* ===== Pruebas ===== */
+.test-amount-ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+#test-amount { width: 120px; }
+#test-nick { width: 220px; }
+.test-send-row { display: flex; justify-content: flex-end; }
+.sim-plat-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.chip-check { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 999px; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--text-secondary); }
+.chip-check:has(input:checked) { border-color: var(--accent); color: var(--text-primary); background: rgba(var(--accent-rgb), 0.12); }
+.chip-check input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+#test-plat-seg, #test-amount-seg, #test-msg-seg, #sim-big-seg { display: inline-flex !important; flex-direction: row !important; flex-shrink: 0; flex-wrap: nowrap; }
+.test-amount-ctl, .sim-plat-chips { flex-direction: row !important; }
+#test-nick, #test-amount { background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-primary); font-size: 0.85rem; font-family: inherit; }
+#test-nick:focus, #test-amount:focus { border-color: var(--accent); }
+#btn-clear-tests { white-space: nowrap; }

@@ -1710,15 +1710,45 @@
                     <!-- PRUEBAS -->
                     <section class="settings-pane" data-pane="pruebas">
                         <h3 class="pane-title">Pruebas</h3>
-                        <p class="pane-desc">Para probar sonidos, voz, links y la ventana de OBS antes del directo. Las donaciones de prueba salen marcadas como "PRUEBA" y no se mezclan con las reales.</p>
+                        <p class="pane-desc">Para probar sonidos, voz, links, la meta y la ventana de OBS antes del directo. Las donaciones de prueba salen marcadas como "PRUEBA", no se mezclan con las reales y se borran solas al marcarlas leídas.</p>
 
-                        <div class="setting-row">
-                            <div><strong>Probar alertas</strong><small>Manda una donación de Ceneka y un Super Chat de prueba, una sola vez.</small></div>
-                            <button type="button" class="btn btn-accent" id="btn-test-alerts"><i class="fa-solid fa-vial"></i> Probar</button>
+                        <div class="pane-subtitle"><i class="fa-solid fa-sliders"></i> Prueba a medida</div>
+                        <div class="setting-row test-row">
+                            <div><strong>Plataforma</strong><small>"Todas" manda una de cada plataforma activa.</small></div>
+                            <div class="seg" id="test-plat-seg"><button type="button" data-v="all">Todas</button><button type="button" data-v="ceneka">Ceneka</button><button type="button" data-v="youtube">YouTube</button><button type="button" data-v="twitch">Twitch</button><button type="button" data-v="kick">Kick</button></div>
+                        </div>
+                        <div class="setting-row test-row">
+                            <div><strong>Monto</strong><small>"Grande" sirve para escuchar el sonido especial y ver cómo se destaca.</small></div>
+                            <div class="test-amount-ctl">
+                                <div class="seg" id="test-amount-seg"><button type="button" data-v="normal">Común</button><button type="button" data-v="big">Grande</button><button type="button" data-v="custom">Elegir</button></div>
+                                <input type="number" id="test-amount" min="1" step="1" placeholder="Monto" class="hidden" aria-label="Monto de la prueba">
+                            </div>
+                        </div>
+                        <div class="setting-row test-row">
+                            <div><strong>Mensaje</strong><small>"Con link" trae un link al sitio de esa plataforma, para probar el botón y el aviso.</small></div>
+                            <div class="seg" id="test-msg-seg"><button type="button" data-v="short">Corto</button><button type="button" data-v="long">Largo</button><button type="button" data-v="link">Con link</button><button type="button" data-v="none">Sin mensaje</button></div>
+                        </div>
+                        <div class="setting-row test-row">
+                            <div><strong>Nick</strong><small>Vacío = "Donante de prueba". Sirve para probar un bloqueo o un rango.</small></div>
+                            <input type="text" id="test-nick" maxlength="40" placeholder="Donante de prueba" aria-label="Nick de la prueba">
+                        </div>
+                        <div class="test-send-row">
+                            <button type="button" class="btn btn-primary" id="btn-test-send"><i class="fa-solid fa-paper-plane"></i> Mandar prueba</button>
                         </div>
 
+                        <div class="pane-subtitle adv"><i class="fa-solid fa-wand-magic-sparkles"></i> Pruebas puntuales</div>
+                        <div class="setting-row adv">
+                            <div><strong>Mismo donante 3 veces</strong><small>Para ver cómo sube el acumulado y aparece el rango.</small></div>
+                            <button type="button" class="btn btn-outline" id="btn-test-repeat"><i class="fa-solid fa-repeat"></i> Probar</button>
+                        </div>
+                        <div class="setting-row adv">
+                            <div><strong>Completar la meta</strong><small>Suma lo que falta para llegar al 100 %. Al marcarla leída (o al borrar las pruebas), la meta vuelve a como estaba.</small></div>
+                            <button type="button" class="btn btn-outline" id="btn-test-goal"><i class="fa-solid fa-flag-checkered"></i> Probar</button>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-tower-broadcast"></i> Simular un directo</div>
                         <label class="setting-row toggle-row">
-                            <div><strong>Simular donaciones automáticamente</strong><small>Genera donaciones falsas cada cierto tiempo (se activa al tocar "Guardar cambios"). Al apagarlo se borran todas las donaciones de prueba.</small></div>
+                            <div><strong>Simular donaciones automáticamente</strong><small>Manda donaciones de prueba sin parar, cada cierto tiempo (se activa al tocar "Guardar cambios"). Al apagarlo se borran todas las pruebas.</small></div>
                             <span class="toggle-switch"><input type="checkbox" id="cfg-toggle-sim"><span class="toggle-slider"></span></span>
                         </label>
                         <div class="form-grid">
@@ -1727,9 +1757,27 @@
                                 <input type="number" id="cfg-sim-speed" min="1" max="30">
                             </div>
                         </div>
+                        <div class="setting-row adv">
+                            <div><strong>Plataformas del simulador</strong><small>Sin ninguna marcada, usa todas las activas.</small></div>
+                            <div class="chips sim-plat-chips" id="sim-plat-chips">
+                                <label class="chip-check"><input type="checkbox" value="ceneka"> Ceneka</label>
+                                <label class="chip-check"><input type="checkbox" value="youtube"> YouTube</label>
+                                <label class="chip-check"><input type="checkbox" value="twitch"> Twitch</label>
+                                <label class="chip-check"><input type="checkbox" value="kick"> Kick</label>
+                            </div>
+                        </div>
+                        <label class="setting-row toggle-row adv">
+                            <div><strong>Incluir links</strong><small>Algunas donaciones traen un link al sitio de su plataforma (y de vez en cuando uno desconocido, para ver el aviso).</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-sim-links"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="setting-row adv">
+                            <div><strong>Donaciones grandes</strong><small>Cuántas de las simuladas llegan al monto del sonido especial.</small></div>
+                            <div class="seg" id="sim-big-seg"><button type="button" data-v="few">Pocas</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="many">Muchas</button></div>
+                        </div>
 
+                        <div class="pane-subtitle"><i class="fa-solid fa-broom"></i> Limpiar</div>
                         <div class="setting-row">
-                            <div><strong>Borrar donaciones de prueba</strong><small>Quita las del simulador y las del botón "Probar" (<span id="test-count">0</span> ahora). Se borran solas al apagar el simulador y al empezar un nuevo directo. Las reales no se tocan.</small></div>
+                            <div><strong>Borrar donaciones de prueba</strong><small>Quita todas las pruebas que quedan (<span id="test-count">0</span> ahora). También se borran solas al marcarlas leídas, al apagar el simulador y al empezar un nuevo directo. Las reales no se tocan.</small></div>
                             <button type="button" class="btn btn-outline" id="btn-clear-tests"><i class="fa-solid fa-broom"></i> Borrar pruebas</button>
                         </div>
                     </section>

@@ -89,6 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
             obsHideMessage: false, // Ocultar texto del mensaje en la alerta de OBS
             obsDuration: 0, // Segundos que queda cada alerta en OBS (0 = queda hasta marcarla como leída)
             simSpeed: 10,
+            simPlatforms: [], // Plataformas del simulador (vacío = todas las activas)
+            simLinks: true, // El simulador manda algunos links
+            simBig: 'normal', // Cuántas donaciones grandes: few | normal | many
             autoSaveDb: true, // Auto-guardado permanente en base de datos local
             soundEnabled: false,
             ttsEnabled: false,
@@ -397,8 +400,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función de persistencia automática en base de datos local
     function saveDonationsToStorage() {
-        // La prueba rápida (botón del frasquito) desaparece apenas la tildás y nunca se guarda
-        if (state.donations.some(d => d.quickTest && d.isRead)) state.donations = state.donations.filter(d => !(d.quickTest && d.isRead));
+        // Las donaciones de prueba desaparecen apenas las tildás (la del frasquito, además, nunca se guarda)
+        if (state.donations.some(d => d.isTest && d.isRead)) {
+            state.donations = state.donations.filter(d => !(d.isTest && d.isRead));
+            if (typeof updateTestCount === 'function') { try { updateTestCount(); } catch (e) {} }
+        }
         if (typeof syncNoteChanges === 'function') { try { syncNoteChanges(); } catch (e) {} }
         if (state.settings.autoSaveDb !== false) {
             try {
@@ -2747,7 +2753,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // prendido, al volver a abrir el simulador está apagado y no tienen que quedar pruebas sueltas
     setTimeout(() => { if (!state.isSimulating && state.donations.some(d => d.isTest)) clearTestDonations(); else if (!state.isSimulating) clearTestBox(); }, 0);
 
-    // Borra todas las donaciones de prueba (simulador y botón "Probar") del panel, la base de datos y OBS
+    // Borra todas las donaciones de prueba (simulador, frasquito y "Prueba a medida") del panel, la base de datos y OBS
     function clearTestDonations() {
         stopAllSpeech(); // corta cualquier lectura pendiente
         const tests = state.donations.filter(d => d.isTest);
@@ -2768,73 +2774,58 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.textContent = state.donations.filter(d => d.isTest).length;
     }
 
-    // Links de prueba para el simulador: sitios conocidos, desconocidos y acortadores,
-    // escritos de distintas formas (con https://, con www. o sueltos).
-    // Los "desconocidos" usan dominios reservados para ejemplos (no llevan a ningún sitio real).
-    const sampleLinks = {
-        known: [
-            'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            'youtu.be/abc123XYZ',
-            'https://x.com/usuario/status/1234567890',
-            'www.instagram.com/p/Cprueba123/',
-            'tiktok.com/@usuario/video/7300000000000000000',
-            'https://kick.com/canal-de-prueba',
-            'twitch.tv/canal_prueba'
-        ],
-        unknown: [
-            'https://premios-gratis.example.com/reclamar',
-            'www.sorteo-oficial.example.net/login',
-            'mi-blog.example.org/nota-sobre-el-directo'
-        ],
-        shortener: [
-            'bit.ly/prueba-simulador',
-            'https://tinyurl.com/ejemplo-prueba'
-        ]
-    };
+    // Links de prueba: van al sitio de la plataforma de la donación (se pueden abrir de verdad).
+    // De vez en cuando uno desconocido (dominio reservado para ejemplos) para ver el aviso de "Sitio no reconocido".
+    const PLAT_LINK = { ceneka: 'https://ceneka.net', youtube: 'https://www.youtube.com', twitch: 'https://www.twitch.tv', kick: 'https://kick.com' };
+    const UNKNOWN_LINK = 'https://premios-gratis.example.com/reclamar';
     const linkPhrases = [
-        l => `Mirá este video: ${l}`,
-        l => `Che, fijate esto ${l} y decime qué opinás`,
+        l => `Mirá esto: ${l}`,
+        l => `Che, fijate ${l} y decime qué opinás`,
         l => `${l} <- pasalo en el directo!`,
         l => `Te dejo esto: ${l}. Abrazo!`
     ];
 
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-    function randomSampleLink() {
-        const r = Math.random();
-        const group = r < 0.55 ? 'known' : (r < 0.8 ? 'unknown' : 'shortener');
-        return pick(sampleLinks[group]);
+    function testLinkFor(k, allowUnknown) { return allowUnknown && Math.random() < 0.15 ? UNKNOWN_LINK : (PLAT_LINK[k] || PLAT_LINK.youtube); }
+    function testCurrency(k) { return k === 'twitch' ? 'BITS' : k === 'kick' ? 'KICKS' : 'ARS'; }
+    function testBigAmount(k) {
+        if (k === 'twitch' || k === 'kick') return 10000;
+        const min = parseFloat(state.settings.bigSoundMin) || 10000;
+        return Math.max(50000, Math.ceil(min * 1.5 / 1000) * 1000);
     }
+    function testNormalAmount(k) { return k === 'twitch' ? 500 : k === 'kick' ? 1000 : 1500; }
 
     const SIM_AMOUNTS = {
         twitch: { currency: 'BITS', amounts: [100, 300, 500, 1000, 2500, 5000] },
         kick:   { currency: 'KICKS', amounts: [100, 250, 500, 1000, 5000] }
     };
+    const SIM_BIG_SHARE = { few: 0.04, normal: 0.12, many: 0.35 };
+    function simPlatformList() {
+        const sel = (state.settings.simPlatforms || []).filter(k => PLATFORM_KEYS.includes(k));
+        return sel.length ? sel : testPlatforms();
+    }
 
     function generateSampleDonation() {
-        const platform = pick(testPlatforms());
+        const platform = pick(simPlatformList());
         const nick = pick(sampleNames);
         const sim = SIM_AMOUNTS[platform];
         const currency = sim ? sim.currency : 'ARS';
-        const amount = sim ? pick(sim.amounts) : pick(sampleAmounts);
-
-        // ~45% de las donaciones de prueba traen un link (a veces dos)
-        let msg = pick(sampleMessages);
-        const r = Math.random();
-        if (r < 0.35) {
-            msg = pick(linkPhrases)(randomSampleLink());
-        } else if (r < 0.45) {
-            msg = `${pick(linkPhrases)(randomSampleLink())} Y también ${randomSampleLink()}`;
+        const big = Math.random() < (SIM_BIG_SHARE[state.settings.simBig] || SIM_BIG_SHARE.normal);
+        let amount;
+        if (big) amount = testBigAmount(platform);
+        else if (sim) amount = pick(sim.amounts);
+        else {
+            // Las "comunes" no llegan al monto del sonido especial (así "Pocas" es de verdad pocas)
+            const min = parseFloat(state.settings.bigSoundMin) || 0;
+            const normal = min > 0 ? sampleAmounts.filter(a => a < min) : sampleAmounts;
+            amount = pick(normal.length ? normal : sampleAmounts);
         }
 
-        addDonation({
-            platform: platform,
-            nick: nick,
-            amount: amount,
-            currency: currency,
-            message: msg,
-            isTest: true
-        });
+        // ~35% de las donaciones de prueba traen un link (si está activado)
+        let msg = pick(sampleMessages);
+        if (state.settings.simLinks !== false && Math.random() < 0.35) msg = pick(linkPhrases)(testLinkFor(platform, true));
+
+        addDonation({ platform, nick, amount, currency, message: msg, isTest: true });
     }
 
     // --- Ventana de confirmación con el estilo de la app (en vez de la del navegador) ---
@@ -4428,11 +4419,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     function goalDonations() {
         const start = state.settings.goalStart || 0;
-        return state.donations.filter(d => !d.isTest && d.timestamp >= start);
+        // Las pruebas también suman (para poder probar la meta); al borrarse, la meta vuelve sola a lo real
+        return state.donations.filter(d => d.timestamp >= start);
     }
 
     function goalState() {
-        const sum = summarize(goalDonations());
+        const gl = goalDonations();
+        const sum = summarize(gl);
         const target = parseFloat(state.settings.goalTarget) || 0;
         const current = sum.ars;
         const percent = target > 0 ? Math.floor((current / target) * 100) : 0;
@@ -4443,7 +4436,8 @@ document.addEventListener('DOMContentLoaded', () => {
             target: target,
             percent: percent,
             currentText: formatARS(current),
-            targetText: formatARS(target)
+            targetText: formatARS(target),
+            hasTests: gl.some(d => d.isTest)
         };
     }
 
@@ -4454,7 +4448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar) {
             bar.classList.toggle('hidden', !g.enabled);
             if (g.enabled) {
-                document.getElementById('goal-title').textContent = g.title;
+                document.getElementById('goal-title').textContent = g.hasTests ? g.title + ' ' + T('(incluye pruebas)') : g.title;
                 document.getElementById('goal-numbers').textContent = `${g.currentText} / ${g.targetText}`;
                 document.getElementById('goal-percent').textContent = `${g.percent}%`;
                 document.getElementById('goal-fill').style.width = Math.min(100, g.percent) + '%';
@@ -4598,19 +4592,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================================
     // PRUEBA DE ALERTAS
     // ==========================================================================
-    const TEST_SAMPLES = {
-        ceneka:  { nick: 'Prueba Ceneka',  amount: 1500, currency: 'ARS',   message: 'Esta es una donación de prueba. Si la ves y la escuchás, todo funciona. Link de prueba: youtube.com/watch?v=dQw4w9WgXcQ' },
-        youtube: { nick: 'Prueba YouTube', amount: 5,    currency: 'USD',   formattedAmount: 'US$5.00', message: 'Super Chat de prueba.' },
-        twitch:  { nick: 'Prueba Twitch',  amount: 500,  currency: 'BITS',  message: 'Bits de prueba.' },
-        kick:    { nick: 'Prueba Kick',    amount: 1000, currency: 'KICKS', message: 'KICKs de prueba.' }
+    const TEST_MSGS = {
+        short: '¡Hola! Esta es una donación de prueba 👋',
+        long: 'Esta es una donación de prueba con un mensaje largo, para ver cómo entra en la tarjeta cuando alguien escribe mucho: saludos a todo el chat, gracias por el directo de hoy y seguí así, que está buenísimo. ¡Abrazo grande!'
     };
+    function segVal(id, def) { const g = document.getElementById(id); return (g && g.dataset.v) || def; }
 
-    function sendTestAlerts() {
+    // "Prueba a medida": plataforma, monto, mensaje y nick elegidos en Configuración → Pruebas
+    function sendCustomTest() {
+        const plat = segVal('test-plat-seg', 'all');
+        const list = plat === 'all' ? testPlatforms() : [plat];
+        const am = segVal('test-amount-seg', 'normal');
+        const mv = segVal('test-msg-seg', 'short');
+        const custom = parseFloat($('test-amount').value);
+        if (am === 'custom' && !(custom > 0)) { $('test-amount').focus(); showToast('Escribí el monto de la prueba', 'info'); return; }
+        const nick = $('test-nick').value.trim() || T('Donante de prueba');
         initAudioContext();
-        testPlatforms().forEach((k, i) => {
-            const smp = TEST_SAMPLES[k];
-            setTimeout(() => addDonation({ platform: k, ...smp, nick: T(smp.nick), message: T(smp.message), isTest: true }), i * 1500);
-        });
+        list.forEach((k, i) => setTimeout(() => {
+            const amount = am === 'big' ? testBigAmount(k) : am === 'custom' ? custom : testNormalAmount(k);
+            const message = mv === 'link' ? T('Mirá esto:') + ' ' + testLinkFor(k, false) : mv === 'none' ? '' : T(TEST_MSGS[mv] || TEST_MSGS.short);
+            addDonation({ platform: k, nick, amount, currency: testCurrency(k), message, isTest: true });
+        }, i * 1500));
+        try { localStorage.setItem('sd_quicktest_done', '1'); } catch (e) {}
+        showToast(list.length > 1 ? T('Mandando una prueba por plataforma') + ` (${list.length})` : T('Prueba enviada'), 'success');
+    }
+
+    // El mismo donante 3 veces seguidas: se ve subir el acumulado y aparecer el rango
+    function sendRepeatTest() {
+        const k = testPlatforms()[0];
+        const nick = T('Donante frecuente');
+        initAudioContext();
+        [1, 2, 3].forEach(i => setTimeout(() => addDonation({ platform: k, nick, amount: testNormalAmount(k), currency: testCurrency(k), message: T('Donación de prueba') + ` ${i}/3`, isTest: true }), (i - 1) * 1500));
+    }
+
+    // Suma lo que falta para completar la meta (es una prueba: al leerla o borrarla, la meta vuelve a como estaba)
+    function sendGoalTest() {
+        const g = goalState();
+        if (!g.enabled) { showToast('Primero activá la meta y poné un objetivo (en Meta)', 'info'); return; }
+        const rest = Math.ceil(g.target - g.current);
+        if (rest <= 0) { showToast('La meta ya está completa', 'info'); return; }
+        const k = testPlatforms().find(x => x === 'ceneka' || x === 'youtube') || 'ceneka';
+        initAudioContext();
+        addDonation({ platform: k, nick: T('Donante de prueba'), amount: rest, currency: 'ARS', message: T('¡Completando la meta de prueba!'), isTest: true });
     }
 
     // ==========================================================================
@@ -4873,6 +4896,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-goal-reset-session').checked = !!st.goalResetOnSession;
         $('cfg-auto-save-db').checked = st.autoSaveDb !== false;
         $('cfg-sim-speed').value = st.simSpeed || 10;
+        document.querySelectorAll('#sim-plat-chips input').forEach(i => { i.checked = (st.simPlatforms || []).includes(i.value); });
+        $('cfg-sim-links').checked = st.simLinks !== false;
+        segSet('sim-big-seg', st.simBig, ['few', 'normal', 'many'], 'normal');
         if (els.cfgToggleSim) els.cfgToggleSim.checked = state.isSimulating;
         updateTestCount();
         updateGoalFieldsState();
@@ -5149,6 +5175,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         st.autoSaveDb = $('cfg-auto-save-db').checked;
         st.simSpeed = Math.min(30, Math.max(1, parseFloat($('cfg-sim-speed').value) || 10));
+        st.simPlatforms = Array.from(document.querySelectorAll('#sim-plat-chips input:checked')).map(i => i.value);
+        st.simLinks = $('cfg-sim-links').checked;
+        st.simBig = segVal('sim-big-seg', 'normal');
 
         if (st.goalEnabled && !st.goalTarget) {
             switchSettingsPane('meta');
@@ -5241,7 +5270,23 @@ document.addEventListener('DOMContentLoaded', () => {
             input.type = input.type === 'password' ? 'text' : 'password';
             $('btn-toggle-token').innerHTML = input.type === 'password' ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
         });
-        $('btn-test-alerts').addEventListener('click', sendTestAlerts);
+        $('btn-test-send').addEventListener('click', sendCustomTest);
+        $('btn-test-repeat').addEventListener('click', sendRepeatTest);
+        $('btn-test-goal').addEventListener('click', sendGoalTest);
+        // Opciones de la prueba a medida (no son configuración: no hace falta guardar)
+        segSet('test-plat-seg', 'all', ['all', 'ceneka', 'youtube', 'twitch', 'kick'], 'all');
+        segSet('test-amount-seg', 'normal', ['normal', 'big', 'custom'], 'normal');
+        segSet('test-msg-seg', 'short', ['short', 'long', 'link', 'none'], 'short');
+        ['test-plat-seg', 'test-amount-seg', 'test-msg-seg'].forEach(id => $(id).addEventListener('click', (e) => {
+            const b = e.target.closest('button[data-v]'); if (!b) return;
+            segSet(id, b.dataset.v, Array.from($(id).querySelectorAll('button')).map(x => x.dataset.v), b.dataset.v);
+            if (id === 'test-amount-seg') { $('test-amount').classList.toggle('hidden', b.dataset.v !== 'custom'); if (b.dataset.v === 'custom') $('test-amount').focus(); }
+        }));
+        $('sim-big-seg').addEventListener('click', (e) => {
+            const b = e.target.closest('button[data-v]'); if (!b) return;
+            segSet('sim-big-seg', b.dataset.v, ['few', 'normal', 'many'], 'normal'); setSettingsDirty(true);
+        });
+        document.querySelectorAll('#sim-plat-chips input, #cfg-sim-links').forEach(i => i.addEventListener('change', () => setSettingsDirty(true)));
         $('btn-clear-tests').addEventListener('click', () => {
             const n = clearTestDonations();
             showToast(n ? `Se borraron ${n} donaciones de prueba` : 'No hay donaciones de prueba', 'info');
@@ -7953,7 +7998,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- Modo experto ----
     var EXIT_TYPES = ['fade', 'dissolve', 'explode', 'back', 'slide', 'fall', 'spin', 'burn', 'pixel', 'float'];
-    const ADV_PANES = ['pantalla', 'filtros', 'datos', 'pruebas', 'reset'];
+    const ADV_PANES = ['pantalla', 'filtros', 'datos', 'reset'];
     const ADV_IDS = ['cfg-panel-card-color', 'cfg-panel-card-alpha', 'cfg-panel-pstyle', 'cfg-panel-head',
         'cfg-obs-card-color', 'cfg-obs-card-alpha', 'cfg-obs-textshadow', 'cfg-obs-hide-message', 'cfg-obs-accum',
         'cfg-obs-bg-front', 'cfg-big-sound-enabled'];
