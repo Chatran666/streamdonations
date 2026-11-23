@@ -1,3 +1,11 @@
+Novedades de la 2.10.0:
+- Revisión completa de legibilidad: en los 20 diseños, con todos los temas, plataformas y montos, todo el texto se lee bien (también sobre video claro y con el tema claro).
+- Si elegís un color de tarjeta claro, la letra cambia sola a oscura (y al revés).
+- El acumulado ahora es una pastilla dorada que se lee en cualquier diseño.
+- Subtítulo: el texto tiene contorno, se lee sobre cualquier imagen.
+- Nicks y mensajes raros (emojis, letras con muchas tildes, texto al revés, nick vacío) ya no desarman las tarjetas.
+- Corrección de errores y mejoras.
+
 Novedades de la 2.9.22:
 - Configuración tiene su propia X arriba a la derecha para cerrar el menú.
 - Si tocás la X de Windows con Configuración abierta o en pleno directo, la app pregunta antes de cerrarse (Cancelar, minimizar a la bandeja o cerrar).
