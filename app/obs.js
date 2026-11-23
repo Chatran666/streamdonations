@@ -16,6 +16,13 @@
                 }).observe(c);
             });
         }
+        // Primera letra para la foto (bien aunque el nick empiece con un emoji)
+        function firstGrapheme(t) {
+            t = String(t || '').trim();
+            if (!t) return 'A';
+            try { if (window.Intl && Intl.Segmenter) { const it = new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(t)[Symbol.iterator]().next(); if (it.value) return it.value.segment.toUpperCase(); } } catch (e) {}
+            return Array.from(t)[0].toUpperCase();
+        }
         const fromPanel = (e) => e.__sdWs === true || (!!window.opener && e.source === window.opener) || (PREVIEW && e.source === window.parent);
 
         // ---- Modo transparente real: esta página está dentro de OBS (fuente de navegador) y recibe todo por obs-websocket ----
@@ -235,7 +242,7 @@
             
             const avatarHTML = d.avatar 
                 ? '<img src="' + d.avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">' 
-                : escapeHTML(d.nick ? String(d.nick).charAt(0).toUpperCase() : 'A');
+                : escapeHTML(firstGrapheme(d.nick));
 
             const platformLabel = ({ youtube: 'YouTube', twitch: 'Twitch', kick: 'Kick' })[d.platform] || 'Ceneka';
             const amtColor = /^#[0-9a-fA-F]{6}$/.test(d.amtColor || '') ? d.amtColor : '';

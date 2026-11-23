@@ -22,7 +22,7 @@
 :root[data-pdesign="burbuja"] .donation-card { margin-left: 46px; border-radius: 16px 16px 16px 4px; border: 1px solid rgba(var(--pcur-rgb), 0.55); }
 :root[data-pdesign="burbuja"] .donation-card::before { display: none; }
 :root[data-pdesign="burbuja"] .donor-avatar { position: absolute; left: -46px; bottom: 0; border: 2px solid rgb(var(--pcur-rgb)); }
-:root[data-pdesign="burbuja"] .donor-nick-text { color: rgb(var(--pcur-rgb)); }
+:root[data-pdesign="burbuja"] .donor-nick-text { color: var(--pcur-text, rgb(var(--pcur-rgb))); }
 :root[data-pdesign="burbuja"] .card-message { background: none; border: none; padding: 0 2px; }
 
 /* ===== Neón: esquinas cortadas y brillo ===== */
@@ -31,7 +31,7 @@
     box-shadow: inset 0 0 0 2px rgba(var(--pcur-rgb), 0.9), inset 0 0 18px rgba(var(--pcur-rgb), 0.35); }
 :root[data-pdesign="neon"] .donation-card::before { display: none; }
 :root[data-pdesign="neon"] .donation-card.is-read { box-shadow: inset 0 0 0 1px rgba(var(--pcur-rgb), 0.4); }
-:root[data-pdesign="neon"] .donor-nick-text { text-transform: uppercase; letter-spacing: 0.05em; color: rgb(var(--pcur-rgb)); text-shadow: 0 0 6px rgba(var(--pcur-rgb), 0.7); }
+:root[data-pdesign="neon"] .donor-nick-text { text-transform: uppercase; letter-spacing: 0.05em; color: var(--pcur-text, rgb(var(--pcur-rgb))); text-shadow: 0 0 6px rgba(var(--pcur-rgb), 0.7); }
 :root[data-pdesign="neon"] .card-message { border-radius: 0; }
 
 /* ===== Cristal: vidrio translúcido ===== */
@@ -51,13 +51,13 @@
 :root[data-pdesign="subtitulo"] .donation-card::before { display: none; }
 :root[data-pdesign="subtitulo"] .donation-card:hover { background: rgba(var(--ink-rgb), 0.04); transform: none; }
 :root[data-pdesign="subtitulo"] .donor-avatar { display: none; }
-:root[data-pdesign="subtitulo"] .donor-nick-text { color: rgb(var(--pcur-rgb)); }
+:root[data-pdesign="subtitulo"] .donor-nick-text { color: var(--pcur-text, rgb(var(--pcur-rgb))); }
 :root[data-pdesign="subtitulo"] .card-message { background: none; border: none; padding: 0; font-size: 1.05em; font-weight: 600; }
 
 /* ===== Franja: zócalo con el nick en una franja de color ===== */
 :root[data-pdesign="franja"] .donation-card { padding: 0 0 10px; border: none; border-left: 6px solid rgb(var(--pcur-rgb)); border-radius: 0 10px 10px 0; overflow: hidden; }
 :root[data-pdesign="franja"] .donation-card::before { display: none; }
-:root[data-pdesign="franja"] .card-header { background: linear-gradient(90deg, rgba(var(--pcur-rgb), 0.85), rgba(var(--pcur-rgb), 0.35)); padding: 7px 12px; }
+:root[data-pdesign="franja"] .card-header { background: linear-gradient(90deg, var(--pcur-solid, rgb(var(--pcur-rgb))), color-mix(in srgb, var(--pcur-solid, rgb(var(--pcur-rgb))) 80%, #000)); padding: 7px 12px; }
 :root[data-pdesign="franja"] .donor-nick-text { color: var(--pcur-ink); text-transform: uppercase; letter-spacing: 0.03em; }
 :root[data-pdesign="franja"] .timestamp { color: var(--pcur-ink); opacity: 0.8; }
 :root[data-pdesign="franja"] .card-message { background: none; border: none; margin: 0 12px; padding: 0; }
@@ -67,7 +67,7 @@
     box-shadow: 0 -3px 0 0 rgb(var(--pcur-rgb)), 0 3px 0 0 rgb(var(--pcur-rgb)), -3px 0 0 0 rgb(var(--pcur-rgb)), 3px 0 0 0 rgb(var(--pcur-rgb)), 7px 8px 0 0 rgba(0, 0, 0, 0.35); }
 :root[data-pdesign="pixel"] .donation-card::before { display: none; }
 :root[data-pdesign="pixel"] .donation-card, :root[data-pdesign="pixel"] .donation-card *:not(i):not(.fa-solid):not(.fa-brands):not(.fa-regular) { font-family: 'JetBrains Mono', 'Consolas', monospace; }
-:root[data-pdesign="pixel"] .donor-nick-text { text-transform: uppercase; letter-spacing: 0.06em; color: rgb(var(--pcur-rgb)); }
+:root[data-pdesign="pixel"] .donor-nick-text { text-transform: uppercase; letter-spacing: 0.06em; color: var(--pcur-text, rgb(var(--pcur-rgb))); }
 :root[data-pdesign="pixel"] .amount-badge { background: rgb(var(--pcur-rgb)) !important; color: #0B0B12 !important; border: none !important; border-radius: 0 !important; box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5); }
 :root[data-pdesign="pixel"] .donor-avatar { border-radius: 0; box-shadow: 0 0 0 2px rgb(var(--pcur-rgb)); }
 :root[data-pdesign="pixel"] .card-message { border-radius: 0; border: none; box-shadow: inset 0 0 0 2px rgba(var(--ink-rgb), 0.12); }
@@ -81,7 +81,7 @@
 :root[data-pdesign="hud"] .donation-card::before { display: block; width: auto; height: auto; inset: 5px; border-radius: 0; opacity: 1; pointer-events: none;
     background: linear-gradient(rgb(var(--pcur-rgb)), rgb(var(--pcur-rgb))) top left / 14px 2px no-repeat, linear-gradient(rgb(var(--pcur-rgb)), rgb(var(--pcur-rgb))) top left / 2px 14px no-repeat,
         linear-gradient(rgb(var(--pcur-rgb)), rgb(var(--pcur-rgb))) bottom right / 14px 2px no-repeat, linear-gradient(rgb(var(--pcur-rgb)), rgb(var(--pcur-rgb))) bottom right / 2px 14px no-repeat !important; }
-:root[data-pdesign="hud"] .donor-nick-text { text-transform: uppercase; letter-spacing: 0.1em; color: rgb(var(--pcur-rgb)); }
+:root[data-pdesign="hud"] .donor-nick-text { text-transform: uppercase; letter-spacing: 0.1em; color: var(--pcur-text, rgb(var(--pcur-rgb))); }
 :root[data-pdesign="hud"] .amount-badge { border: none !important; border-radius: 0 !important; background: rgba(var(--pcur-rgb), 0.2) !important; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); padding-left: 12px; padding-right: 12px; }
 :root[data-pdesign="hud"] .card-message { border-radius: 0; border: none; border-left: 2px solid rgb(var(--pcur-rgb)); background: linear-gradient(90deg, rgba(var(--pcur-rgb), 0.1), transparent 80%); }
 :root[data-pdesign="hud"] .donor-avatar { border-radius: 4px; clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); }
@@ -102,7 +102,7 @@
 :root[data-pdesign="sticker"] .donation-card::after { content: '' !important; display: block !important; position: absolute; inset: auto -4px -4px auto !important; width: 30px !important; height: 30px !important;
     border: none !important; border-radius: 6px 0 0 0 !important; opacity: 1 !important; animation: none !important; pointer-events: none; z-index: 3;
     background: linear-gradient(to top left, transparent calc(50% - 0.5px), rgba(0, 0, 0, 0.35) 50%, #EDEDED calc(50% + 2px), #FFFFFF 75%, #DCDCDC 100%) !important; -webkit-mask: none !important; mask: none !important; }
-:root[data-pdesign="sticker"] .donor-nick-text { color: rgb(var(--pcur-rgb)); font-weight: 900; }
+:root[data-pdesign="sticker"] .donor-nick-text { color: var(--pcur-text, rgb(var(--pcur-rgb))); font-weight: 900; }
 :root[data-pdesign="sticker"] .card-actions, :root[data-pdesign="sticker"] .btn-card-action { margin-right: 6px; }
 
 /* ===== Nota: papelito amarillo pegado con cinta ===== */

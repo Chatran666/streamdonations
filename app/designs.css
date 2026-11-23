@@ -96,7 +96,7 @@
 /* ===================== FRANJA (zócalo de tele) ===================== */
 :root[data-design="franja"] .obs-alert { border: none; border-left: 8px solid var(--cur); border-radius: 0 10px 10px 0; padding: 0 0 12px; gap: 10px;
     background: linear-gradient(90deg, rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), var(--obs-card-alpha, 0.96)), rgba(var(--obs-card-rgb, var(--obs-bg-rgb)), calc(var(--obs-card-alpha, 0.96) * 0.85))); }
-:root[data-design="franja"] .obs-header { background: linear-gradient(90deg, var(--cur), rgba(var(--cur-rgb), 0.55)); padding: 8px 14px; }
+:root[data-design="franja"] .obs-header { background: linear-gradient(90deg, var(--cur-solid, var(--cur)), color-mix(in srgb, var(--cur-solid, var(--cur)) 70%, #000)); padding: 8px 14px; }
 :root[data-design="franja"] .obs-nick, :root[data-design="franja"] .obs-nick > span:first-child { color: var(--cur-ink); text-transform: uppercase; letter-spacing: 0.04em; }
 :root[data-design="franja"] .obs-amount { background: #fff !important; color: #111827; border: none !important; border-radius: 4px !important; }
 :root[data-design="franja"] .obs-amount.has-amt-color { background: #fff !important; }
@@ -219,7 +219,7 @@
 
 /* Etiqueta de la plataforma: bloque de color sólido con su logo, se lee igual sobre cualquier diseño y fondo */
 :root .obs-alert .obs-tag { display: inline-flex; align-items: center; gap: 4px; font-size: calc(0.66rem * var(--obs-head-scale, 0.75) / 0.75); padding: 3px 9px; border-radius: 5px;
-    background: var(--cur) !important; color: var(--cur-ink) !important; border: none !important; text-shadow: none !important; letter-spacing: 0.04em;
+    background: var(--cur-solid, var(--cur)) !important; color: var(--cur-ink) !important; border: none !important; text-shadow: none !important; letter-spacing: 0.04em;
     /* Borde negro de 1 px: se despega del fondo aunque la tarjeta sea del mismo color */
     box-shadow: 0 0 0 1px #000, 0 1px 3px rgba(0, 0, 0, 0.35); }
 :root .obs-alert .obs-tag i { font-size: 1.1em; }
@@ -291,7 +291,7 @@
 @keyframes glitchScan { 0%, 55% { background-position: 0 150%; } 100% { background-position: 0 -150%; } }
 :root[data-design="glitch"] .obs-nick > span:first-child { color: #fff; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; text-shadow: 2px 0 #00F0FF, -2px 0 #FF2BD6 !important; animation: glitchJit 2.8s steps(1) infinite; display: inline-block; }
 @keyframes glitchJit { 0%, 91%, 100% { transform: none; } 92% { transform: translateX(-3px) skewX(-8deg); } 94% { transform: translateX(3px); } 96% { transform: translateX(-1px) skewX(6deg); } }
-:root[data-design="glitch"] .obs-amount { background: var(--cur) !important; color: var(--cur-ink) !important; border: none !important; border-radius: 0 !important; transform: skewX(-8deg); text-shadow: none !important; font-weight: 800; }
+:root[data-design="glitch"] .obs-amount { background: var(--cur-solid, var(--cur)) !important; color: var(--cur-ink) !important; border: none !important; border-radius: 0 !important; transform: skewX(-8deg); text-shadow: none !important; font-weight: 800; }
 :root[data-design="glitch"] .obs-amount.has-amt-color { background: var(--amt-color) !important; color: #0B0B12 !important; }
 :root[data-design="glitch"] .obs-msg { background: rgba(255, 255, 255, 0.05); border: none; border-left: 3px solid #00F0FF; border-radius: 0; }
 :root[data-design="glitch"] .obs-avatar { border-radius: 0 !important; box-shadow: -2px 0 0 #00F0FF, 2px 0 0 #FF2BD6; }
@@ -316,7 +316,7 @@
 :root[data-design="comic"] .obs-alert::before { content: ''; position: absolute; right: 0; top: 0; width: 55%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.5;
     background: radial-gradient(circle, var(--cur) 2.2px, transparent 2.6px) 0 0 / 11px 11px; -webkit-mask-image: linear-gradient(250deg, #000, transparent 70%); mask-image: linear-gradient(250deg, #000, transparent 70%); }
 :root[data-design="comic"] .obs-header, :root[data-design="comic"] .obs-msg { position: relative; z-index: 1; }
-:root[data-design="comic"] .obs-nick > span:first-child { background: var(--cur); color: var(--cur-ink); border: 3px solid #111; padding: 1px 10px; transform: rotate(-2deg); display: inline-block; text-transform: uppercase; font-weight: 900; letter-spacing: 0.03em; }
+:root[data-design="comic"] .obs-nick > span:first-child { background: var(--cur-solid, var(--cur)); color: var(--cur-ink); border: 3px solid #111; padding: 1px 10px; transform: rotate(-2deg); display: inline-block; text-transform: uppercase; font-weight: 900; letter-spacing: 0.03em; }
 :root[data-design="comic"] .obs-amount { background: #FFE600 !important; color: #111 !important; border: 3px solid #111 !important; border-radius: 8px !important; transform: rotate(3deg); font-weight: 900; box-shadow: 3px 3px 0 #111; }
 :root[data-design="comic"] .obs-amount.has-amt-color { background: var(--amt-color) !important; }
 :root[data-design="comic"] .obs-msg { background: none; border: none; color: var(--obs-text-custom, #111); font-weight: 700; padding: 2px 0 0; }
@@ -328,7 +328,7 @@
 :root[data-design="capsula"] .obs-alert { --obs-text: var(--obs-text-custom, #1B1B2A); padding: 0; gap: 0; border: 4px solid #FFFFFF; border-radius: 34px; backdrop-filter: none; background: #FFFFFF;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.25); outline: 1px solid rgba(0, 0, 0, 0.8); }
 :root[data-design="capsula"] .obs-alert * { text-shadow: none !important; }
-:root[data-design="capsula"] .obs-header { background: linear-gradient(180deg, color-mix(in srgb, var(--cur) 82%, #fff), var(--cur)); padding: 13px 20px; position: relative; }
+:root[data-design="capsula"] .obs-header { background: linear-gradient(180deg, color-mix(in srgb, var(--cur-solid, var(--cur)) 88%, #fff), var(--cur-solid, var(--cur))); padding: 13px 20px; position: relative; }
 :root[data-design="capsula"] .obs-header::after { content: ''; position: absolute; left: 22px; right: 40%; top: 6px; height: 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.4); pointer-events: none; }
 :root[data-design="capsula"] .obs-nick, :root[data-design="capsula"] .obs-nick > span:first-child { color: var(--cur-ink); font-weight: 800; }
 :root[data-design="capsula"] .obs-amount { background: #fff !important; color: #1B1B2A !important; border: none !important; border-radius: 999px !important; font-weight: 800; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25); }
@@ -454,3 +454,31 @@
 /* Zócalo sin mensaje: igual se ve la franja azul (antes quedaban el nick y la etiqueta flotando) */
 :root[data-design="zocalo"] .obs-alert.no-msg::after { content: ''; grid-area: msg; align-self: stretch; min-height: calc(30px * var(--obs-scale)); position: relative; z-index: 1;
     background: rgba(var(--obs-card-rgb, 11, 79, 179), var(--obs-card-alpha, 0.96)); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4); outline: 1px solid rgba(0, 0, 0, 0.6); }
+
+/* ===================== 2.9.23: legibilidad en todas las combinaciones ===================== */
+/* Fondo "macizo" del color de la plataforma cuando lleva letra blanca encima (YouTube y Twitch): un poco más oscuro, para que se lea */
+.obs-alert.youtube, .obs-alert.twitch { --cur-solid: color-mix(in srgb, var(--cur) 82%, #000); }
+/* Franja: la inicial de la foto con el color de letra de la franja (en Kick era blanco sobre verde claro) */
+:root[data-design="franja"] .obs-avatar { color: var(--cur-ink); }
+/* Subtítulo (sin tarjeta, sobre el video): contorno oscuro en todo el texto, para leerse sobre cualquier imagen, también clara */
+:root[data-design="subtitulo"] .obs-alert, :root[data-design="subtitulo"] .obs-alert * {
+    text-shadow: 1px 1px 0 rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.95), -1px -1px 0 rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.95), 1px -1px 0 rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.95), -1px 1px 0 rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.95),
+                 0 0 3px rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.95), 0 2px 8px rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.8) !important; }
+:root[data-design="subtitulo"] .obs-nick > span:first-child { color: color-mix(in srgb, var(--cur) 70%, #fff); }
+/* Acumulado: pastilla oscura con letra dorada, se lee sobre cualquier tarjeta o sobre el video */
+.obs-accum { background: rgba(17, 17, 17, 0.82); border-color: rgba(246, 199, 68, 0.7); color: #F6C744; }
+/* Nick del color de la plataforma sobre tarjeta oscura: el violeta de Twitch, un poco más claro para que se lea */
+.obs-alert.twitch { --cur-text: color-mix(in srgb, var(--cur) 72%, #fff); }
+:root[data-design="burbuja"] .obs-nick > span:first-child, :root[data-design="neon"] .obs-nick > span:first-child,
+:root[data-design="pixel"] .obs-nick > span:first-child, :root[data-design="hud"] .obs-nick > span:first-child,
+:root[data-design="sticker"] .obs-nick > span:first-child { color: var(--cur-text, var(--cur)); }
+/* Subtítulo: la etiqueta de plataforma ya tiene su fondo, sin contorno */
+:root[data-design="subtitulo"] .obs-alert .obs-tag, :root[data-design="subtitulo"] .obs-alert .obs-tag * { text-shadow: none !important; }
+/* Tema claro: lo que va en el color de la plataforma (nick, etc.) pasa a un tono oscuro de ese color
+   (si no, el verde de Kick o el amarillo de Ceneka sobre blanco no se ven) */
+:root[data-mode="light"] .obs-alert { --cur-text: color-mix(in srgb, var(--cur) 55%, #000); }
+:root[data-mode="light"][data-design="subtitulo"] .obs-nick > span:first-child { color: var(--cur-text); }
+:root[data-mode="light"][data-design="barra"] .amt-split small { color: #8A6300; }
+:root[data-mode="light"][data-design="cristal"] .obs-amount { background: rgba(255, 255, 255, 0.7) !important; border-color: rgba(15, 23, 42, 0.18) !important; }
+:root[data-mode="light"][data-design="franja"] .obs-avatar, :root[data-mode="light"][data-design="capsula"] .obs-avatar { color: var(--cur-ink) !important; }
+:root[data-design="subtitulo"] .obs-alert .obs-accum, :root[data-design="subtitulo"] .obs-alert .rank-name { text-shadow: none !important; }

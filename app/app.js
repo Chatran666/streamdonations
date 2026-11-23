@@ -13,6 +13,21 @@ document.addEventListener('DOMContentLoaded', () => {
     try { HAD_SETTINGS = localStorage.getItem('streamdonations_settings') !== null; } catch (e) {}
     // Limpia una donación que viene de afuera (archivos importados, editor JSON, historial guardado)
     // para que ningún campo pueda meter código en la página.
+    // Texto que manda un donante: sin caracteres que den vuelta el texto (RLO y similares), sin "zalgo" infinito
+    // (letras con decenas de tildes apiladas: se dejan 2 como máximo) y sin espacios de sobra en los bordes
+    function cleanDonorText(v) {
+        return String(v == null ? '' : v)
+            .replace(/[\u202A-\u202E\u2066-\u2069\u200E\u200F\u061C]/g, '')
+            .replace(/([\u0300-\u036F\u0483-\u0489\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF\uFE20-\uFE2F]{2})[\u0300-\u036F\u0483-\u0489\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF\uFE20-\uFE2F]+/g, '$1')
+            .trim();
+    }
+    // Primera letra para la foto (bien aunque empiece con un emoji o una letra compuesta)
+    function firstGrapheme(t) {
+        t = String(t || '').trim();
+        if (!t) return 'A';
+        try { if (window.Intl && Intl.Segmenter) { const it = new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(t)[Symbol.iterator]().next(); if (it.value) return it.value.segment.toUpperCase(); } } catch (e) {}
+        return Array.from(t)[0].toUpperCase();
+    }
     function safeDonation(d) {
         d = d && typeof d === 'object' ? d : {};
         const str = (v, max) => String(v == null ? '' : v).slice(0, max);
@@ -22,11 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             id,
             platform: ['ceneka', 'youtube', 'twitch', 'kick'].includes(d.platform) ? d.platform : 'ceneka',
-            nick: str(d.nick, 80) || 'Anónimo',
+            nick: cleanDonorText(str(d.nick, 80)) || 'Anónimo',
             amount,
             currency: str(d.currency, 10).replace(/[^A-Za-z]/g, '').toUpperCase() || 'ARS',
             formattedAmount: str(d.formattedAmount, 40).replace(/[<>&"'`]/g, ''),
-            message: str(d.message, 2000),
+            message: cleanDonorText(str(d.message, 2000)),
             timestamp: Number(d.timestamp) || Date.now(),
             isRead: !!d.isRead,
             tier: str(d.tier, 40).replace(/[^A-Za-z0-9-]/g, ''),
@@ -1744,7 +1759,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-header">
                     <div class="donor-info">
                         <div class="donor-avatar">
-                            ${item.avatar ? `<img src="${item.avatar}" alt="">` : escapeHTML(panelNick(item.nick).charAt(0).toUpperCase())}
+                            ${item.avatar ? `<img src="${item.avatar}" alt="">` : escapeHTML(firstGrapheme(panelNick(item.nick)))}
                         </div>
                         <div class="donor-meta">
                             <div class="donor-nick">
@@ -2456,7 +2471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         els.focusAvatar.innerHTML = item.avatar 
             ? `<img src="${item.avatar}" style="width:100%;height:100%;border-radius:50%">` 
-            : escapeHTML(panelNick(item.nick).charAt(0).toUpperCase());
+            : escapeHTML(firstGrapheme(panelNick(item.nick)));
 
         const pInfo = platformInfo(item.platform);
         els.focusPlatformTag.className = `platform-tag ${platformKey(item.platform)}`;
@@ -6285,6 +6300,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!OBS_DESIGNS.some(d => d.k === k)) k = 'tarjeta';
         if (k === 'tarjeta') delete document.documentElement.dataset.pdesign;
         else document.documentElement.dataset.pdesign = k;
+        try { applyPanelCard(lastPanelCardInput); } catch (e) {}
         return k;
     }
     // ---- Selector visual de diseños: tarjetitas con un dibujo de cada diseño, de a 5 y con flechas ----
@@ -6343,9 +6359,19 @@ document.addEventListener('DOMContentLoaded', () => {
             alpha: $('cfg-panel-card-auto').checked ? -1 : parseInt($('cfg-panel-card-alpha').value, 10)
         };
     }
+    // Diseños con colores propios fijos (papel, negro, holográfico…): no usan el color de tarjeta elegido a mano,
+    // así que tampoco se cambia el color de la letra (si no, quedaría letra oscura sobre tarjeta negra, o al revés)
+    const PANEL_FIXED_COLORS = ['postit', 'pastel', 'mono', 'glitch', 'comic', 'capsula', 'holo'];
+    var lastPanelCardInput = null;
     function applyPanelCard(c) {
+        lastPanelCardInput = c || null;
         c = c || { color: state.settings.panelCardColor, text: state.settings.panelCardText, alpha: state.settings.panelCardAlpha };
         const r = document.documentElement;
+        if (PANEL_FIXED_COLORS.includes(r.dataset.pdesign)) {
+            ['pcard-bg', 'pcard-light', 'pcard-text'].forEach(x => r.classList.remove(x));
+            r.style.removeProperty('--pcard-bg'); r.style.removeProperty('--pcard-text');
+            return;
+        }
         const hexOk = v => /^#[0-9a-fA-F]{6}$/.test(v || '');
         const a = Number(c.alpha);
         const custom = hexOk(c.color) || (a >= 0 && a <= 100);
@@ -6356,10 +6382,16 @@ document.addEventListener('DOMContentLoaded', () => {
             r.style.setProperty('--pcard-bg', `rgba(${rgb}, ${al})`);
             // Tarjeta clara: los links y detalles en colores oscuros (si no, el celeste no se ve)
             const [cr, cg, cb] = rgb.split(',').map(Number);
-            r.classList.toggle('pcard-light', al >= 0.5 && (0.299 * cr + 0.587 * cg + 0.114 * cb) > 165);
-        } else { r.style.removeProperty('--pcard-bg'); r.classList.remove('pcard-light'); }
-        r.classList.toggle('pcard-text', hexOk(c.text));
-        if (hexOk(c.text)) r.style.setProperty('--pcard-text', c.text); else r.style.removeProperty('--pcard-text');
+            // En Zócalo el color propio solo pinta la franja del mensaje (el resto va sobre el fondo del panel)
+            r.classList.toggle('pcard-light', r.dataset.pdesign !== 'zocalo' && al >= 0.5 && (0.299 * cr + 0.587 * cg + 0.114 * cb) > 165);
+            r.dataset.pcardInk = al >= 0.5 && (0.299 * cr + 0.587 * cg + 0.114 * cb) > 165 ? 'dark' : 'light';
+        } else { r.style.removeProperty('--pcard-bg'); r.classList.remove('pcard-light'); delete r.dataset.pcardInk; }
+        // Color de letra: el elegido, o si es automático y la tarjeta tiene un color propio, oscuro o claro según el fondo
+        let ink = hexOk(c.text) ? c.text : null;
+        if (!ink && custom) ink = r.dataset.pcardInk === 'dark' ? '#1F2937' : '#F3F4F6';
+        // Zócalo usa el color de letra solo en la franja del mensaje (la variable), no en el nick ni en el resto
+        r.classList.toggle('pcard-text', !!ink && r.dataset.pdesign !== 'zocalo');
+        if (ink) r.style.setProperty('--pcard-text', ink); else r.style.removeProperty('--pcard-text');
     }
     function fillPanelCardForm() {
         const st = state.settings, hexOk = v => /^#[0-9a-fA-F]{6}$/.test(v || '');

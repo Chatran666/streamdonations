@@ -3371,7 +3371,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 :root.pcard-light .donation-card .card-message { background: rgba(0, 0, 0, 0.05); }
 /* Tarjeta de color claro elegido a mano: foto, monto, etiquetas y botón con contraste */
 :root.pcard-light .donation-card .donor-avatar { background: rgba(0, 0, 0, 0.1); color: #374151; }
-:root.pcard-light .donation-card .amount-badge, :root.pcard-light .donation-card .platform-tag, :root.pcard-light .donation-card .test-tag { filter: brightness(0.6) saturate(1.4); }
+:root.pcard-light .donation-card .platform-tag, :root.pcard-light .donation-card .test-tag { filter: brightness(0.6) saturate(1.4); }
 :root.pcard-light .donation-card .btn-card-action { color: #5B21B6; border-color: rgba(91, 33, 182, 0.5); background: rgba(91, 33, 182, 0.06); }
 :root.pcard-light .donation-card .timestamp { color: #4B5563; }
 /* ===== Menú "Prueba a medida" (al lado del frasquito) ===== */
@@ -3406,3 +3406,56 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .close-confirm-card { max-width: 540px; }
 .close-confirm-card .modal-body p { margin: 0 0 10px; line-height: 1.5; }
 .close-confirm-foot { flex-wrap: wrap; gap: 10px; }
+
+/* ===== 2.9.23: legibilidad en todas las combinaciones del panel ===== */
+/* Twitch sobre tarjeta oscura: violeta un poco más claro */
+.donation-card.pf-twitch { --pcur-text: color-mix(in srgb, rgb(var(--pcur-rgb)) 72%, #fff); }
+/* Superficies claras (tema claro o color de tarjeta claro): el color de la plataforma y el del monto en un tono oscuro */
+:root[data-theme="light"] .donation-card, :root.pcard-light .donation-card { --pcur-text: color-mix(in srgb, rgb(var(--pcur-rgb)) 55%, #000); }
+:root[data-theme="light"] .donation-card .amount-badge, :root.pcard-light .donation-card .amount-badge {
+    color: color-mix(in srgb, var(--accent-color, var(--accent)) 55%, #000); border-color: color-mix(in srgb, var(--accent-color, var(--accent)) 70%, #000); background: rgba(255, 255, 255, 0.6); }
+/* Franja del panel: lo que va sobre la banda del color de la plataforma usa la letra de esa banda */
+:root[data-pdesign="franja"] .card-header .timestamp, :root.pcard-light[data-pdesign="franja"] .card-header .timestamp { color: var(--pcur-ink) !important; }
+:root[data-pdesign="franja"] .card-header .donor-avatar { color: var(--pcur-ink); }
+:root[data-pdesign="franja"] .card-header .platform-tag { background: transparent !important; color: var(--pcur-ink) !important; border: 1px solid var(--pcur-ink) !important; filter: none !important; }
+:root[data-pdesign="franja"] .card-header .amount-badge { background: #fff !important; color: #111827 !important; border-color: rgba(0, 0, 0, 0.25) !important; filter: none !important; }
+/* HUD: el monto sobre un fondo oscuro (si no, el rojo de las grandes se perdía sobre el verde de Kick) */
+:root[data-pdesign="hud"] .donation-card .amount-badge { background: rgba(0, 0, 0, 0.55) !important; }
+:root.pcard-light[data-pdesign="hud"] .donation-card .amount-badge, :root[data-theme="light"][data-pdesign="hud"] .donation-card .amount-badge { background: rgba(255, 255, 255, 0.75) !important; color: color-mix(in srgb, var(--accent-color) 45%, #000) !important; }
+/* LHDA: montos largos ("10.000 KICKs") en dos renglones en vez de cortarse; en claro, el color de la plataforma oscuro */
+:root[data-pdesign="lhda"] .donation-card .amount-badge { white-space: normal !important; line-height: 1.15; word-break: break-word; }
+:root[data-theme="light"][data-pdesign="lhda"] .donation-card .amount-badge, :root.pcard-light[data-pdesign="lhda"] .donation-card .amount-badge { color: var(--pcur-text) !important; }
+/* Zócalo: los links sobre la franja azul, en blanco */
+:root[data-pdesign="zocalo"]:not([data-pcard-ink="dark"]) .card-message .msg-link { color: #fff !important; background: rgba(255, 255, 255, 0.15) !important; border-color: rgba(255, 255, 255, 0.55) !important; }
+/* Post-it: la inicial de la foto oscura sobre el amarillo */
+:root[data-pdesign="postit"] .donor-avatar { color: #3A3000; }
+
+/* El rojo de las donaciones más grandes, más claro sobre tarjetas oscuras (el #D50000 se perdía) */
+.donation-card.tier-red { --accent-color: #FF5252; }
+:root[data-theme="light"] .donation-card.tier-red, :root.pcard-light .donation-card.tier-red { --accent-color: #D50000; }
+/* Franja: timestamp sin transparencia, nick y botón con la letra de la banda */
+:root[data-pdesign="franja"] .donation-card .card-header .timestamp { opacity: 1; }
+:root.pcard-text[data-pdesign="franja"] .donation-card .card-header .donor-nick-text { color: var(--pcur-ink) !important; }
+:root[data-pdesign="franja"] .donation-card .card-header .btn-card-action { color: var(--pcur-ink) !important; border-color: var(--pcur-ink) !important; background: transparent !important; }
+/* Tarjeta de color claro elegido a mano: etiqueta de plataforma maciza (el verde de Kick apagado no se leía) */
+:root.pcard-light .donation-card .platform-tag { filter: none !important; background: rgb(var(--pcur-rgb)) !important; color: var(--pcur-ink) !important; border-color: transparent !important; }
+/* Tema claro con diseños de tarjeta oscura fija (Mono, Glitch, Holo): los detalles en colores para fondo oscuro */
+:root[data-theme="light"][data-pdesign="mono"] .donation-card, :root[data-theme="light"][data-pdesign="glitch"] .donation-card, :root[data-theme="light"][data-pdesign="holo"] .donation-card { --text-secondary: #C9CED6; --text-muted: #9AA3B2; }
+:root[data-theme="light"][data-pdesign="mono"] .donation-card .donor-avatar, :root[data-theme="light"][data-pdesign="glitch"] .donation-card .donor-avatar, :root[data-theme="light"][data-pdesign="holo"] .donation-card .donor-avatar { color: #F3F4F6; background: rgba(255, 255, 255, 0.14); }
+:root[data-theme="light"][data-pdesign="mono"] .donation-card .timestamp, :root[data-theme="light"][data-pdesign="glitch"] .donation-card .timestamp, :root[data-theme="light"][data-pdesign="holo"] .donation-card .timestamp { color: #C9CED6; }
+:root[data-theme="light"][data-pdesign="mono"] .donation-card .msg-link.known, :root[data-theme="light"][data-pdesign="glitch"] .donation-card .msg-link.known, :root[data-theme="light"][data-pdesign="holo"] .donation-card .msg-link.known { color: #93C5FD; background: rgba(59, 130, 246, 0.14); border-color: rgba(59, 130, 246, 0.5); }
+:root[data-theme="light"][data-pdesign="mono"] .donation-card .msg-link.unknown, :root[data-theme="light"][data-pdesign="glitch"] .donation-card .msg-link.unknown, :root[data-theme="light"][data-pdesign="holo"] .donation-card .msg-link.unknown { color: #FCD34D; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.5); }
+:root[data-theme="light"][data-pdesign="mono"] .donation-card .btn-card-action, :root[data-theme="light"][data-pdesign="glitch"] .donation-card .btn-card-action, :root[data-theme="light"][data-pdesign="holo"] .donation-card .btn-card-action { color: #DDD6FE; border-color: rgba(196, 181, 253, 0.55); background: rgba(139, 92, 246, 0.15); }
+:root[data-theme="light"][data-pdesign="mono"] .donation-card .platform-tag, :root[data-theme="light"][data-pdesign="glitch"] .donation-card .platform-tag, :root[data-theme="light"][data-pdesign="holo"] .donation-card .platform-tag { background: rgb(var(--pcur-rgb)) !important; color: var(--pcur-ink) !important; border-color: transparent !important; }
+
+/* Franja: banda maciza (YouTube y Twitch un poco más oscuros para la letra blanca) y botón de leído sobre la banda */
+.donation-card.pf-youtube, .donation-card.pf-twitch { --pcur-solid: color-mix(in srgb, rgb(var(--pcur-rgb)) 82%, #000); }
+:root[data-pdesign="franja"] .donation-card .card-header .btn-card-action { background: rgba(0, 0, 0, 0.18) !important; }
+/* Tarjeta clara elegida a mano: montos y colores de plataforma aún más oscuros (sobre amarillo, el 55 % no alcanzaba) */
+:root.pcard-light .donation-card { --pcur-text: color-mix(in srgb, rgb(var(--pcur-rgb)) 40%, #000); }
+:root.pcard-light .donation-card .amount-badge { color: color-mix(in srgb, var(--accent-color, var(--accent)) 40%, #000); }
+/* Burbuja: la foto va afuera de la tarjeta, sobre el fondo del panel */
+:root.pcard-light[data-pdesign="burbuja"] .donation-card .donor-avatar { color: #F3F4F6; background: rgba(255, 255, 255, 0.14); }
+/* Zócalo con franja de color claro elegido a mano: links oscuros */
+:root[data-pcard-ink="dark"][data-pdesign="zocalo"] .card-message .msg-link.known { color: #1D4ED8 !important; background: rgba(29, 78, 216, 0.08) !important; border-color: rgba(29, 78, 216, 0.5) !important; }
+:root[data-pcard-ink="dark"][data-pdesign="zocalo"] .card-message .msg-link.unknown { color: #92400E !important; background: rgba(180, 83, 9, 0.08) !important; border-color: rgba(180, 83, 9, 0.5) !important; }
