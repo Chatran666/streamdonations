@@ -1,3 +1,13 @@
+Novedades de la 2.9.17:
+- Panel más claro: el monto se ve más grande que el resto, y la etiqueta de plataforma y la hora se leen mejor.
+- Los contadores de arriba siempre entran en una fila (si falta lugar, quedan el ícono y el número).
+- Los íconos de arriba muestran su nombre al instante al pasar el mouse.
+- Nombres más claros: "Leídas", "Marcar todo como leído", "Todas las donaciones", "Marcar leída".
+- Configuración más legible: letra más grande, mejor contraste, títulos sin mayúsculas y casillas más grandes.
+- La meta apagada ahora se entiende: avisa que hay que activarla para cambiar sus opciones.
+- La barra de filtros entra en una fila también en ventanas medianas.
+- Corrección de errores y mejoras.
+
 Novedades de la 2.9.16 (seguridad):
 - Los links de los mensajes (donaciones y chat) se abren siempre en tu navegador predeterminado, nunca en una ventana de la app.
 - Los links que apuntan a tu propia PC (localhost, 127.0.0.1, la propia app) ya no se muestran como botón: quedan como texto.
