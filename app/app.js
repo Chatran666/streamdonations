@@ -4942,7 +4942,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const pane = document.querySelector('.settings-pane.active');
         if (!pane) return;
         const visible = el => el.getClientRects().length > 0;
-        document.querySelectorAll('.setting-row.grp-top, .setting-row.grp-mid, .setting-row.grp-bot').forEach(r => r.classList.remove('grp-top', 'grp-mid', 'grp-bot'));
+        // Primero se calcula todo y después se cambia solo lo distinto: si se sacaran y volvieran a poner las
+        // clases, la página se movería sola (el scroll se "acomoda" a la altura intermedia)
+        const want = new Map();
         const parents = new Set();
         pane.querySelectorAll('.setting-row').forEach(r => parents.add(r.parentElement));
         parents.forEach(par => {
@@ -4950,7 +4952,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const gap = parseFloat(getComputedStyle(par).rowGap) || 0;
             let run = [];
             const flush = () => {
-                if (run.length > 1) run.forEach((r, i) => { r.classList.add(i === 0 ? 'grp-top' : i === run.length - 1 ? 'grp-bot' : 'grp-mid'); r.style.setProperty('--grp-gap', gap + 'px'); });
+                if (run.length > 1) run.forEach((r, i) => want.set(r, { cls: i === 0 ? 'grp-top' : i === run.length - 1 ? 'grp-bot' : 'grp-mid', gap: gap + 'px' }));
                 run = [];
             };
             Array.from(par.children).forEach(ch => {
@@ -4959,13 +4961,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             flush();
         });
-        // Un título de grupo sin ninguna opción visible abajo (por ejemplo en modo simple) no se muestra
-        pane.querySelectorAll('.pane-subtitle').forEach(t => t.classList.remove('grp-empty'));
+        const emptyWant = new Map();
         pane.querySelectorAll(':scope > .pane-subtitle, .dz-side > .pane-subtitle').forEach(t => {
             let n = t.nextElementSibling, any = false;
             while (n && !n.classList.contains('pane-subtitle')) { if (visible(n)) { any = true; break; } n = n.nextElementSibling; }
-            t.classList.toggle('grp-empty', !any);
+            emptyWant.set(t, !any);
         });
+        // Aplicar solo las diferencias
+        const GRP = ['grp-top', 'grp-mid', 'grp-bot'];
+        document.querySelectorAll('.setting-row.grp-top, .setting-row.grp-mid, .setting-row.grp-bot').forEach(r => { if (!want.has(r)) r.classList.remove(...GRP); });
+        want.forEach((w, r) => {
+            GRP.forEach(c => { if (c !== w.cls && r.classList.contains(c)) r.classList.remove(c); });
+            if (!r.classList.contains(w.cls)) r.classList.add(w.cls);
+            if (r.style.getPropertyValue('--grp-gap') !== w.gap) r.style.setProperty('--grp-gap', w.gap);
+        });
+        pane.querySelectorAll('.pane-subtitle.grp-empty').forEach(t => { if (!emptyWant.get(t)) t.classList.remove('grp-empty'); });
+        emptyWant.forEach((e, t) => { if (e !== t.classList.contains('grp-empty')) t.classList.toggle('grp-empty', e); });
         if (grpObserver) grpObserver.takeRecords();     // los cambios de recién no cuentan como "algo cambió"
     }
     (function watchSettingRows() {

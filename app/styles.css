@@ -3365,7 +3365,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 :root.pcard-light .msg-link.unknown, :root[data-pdesign="postit"] .msg-link.unknown, :root[data-pdesign="pastel"] .msg-link.unknown,
 :root[data-pdesign="comic"] .msg-link.unknown, :root[data-pdesign="capsula"] .msg-link.unknown { color: #92400E; background: rgba(180, 83, 9, 0.08); border-color: rgba(180, 83, 9, 0.5); }
 .sim-ctl { display: flex !important; flex-direction: row !important; align-items: center; gap: 12px; flex-shrink: 0; }
-.sim-secs { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap; }
+.sim-secs { display: inline-flex; align-items: center; gap: 6px; margin-right: 6px; font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap; }
 #cfg-sim-speed { width: 64px; text-align: center; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 7px 8px; color: var(--text-primary); font-family: inherit; font-size: 0.85rem; }
 #btn-sim-toggle { min-width: 180px; justify-content: center; }
 :root.pcard-light .donation-card .card-message { background: rgba(0, 0, 0, 0.05); }
