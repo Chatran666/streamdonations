@@ -1,5 +1,4 @@
-Novedades de la 2.9.20:
-- Prueba a medida al alcance de la mano: tocá la flechita al lado del frasquito (arriba del panel) para elegir plataforma, monto, mensaje y nick, y ver la prueba llegar sin cerrar nada.
-- En Configuración → Pruebas quedan el simulador y "Borrar pruebas".
-- Configuración ya no se mueve sola al llegar al final de una sección.
+Novedades de la 2.9.21:
+- El menú "Prueba a medida" (la flechita al lado del frasquito) aparece solo en modo experto, para no confundir.
+- Más espacio entre los segundos y el botón del simulador.
 - Corrección de errores y mejoras.
