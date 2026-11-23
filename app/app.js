@@ -8084,6 +8084,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const on = expertOn();
         $('cfg-expert').checked = on;
         els.modalSettings.classList.toggle('simple-mode', !on);
+        // La flechita de "Prueba a medida" (al lado del frasquito) solo en modo experto
+        { const c = $('btn-test-menu'); if (c) { c.classList.toggle('hidden', !on); if (!on && window.closeTestMenu) window.closeTestMenu(); } }
         // Si estabas en algo que ahora se oculta, vuelve a un lugar visible
         const cur = document.querySelector('#settings-nav .settings-tab.active');
         if (!on && cur && ADV_PANES.includes(cur.dataset.pane)) switchSettingsPane('conexion');
@@ -8102,6 +8104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.settings.expertMode = existing;
         persistSettings();
     }
+    { const c = $('btn-test-menu'); if (c) c.classList.toggle('hidden', !expertOn()); }
 
     // ---- Estilos rápidos ----
     const QUICK_STYLES = [
