@@ -5012,6 +5012,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { updateConnAttention(); applyExpertMode(); renderQuickStyles(); } catch (e) {}
         try { syncAlphaQuick(); bgAlphaInputUi(); } catch (e) {}
         groupSettingRows();
+        updateCloseGuard();
         if (scroll > 0) {
             const sc = document.querySelector('.settings-panes');
             const same = () => { const a = document.querySelector('#settings-nav .settings-tab.active'); return a && a.dataset.pane === target; };
@@ -5036,6 +5037,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeSettings() {
+        setTimeout(updateCloseGuard, 0);
         try { const sc = document.querySelector('.settings-panes'); if (sc) localStorage.setItem('sd_last_scroll', String(Math.round(sc.scrollTop))); } catch (e) {}
         setSettingsDirty(false);
         lookDraft = null;
@@ -5278,6 +5280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Configuración
         els.btnOpenSettings.addEventListener('click', () => openSettings());
         els.btnCloseSettings.addEventListener('click', requestCloseSettings);
+        $('btn-close-settings-x').addEventListener('click', requestCloseSettings);
         $('btn-cancel-settings').addEventListener('click', requestCloseSettings);
         const panes = document.querySelector('.settings-panes');
         ['input', 'change'].forEach(ev => panes.addEventListener(ev, (e) => {
@@ -7787,6 +7790,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (Date.now() - obsAliveAt < 30000) return true;
         return state.donations.some(d => !d.isTest && Date.now() - (d.timestamp || 0) < 20 * 60000);
     }
+
+    // ---- Cerrar la app sin querer: con Configuración abierta o en vivo, primero pregunta ----
+    var closeGuardLast = null, closeLiveOff = false;
+    function updateCloseGuard() {
+        if (!TAURI) return;
+        const settingsOpen = !els.modalSettings.classList.contains('hidden');
+        const need = settingsOpen || (isLiveNow() && !closeLiveOff);
+        if (need === closeGuardLast) return;
+        closeGuardLast = need;
+        TAURI.core.invoke('set_confirm_close', { on: need }).catch(() => { closeGuardLast = null; });
+    }
+    setInterval(updateCloseGuard, 5000);
+    setTimeout(updateCloseGuard, 1500);
+    function showCloseConfirm() {
+        const settingsOpen = !els.modalSettings.classList.contains('hidden');
+        $('close-confirm-text').textContent = settingsOpen
+            ? T('Estás en Configuración. Si querías cerrar solo el menú, tocá "Cancelar" y usá la X de arriba a la derecha o "Volver al panel". Si cerrás la app, no llegan donaciones y OBS deja de mostrarlas.')
+            : T('Mientras esté cerrada no llegan donaciones y OBS deja de mostrarlas.');
+        $('close-confirm-never-row').classList.toggle('hidden', settingsOpen);
+        $('close-confirm-never').checked = false;
+        $('modal-close-confirm').classList.remove('hidden');
+        setTimeout(() => $('btn-close-cancel').focus(), 30);
+    }
+    function closeConfirmDone(action) {
+        if ($('close-confirm-never').checked) { closeLiveOff = true; closeGuardLast = null; updateCloseGuard(); }
+        $('modal-close-confirm').classList.add('hidden');
+        if (!TAURI) return;
+        if (action === 'quit') TAURI.core.invoke('app_quit').catch(() => {});
+        else if (action === 'tray') TAURI.core.invoke('app_hide').catch(() => {});
+    }
+    $('btn-close-cancel').addEventListener('click', () => closeConfirmDone('cancel'));
+    $('btn-close-tray').addEventListener('click', () => closeConfirmDone('tray'));
+    $('btn-close-quit').addEventListener('click', () => closeConfirmDone('quit'));
+    $('modal-close-confirm').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeConfirmDone('cancel'); } }, true);
+    if (TAURI && TAURI.event) TAURI.event.listen('close-confirm', showCloseConfirm).catch(() => {});
+    window.__sdShowCloseConfirm = showCloseConfirm; // para probar sin Tauri
     // Conexión late suave mientras no haya ninguna clave cargada
     function updateConnAttention() {
         const tab = document.querySelector('#settings-nav .settings-tab[data-pane="conexion"]');

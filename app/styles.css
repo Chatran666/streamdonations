@@ -3397,3 +3397,12 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .test-pop { background: #151A24; }
 :root[data-theme="light"] .test-pop { background: #FFFFFF; }
 .header-actions .btn-test-caret.active::after { display: none !important; }
+/* ===== Cerrar Configuración con una X arriba a la derecha ===== */
+.settings-head { position: relative; }
+.settings-x { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); }
+.settings-new { margin-right: 44px; }
+/* ===== Cartel "¿Cerrar StreamDonations?" (por encima de todo, también de Configuración) ===== */
+#modal-close-confirm { z-index: 10050; }
+.close-confirm-card { max-width: 540px; }
+.close-confirm-card .modal-body p { margin: 0 0 10px; line-height: 1.5; }
+.close-confirm-foot { flex-wrap: wrap; gap: 10px; }

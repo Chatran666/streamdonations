@@ -315,6 +315,25 @@
     </button>
 
     <!-- MODAL CONFIRMAR LINK -->
+    <div class="modal-overlay hidden" id="modal-close-confirm" role="alertdialog" aria-labelledby="close-confirm-title">
+        <div class="modal-card close-confirm-card">
+            <div class="modal-header">
+                <h2 id="close-confirm-title"><i class="fa-solid fa-power-off"></i> ¿Cerrar StreamDonations?</h2>
+            </div>
+            <div class="modal-body">
+                <p id="close-confirm-text">Mientras esté cerrada no llegan donaciones y OBS deja de mostrarlas.</p>
+                <label class="inline-check hidden" id="close-confirm-never-row"><input type="checkbox" id="close-confirm-never"> No volver a preguntar durante el directo</label>
+            </div>
+            <div class="modal-footer close-confirm-foot">
+                <button class="btn btn-primary" id="btn-close-cancel"><i class="fa-solid fa-arrow-left"></i> Cancelar</button>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-outline" id="btn-close-tray"><i class="fa-solid fa-window-minimize"></i> Minimizar a la bandeja</button>
+                    <button class="btn btn-danger-solid" id="btn-close-quit"><i class="fa-solid fa-power-off"></i> Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay hidden" id="modal-link">
         <div class="modal-card link-card">
             <div class="modal-header">
@@ -595,6 +614,7 @@
                 <button type="button" class="btn btn-outline btn-sm settings-back" id="btn-close-settings" title="Volver al panel (Esc)"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
                 <h2><i class="fa-solid fa-gear"></i> Configuración</h2>
                 <button type="button" class="settings-new hidden" id="settings-new" title="Volver al panel para verlas"><i class="fa-solid fa-bell"></i> <span id="settings-new-text">1 donación nueva</span></button>
+                <button type="button" class="btn-close settings-x" id="btn-close-settings-x" title="Cerrar Configuración (Esc)" aria-label="Cerrar Configuración"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="settings-layout">

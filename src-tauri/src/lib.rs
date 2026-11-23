@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::webview::{NewWindowFeatures, NewWindowResponse};
-use tauri::{AppHandle, Manager, Url, WebviewUrl, WebviewWindowBuilder, Wry};
+use tauri::{AppHandle, Emitter, Manager, Url, WebviewUrl, WebviewWindowBuilder, Wry};
 use tauri_plugin_opener::OpenerExt;
 
 mod voz;
@@ -35,6 +35,8 @@ const BROWSER_ARGS: &str =
 
 static WIN_N: AtomicU64 = AtomicU64::new(1);
 static CLOSE_TO_TRAY: AtomicBool = AtomicBool::new(false);
+/// El panel pide confirmar antes de cerrar (Configuración abierta o en vivo)
+static CONFIRM_CLOSE: AtomicBool = AtomicBool::new(false);
 
 // ---------------------------------------------------------------------------
 // Ventanas y links
@@ -153,6 +155,26 @@ fn open_link(app: AppHandle, url: String) -> Result<(), String> {
 #[tauri::command]
 fn set_close_to_tray(on: bool) {
     CLOSE_TO_TRAY.store(on, Ordering::Relaxed);
+}
+
+/// El panel avisa si hay que preguntar antes de cerrar (Configuración abierta o en vivo)
+#[tauri::command]
+fn set_confirm_close(on: bool) {
+    CONFIRM_CLOSE.store(on, Ordering::Relaxed);
+}
+
+/// Respuesta del cartel "¿Cerrar StreamDonations?": cerrar de verdad
+#[tauri::command]
+fn app_quit(app: AppHandle) {
+    app.exit(0);
+}
+
+/// Respuesta del cartel: minimizar a la bandeja (la app sigue funcionando)
+#[tauri::command]
+fn app_hide(app: AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.hide();
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -413,6 +435,9 @@ pub fn run() {
             legacy_info,
             legacy_migrate,
             set_close_to_tray,
+            set_confirm_close,
+            app_quit,
+            app_hide,
             open_link,
             debug_log,
             voz::voz_status,
@@ -443,6 +468,12 @@ pub fn run() {
                     if CLOSE_TO_TRAY.load(Ordering::Relaxed) {
                         api.prevent_close();
                         let _ = win.hide();
+                    } else if CONFIRM_CLOSE.load(Ordering::Relaxed) {
+                        // En vivo o con Configuración abierta: primero se pregunta en el panel
+                        api.prevent_close();
+                        let _ = win.show();
+                        let _ = win.set_focus();
+                        let _ = win.emit("close-confirm", ());
                     } else {
                         // Al cerrar el panel se cierran también las otras ventanas (Modo OBS, ayuda)
                         win.app_handle().exit(0);
