@@ -33,7 +33,7 @@
         <img src="icon.png" alt="">
         <strong>StreamDonations</strong>
         <span>Todas las donaciones de tu stream, en un solo lugar</span>
-        <div class="splash-chips"><b style="background:#F59E0B;color:#000">Ceneka</b><b style="background:#FF0000">YouTube</b><b style="background:#9146FF">Twitch</b><b style="background:#53FC18;color:#000">Kick</b></div>
+        <div class="splash-chips"><b style="background:#F59E0B;color:#000">Ceneka</b><b style="background:#CC0000">YouTube</b><b style="background:#9146FF">Twitch</b><b style="background:#53FC18;color:#000">Kick</b></div>
     </div>
     <div class="app-container">
         <!-- Top Navigation Bar -->
@@ -122,10 +122,10 @@
                 <div class="filter-group">
                     <label for="select-sort"><i class="fa-solid fa-arrow-down-wide-short"></i> Ordenar:</label>
                     <select id="select-sort">
-                        <option value="newest">Más recientes primero (Cronológico)</option>
+                        <option value="newest">Más recientes primero</option>
                         <option value="oldest">Más antiguos primero</option>
-                        <option value="highest">Mayor donación primero ($$$)</option>
-                        <option value="lowest">Menor donación primero ($)</option>
+                        <option value="highest">Mayor monto primero</option>
+                        <option value="lowest">Menor monto primero</option>
                     </select>
                 </div>
 
@@ -602,7 +602,7 @@
                         <small class="pane-note">Dónde está el token: StreamElements → tu perfil (arriba a la derecha) → <strong>Account</strong> / <strong>Channels</strong> → <strong>Show secrets</strong> → <em>JWT Token</em>. Copialo estando en el canal correcto. Es privado.</small>
                         </div>
 
-                        <div class="service-divider"><span>Otro servicio, aparte</span></div>
+                        <div class="pane-subtitle"><i class="fa-solid fa-plug"></i> Otro servicio, aparte</div>
 
                         <details class="service-block sl-collapse" id="sl-details">
                         <summary class="pane-subtitle"><i class="fa-solid fa-plug"></i> Streamlabs <span class="pill-opt">Opcional</span><span class="sl-collapse-hint">Solo si ya usás Streamlabs · tocá para abrir</span><i class="fa-solid fa-chevron-down sl-chev"></i></summary>
@@ -619,7 +619,7 @@
                         </div>
                         </details>
 
-                        <div class="service-divider"><span>Stream entre dos personas</span></div>
+                        <div class="pane-subtitle"><i class="fa-solid fa-user-group"></i> Stream entre dos personas</div>
 
                         <div class="service-block">
                             <div class="pane-subtitle"><i class="fa-solid fa-people-arrows"></i> Sincronizar con otra PC <span class="pill-opt">Opcional</span></div>
@@ -1840,7 +1840,7 @@
     <div class="modal-overlay hidden" id="modal-db">
         <div class="modal-card modal-db-card">
             <div class="modal-header">
-                <h2><i class="fa-solid fa-database color-ceneka"></i> Base de Datos de Chats</h2>
+                <h2><i class="fa-solid fa-database color-ceneka"></i> Base de datos</h2>
                 <button class="btn-close" id="btn-close-db">&times;</button>
             </div>
             
@@ -1909,7 +1909,7 @@
                     <!-- Add/Edit Chat Form Inline (Initially hidden) -->
                     <div class="db-edit-form hidden" id="db-edit-form">
                         <div class="db-form-header">
-                            <h4 id="db-form-title"><i class="fa-solid fa-pen-to-square"></i> Editar Chat</h4>
+                            <h3 id="db-form-title"><i class="fa-solid fa-pen-to-square"></i> Editar donación</h3>
                             <button type="button" class="btn-ghost" id="db-btn-cancel-edit">&times;</button>
                         </div>
                         <input type="hidden" id="db-edit-id">

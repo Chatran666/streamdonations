@@ -2348,6 +2348,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     applyTopDonorVisibility();
 
+    // Íconos del encabezado: el texto del globito (title) pasa a un globito propio que aparece al instante
+    (function headerTips() {
+        const btns = document.querySelectorAll('.header-actions button[title]');
+        const move = b => { let t = b.getAttribute('title'); if (t == null) return; if (window.SDi18n) t = window.SDi18n.t(t); b.dataset.tip = t; b.setAttribute('aria-label', t); b.removeAttribute('title'); };
+        btns.forEach(b => { move(b); new MutationObserver(() => move(b)).observe(b, { attributes: true, attributeFilter: ['title'] }); });
+    })();
     // Si los contadores de arriba no entran en una fila (por ejemplo 5 plataformas en 1366 px), se achican
     var statsSqueeze = false;
     function fitStatsRow() {
@@ -4190,7 +4196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.dbEditPlatform) els.dbEditPlatform.value = item.platform || 'ceneka';
         if (els.dbEditStatus) els.dbEditStatus.value = item.isRead ? 'read' : 'unread';
         if (els.dbEditMsg) els.dbEditMsg.value = item.message || '';
-        if (els.dbFormTitle) els.dbFormTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Chat';
+        if (els.dbFormTitle) els.dbFormTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar donación';
 
         els.dbEditForm.classList.remove('hidden');
         if (els.dbEditNick) els.dbEditNick.focus();
@@ -4257,7 +4263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (els.dbEditPlatform) els.dbEditPlatform.value = 'ceneka';
             if (els.dbEditStatus) els.dbEditStatus.value = 'unread';
             if (els.dbEditMsg) els.dbEditMsg.value = '';
-            if (els.dbFormTitle) els.dbFormTitle.innerHTML = '<i class="fa-solid fa-plus"></i> Nuevo Chat Manual';
+            if (els.dbFormTitle) els.dbFormTitle.innerHTML = '<i class="fa-solid fa-plus"></i> Nueva donación a mano';
 
             if (els.dbEditForm) {
                 els.dbEditForm.classList.remove('hidden');
