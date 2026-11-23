@@ -1712,9 +1712,36 @@
                         <h3 class="pane-title">Pruebas</h3>
                         <p class="pane-desc">Para probar sonidos, voz, links, la meta y la ventana de OBS antes del directo. Las donaciones de prueba salen marcadas como "PRUEBA", no se mezclan con las reales y se borran solas al marcarlas leídas.</p>
 
-                        <div class="pane-subtitle"><i class="fa-solid fa-sliders"></i> Prueba a medida</div>
+                        <div class="pane-subtitle"><i class="fa-solid fa-tower-broadcast"></i> Simular un directo</div>
+                        <div class="setting-row sim-main-row">
+                            <div><strong>Donaciones de prueba automáticas</strong><small>Manda donaciones de prueba sin parar, con montos y links al azar. Al detenerla se borran todas las pruebas.</small></div>
+                            <div class="sim-ctl">
+                                <label class="sim-secs" for="cfg-sim-speed">Cada <input type="number" id="cfg-sim-speed" min="1" max="30"> s</label>
+                                <button type="button" class="btn btn-primary" id="btn-sim-toggle"><i class="fa-solid fa-play"></i> <span>Empezar simulación</span></button>
+                            </div>
+                            <input type="checkbox" id="cfg-toggle-sim" class="hidden" tabindex="-1" aria-hidden="true">
+                        </div>
+                        <div class="setting-row adv">
+                            <div><strong>De qué plataformas llegan las donaciones simuladas</strong><small>Sin ninguna marcada, llegan de todas las activas.</small></div>
+                            <div class="chips sim-plat-chips" id="sim-plat-chips">
+                                <label class="chip-check"><input type="checkbox" value="ceneka"> Ceneka</label>
+                                <label class="chip-check"><input type="checkbox" value="youtube"> YouTube</label>
+                                <label class="chip-check"><input type="checkbox" value="twitch"> Twitch</label>
+                                <label class="chip-check"><input type="checkbox" value="kick"> Kick</label>
+                            </div>
+                        </div>
+                        <label class="setting-row toggle-row adv">
+                            <div><strong>Incluir links</strong><small>Algunas donaciones simuladas traen un link al sitio de su plataforma (y de vez en cuando uno desconocido, para ver el aviso).</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-sim-links"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div class="setting-row adv">
+                            <div><strong>Donaciones grandes</strong><small>Cuántas de las simuladas llegan al monto del sonido especial.</small></div>
+                            <div class="seg" id="sim-big-seg"><button type="button" data-v="few">Pocas</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="many">Muchas</button></div>
+                        </div>
+
+                        <div class="pane-subtitle"><i class="fa-solid fa-paper-plane"></i> Mandar una prueba</div>
                         <div class="setting-row test-row">
-                            <div><strong>Plataforma</strong><small>"Todas" manda una de cada plataforma activa.</small></div>
+                            <div><strong>De qué plataforma viene esta prueba</strong><small>"Todas" manda una de cada plataforma activa.</small></div>
                             <div class="seg" id="test-plat-seg"><button type="button" data-v="all">Todas</button><button type="button" data-v="ceneka">Ceneka</button><button type="button" data-v="youtube">YouTube</button><button type="button" data-v="twitch">Twitch</button><button type="button" data-v="kick">Kick</button></div>
                         </div>
                         <div class="setting-row test-row">
@@ -1744,35 +1771,6 @@
                         <div class="setting-row adv">
                             <div><strong>Completar la meta</strong><small>Suma lo que falta para llegar al 100 %. Al marcarla leída (o al borrar las pruebas), la meta vuelve a como estaba.</small></div>
                             <button type="button" class="btn btn-outline" id="btn-test-goal"><i class="fa-solid fa-flag-checkered"></i> Probar</button>
-                        </div>
-
-                        <div class="pane-subtitle"><i class="fa-solid fa-tower-broadcast"></i> Simular un directo</div>
-                        <label class="setting-row toggle-row">
-                            <div><strong>Simular donaciones automáticamente</strong><small>Manda donaciones de prueba sin parar, cada cierto tiempo (se activa al tocar "Guardar cambios"). Al apagarlo se borran todas las pruebas.</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-toggle-sim"><span class="toggle-slider"></span></span>
-                        </label>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="cfg-sim-speed">Cada cuántos segundos</label>
-                                <input type="number" id="cfg-sim-speed" min="1" max="30">
-                            </div>
-                        </div>
-                        <div class="setting-row adv">
-                            <div><strong>Plataformas del simulador</strong><small>Sin ninguna marcada, usa todas las activas.</small></div>
-                            <div class="chips sim-plat-chips" id="sim-plat-chips">
-                                <label class="chip-check"><input type="checkbox" value="ceneka"> Ceneka</label>
-                                <label class="chip-check"><input type="checkbox" value="youtube"> YouTube</label>
-                                <label class="chip-check"><input type="checkbox" value="twitch"> Twitch</label>
-                                <label class="chip-check"><input type="checkbox" value="kick"> Kick</label>
-                            </div>
-                        </div>
-                        <label class="setting-row toggle-row adv">
-                            <div><strong>Incluir links</strong><small>Algunas donaciones traen un link al sitio de su plataforma (y de vez en cuando uno desconocido, para ver el aviso).</small></div>
-                            <span class="toggle-switch"><input type="checkbox" id="cfg-sim-links"><span class="toggle-slider"></span></span>
-                        </label>
-                        <div class="setting-row adv">
-                            <div><strong>Donaciones grandes</strong><small>Cuántas de las simuladas llegan al monto del sonido especial.</small></div>
-                            <div class="seg" id="sim-big-seg"><button type="button" data-v="few">Pocas</button><button type="button" data-v="normal">Normal</button><button type="button" data-v="many">Muchas</button></div>
                         </div>
 
                         <div class="pane-subtitle"><i class="fa-solid fa-broom"></i> Limpiar</div>

@@ -2706,6 +2706,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSimIndicator() {
         const el = document.getElementById('sim-indicator');
         if (el) el.classList.toggle('hidden', !state.isSimulating);
+        // Botón de Configuración → Pruebas
+        const b = document.getElementById('btn-sim-toggle');
+        if (b) {
+            b.classList.toggle('btn-primary', !state.isSimulating); b.classList.toggle('btn-danger-solid', state.isSimulating);
+            b.querySelector('i').className = state.isSimulating ? 'fa-solid fa-stop' : 'fa-solid fa-play';
+            b.querySelector('span').textContent = T(state.isSimulating ? 'Detener' : 'Empezar simulación');
+        }
     }
     (function () {
         const el = document.getElementById('sim-indicator');
@@ -5260,7 +5267,8 @@ document.addEventListener('DOMContentLoaded', () => {
         $('btn-cancel-settings').addEventListener('click', requestCloseSettings);
         const panes = document.querySelector('.settings-panes');
         ['input', 'change'].forEach(ev => panes.addEventListener(ev, (e) => {
-            if (e.target && e.target.id && e.target.id.startsWith('cfg-')) setSettingsDirty(true);
+            // Lo del simulador se aplica al toque: no cuenta como "cambios sin guardar"
+            if (e.target && e.target.id && e.target.id.startsWith('cfg-') && !/^cfg-(sim-|toggle-sim)/.test(e.target.id)) setSettingsDirty(true);
         }));
         els.btnSaveSettings.addEventListener('click', saveSettings);
         document.querySelectorAll('#settings-nav .settings-tab[data-pane]').forEach(b =>
@@ -5282,11 +5290,31 @@ document.addEventListener('DOMContentLoaded', () => {
             segSet(id, b.dataset.v, Array.from($(id).querySelectorAll('button')).map(x => x.dataset.v), b.dataset.v);
             if (id === 'test-amount-seg') { $('test-amount').classList.toggle('hidden', b.dataset.v !== 'custom'); if (b.dataset.v === 'custom') $('test-amount').focus(); }
         }));
+        // El simulador se maneja al toque (no hace falta "Guardar cambios")
+        function applySimForm() {
+            const st = state.settings;
+            st.simSpeed = Math.min(30, Math.max(1, parseFloat($('cfg-sim-speed').value) || 10));
+            st.simPlatforms = Array.from(document.querySelectorAll('#sim-plat-chips input:checked')).map(i => i.value);
+            st.simLinks = $('cfg-sim-links').checked;
+            st.simBig = segVal('sim-big-seg', 'normal');
+            persistSettings();
+        }
+        $('btn-sim-toggle').addEventListener('click', () => {
+            applySimForm();
+            if (state.isSimulating) stopSimulation(true);
+            else { initAudioContext(); startSimulation(); }
+        });
+        $('cfg-sim-speed').addEventListener('change', () => {
+            const before = state.settings.simSpeed; applySimForm();
+            $('cfg-sim-speed').value = state.settings.simSpeed;
+            if (state.isSimulating && before !== state.settings.simSpeed) { clearInterval(state.simInterval); state.simInterval = setInterval(generateSampleDonation, state.settings.simSpeed * 1000); }
+        });
         $('sim-big-seg').addEventListener('click', (e) => {
             const b = e.target.closest('button[data-v]'); if (!b) return;
-            segSet('sim-big-seg', b.dataset.v, ['few', 'normal', 'many'], 'normal'); setSettingsDirty(true);
+            segSet('sim-big-seg', b.dataset.v, ['few', 'normal', 'many'], 'normal'); applySimForm();
         });
-        document.querySelectorAll('#sim-plat-chips input, #cfg-sim-links').forEach(i => i.addEventListener('change', () => setSettingsDirty(true)));
+        document.querySelectorAll('#sim-plat-chips input, #cfg-sim-links').forEach(i => i.addEventListener('change', applySimForm));
+        updateSimIndicator();
         $('btn-clear-tests').addEventListener('click', () => {
             const n = clearTestDonations();
             showToast(n ? `Se borraron ${n} donaciones de prueba` : 'No hay donaciones de prueba', 'info');
@@ -6309,7 +6337,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const rgb = hexOk(c.color) ? hexToRgb(c.color).join(', ') : (lastPanelCard ? lastPanelCard.rgb : '30, 36, 50');
             const al = a >= 0 && a <= 100 ? a / 100 : (lastPanelCard ? lastPanelCard.alpha : 0.92);
             r.style.setProperty('--pcard-bg', `rgba(${rgb}, ${al})`);
-        } else r.style.removeProperty('--pcard-bg');
+            // Tarjeta clara: los links y detalles en colores oscuros (si no, el celeste no se ve)
+            const [cr, cg, cb] = rgb.split(',').map(Number);
+            r.classList.toggle('pcard-light', al >= 0.5 && (0.299 * cr + 0.587 * cg + 0.114 * cb) > 165);
+        } else { r.style.removeProperty('--pcard-bg'); r.classList.remove('pcard-light'); }
         r.classList.toggle('pcard-text', hexOk(c.text));
         if (hexOk(c.text)) r.style.setProperty('--pcard-text', c.text); else r.style.removeProperty('--pcard-text');
     }

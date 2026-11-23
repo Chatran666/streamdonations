@@ -3359,3 +3359,18 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 #test-nick, #test-amount { background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text-primary); font-size: 0.85rem; font-family: inherit; }
 #test-nick:focus, #test-amount:focus { border-color: var(--accent); }
 #btn-clear-tests { white-space: nowrap; }
+/* Links sobre tarjetas claras (color de tarjeta claro o diseños de papel): azul y ámbar oscuros, bien legibles */
+:root.pcard-light .msg-link.known, :root[data-pdesign="postit"] .msg-link.known, :root[data-pdesign="pastel"] .msg-link.known,
+:root[data-pdesign="comic"] .msg-link.known, :root[data-pdesign="capsula"] .msg-link.known { color: #1D4ED8; background: rgba(29, 78, 216, 0.08); border-color: rgba(29, 78, 216, 0.5); }
+:root.pcard-light .msg-link.unknown, :root[data-pdesign="postit"] .msg-link.unknown, :root[data-pdesign="pastel"] .msg-link.unknown,
+:root[data-pdesign="comic"] .msg-link.unknown, :root[data-pdesign="capsula"] .msg-link.unknown { color: #92400E; background: rgba(180, 83, 9, 0.08); border-color: rgba(180, 83, 9, 0.5); }
+.sim-ctl { display: flex !important; flex-direction: row !important; align-items: center; gap: 12px; flex-shrink: 0; }
+.sim-secs { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap; }
+#cfg-sim-speed { width: 64px; text-align: center; background: rgba(var(--shade-rgb), calc(0.4 * var(--shade-k))); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 7px 8px; color: var(--text-primary); font-family: inherit; font-size: 0.85rem; }
+#btn-sim-toggle { min-width: 180px; justify-content: center; }
+:root.pcard-light .donation-card .card-message { background: rgba(0, 0, 0, 0.05); }
+/* Tarjeta de color claro elegido a mano: foto, monto, etiquetas y botón con contraste */
+:root.pcard-light .donation-card .donor-avatar { background: rgba(0, 0, 0, 0.1); color: #374151; }
+:root.pcard-light .donation-card .amount-badge, :root.pcard-light .donation-card .platform-tag, :root.pcard-light .donation-card .test-tag { filter: brightness(0.6) saturate(1.4); }
+:root.pcard-light .donation-card .btn-card-action { color: #5B21B6; border-color: rgba(91, 33, 182, 0.5); background: rgba(91, 33, 182, 0.06); }
+:root.pcard-light .donation-card .timestamp { color: #4B5563; }
