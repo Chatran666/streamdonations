@@ -1,3 +1,9 @@
+Novedades de la 2.9.20:
+- Prueba a medida al alcance de la mano: tocá la flechita al lado del frasquito (arriba del panel) para elegir plataforma, monto, mensaje y nick, y ver la prueba llegar sin cerrar nada.
+- En Configuración → Pruebas quedan el simulador y "Borrar pruebas".
+- Configuración ya no se mueve sola al llegar al final de una sección.
+- Corrección de errores y mejoras.
+
 Novedades de la 2.9.19:
 - Pruebas más simples: "Simular un directo" arriba de todo, con un botón para empezar y detener al instante.
 - Textos más claros para no confundir la prueba suelta con el simulador.
