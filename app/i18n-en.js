@@ -1144,6 +1144,7 @@ window.SD_I18N_EN = {
     'Tamaño y ubicación de las tarjetas': 'Card size and position',
     'No se pudo abrir el link': 'Could not open the link',
     'Activá la meta para cambiar estas opciones.': 'Turn on the goal to change these options.',
+    'Donante de prueba': 'Test donor',
     'Modo experto': 'Expert mode', 'Muestra todas las opciones (filtros, destacar, transparencias, efectos…)': 'Shows every option (filters, highlight, transparency, effects…)',
     'Tenés ajustes avanzados funcionando:': 'You have advanced settings running:', 'Siguen activos aunque no se vean.': 'They stay on even if hidden.', 'Ver todo': 'Show all',
     'Primeros pasos': 'First steps', 'Tres pasos y queda lista para tu directo.': 'Three steps and it is ready for your stream.',

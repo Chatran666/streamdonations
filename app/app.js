@@ -7706,7 +7706,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- Prueba rápida ----
     function sendQuickTest() {
         const pk = activePlatforms()[0] || 'ceneka';
-        addDonation({ platform: pk, nick: 'Prueba', amount: 1000, currency: 'ARS', message: '¡Esto es una prueba! Si la ves en OBS, está todo listo.', isTest: true, quickTest: true });
+        addDonation({ platform: pk, nick: (window.SDi18n ? window.SDi18n.t('Donante de prueba') : 'Donante de prueba'), amount: 1000, currency: 'ARS', message: '¡Esto es una prueba! Si la ves en OBS, está todo listo.', isTest: true, quickTest: true });
         try { localStorage.setItem('sd_quicktest_done', '1'); } catch (e) {}
         if (!$('modal-guide').classList.contains('hidden')) renderGuide();
     }
