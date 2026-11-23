@@ -1,4 +1,4 @@
-Novedades de la 2.9.21:
-- El menú "Prueba a medida" (la flechita al lado del frasquito) aparece solo en modo experto, para no confundir.
-- Más espacio entre los segundos y el botón del simulador.
+Novedades de la 2.9.22:
+- Configuración tiene su propia X arriba a la derecha para cerrar el menú.
+- Si tocás la X de Windows con Configuración abierta o en pleno directo, la app pregunta antes de cerrarse (Cancelar, minimizar a la bandeja o cerrar).
 - Corrección de errores y mejoras.
