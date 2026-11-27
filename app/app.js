@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             obsExit: 'fade', // Cómo se va de OBS al marcarla leída
             obsEnter: 'pop', // Cómo aparece en OBS
             readIcon: 'check', // Ícono de "leído": tilde u ojo
+            readText: false, // además del ícono, el texto "Marcar leída" en la tarjeta
             obsStep: false, obsStepDim: true, // Leer de a una con la rueda en la ventana OBS
             obsCard: null, // Imagen de esquina y de fondo de las tarjetas de OBS
             statsMode: 'normal', statsSize: 100, // Contadores de arriba: normal, compacto u ocultos, y su tamaño
@@ -1751,12 +1752,12 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `<button class="btn-card-action" data-act="toggle-read" data-id="${item.id}" title="Restaurar a pendientes">
                    <i class="fa-solid fa-arrow-rotate-left"></i> Restaurar
                </button>`
-            : `<button class="btn-card-action is-read-btn" data-act="toggle-read" data-id="${item.id}" title="Marcar como leído y quitar de la vista">
-                   <i class="fa-solid fa-check ico-check"></i>${EYE_SVG} Marcar leída
+            : `<button class="btn-card-action is-read-btn" data-act="toggle-read" data-id="${item.id}" title="Marcar como leído y quitar de la vista" aria-label="Marcar leída">
+                   <i class="fa-solid fa-check ico-check"></i>${EYE_SVG}<span class="read-txt"> Marcar leída</span>
                </button>`;
         const saveBtn = item.saved
-            ? `<button class="btn-card-action save-btn is-saved" data-act="save" data-id="${item.id}" title="Guardada. Tocá para quitarla de Guardados" aria-pressed="true">
-                   <i class="fa-solid fa-bookmark"></i> Guardada
+            ? `<button class="btn-card-action save-btn is-saved" data-act="save" data-id="${item.id}" title="Guardada. Tocá para quitarla de Guardados" aria-pressed="true" aria-label="Guardada">
+                   <i class="fa-solid fa-bookmark"></i>
                </button>`
             : `<button class="btn-card-action save-btn" data-act="save" data-id="${item.id}" title="Guardar esta donación" aria-pressed="false" aria-label="Guardar">
                    <i class="fa-regular fa-bookmark"></i>
@@ -8070,6 +8071,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const c = cleanCard(st.obsCard);
         segSet('enter-seg', st.obsEnter, ENTER_TYPES, 'pop');
         segSet('readicon-seg', st.readIcon, ['check', 'eye'], 'check');
+        if ($('cfg-read-text')) $('cfg-read-text').checked = st.readText === true;
         segSet('corner-pos-seg', c.cornerPos, ['left', 'right'], 'right');
         segSet('corner-layer-seg', c.cornerLayer, ['front', 'back'], 'front');
         $('cc-pad').dataset.x = c.cornerX; $('cc-pad').dataset.y = c.cornerY;
@@ -8088,6 +8090,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function save29Form(st) {
         st.obsEnter = ENTER_TYPES.includes($('enter-seg').dataset.v) ? $('enter-seg').dataset.v : 'pop';
         st.readIcon = $('readicon-seg').dataset.v === 'eye' ? 'eye' : 'check';
+        st.readText = !!($('cfg-read-text') && $('cfg-read-text').checked);
         st.obsGap = $('cfg-obs-gap-auto').checked ? null : cleanGap($('cfg-obs-gap').value);
         st.obsCardWidth = cardWFromForm(); st.obsCardAlign = $('cardalign-seg').dataset.v || 'center';
         applyObsSizeHints();
@@ -8105,7 +8108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sz = Math.min(150, Math.max(70, Number(st.statsSize) || 100));
         box.style.zoom = sz === 100 ? '' : String(sz / 100);
     }
-    function applyReadIcon() { document.documentElement.classList.toggle('read-eye', state.settings.readIcon === 'eye'); }
+    function applyReadIcon() { document.documentElement.classList.toggle('read-eye', state.settings.readIcon === 'eye'); document.documentElement.classList.toggle('read-text', state.settings.readText === true); }
     applyReadIcon();
     applyStatsLook();
     { let rz = 0, wasNarrow = window.innerWidth <= 1240; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const n = window.innerWidth <= 1240; if (n !== wasNarrow) { wasNarrow = n; updateStats(); } }, 150); }); }

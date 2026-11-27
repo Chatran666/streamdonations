@@ -1221,6 +1221,8 @@ window.SD_I18N_EN = {
     'Quitada de Guardados': 'Removed from Saved',
     'Mostrando las donaciones guardadas': 'Showing saved donations',
     'Solo Guardadas': 'Saved only',
+    'Mostrar el texto "Marcar leída"': 'Show the "Mark read" text',
+    'Al lado del ícono, en las tarjetas del panel. Apagado queda solo el ícono.': 'Next to the icon, on the panel cards. When off, only the icon shows.',
     'Modo experto': 'Expert mode', 'Muestra todas las opciones (filtros, destacar, transparencias, efectos…)': 'Shows every option (filters, highlight, transparency, effects…)',
     'Tenés ajustes avanzados funcionando:': 'You have advanced settings running:', 'Siguen activos aunque no se vean.': 'They stay on even if hidden.', 'Ver todo': 'Show all',
     'Primeros pasos': 'First steps', 'Tres pasos y queda lista para tu directo.': 'Three steps and it is ready for your stream.',

@@ -3476,3 +3476,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .db-saved-ico { color: #F5B400; font-size: .8em; margin-left: 6px; }
 .focus-footer .btn-focus-save { margin-left: auto; } .focus-footer .btn-focus-save + .btn { margin-left: 8px; }
 :root[data-pdesign="franja"] .donation-card .card-header .card-read-action .btn-card-action.save-btn.is-saved { background: #1F1500 !important; color: #FFC933 !important; border-color: #1F1500 !important; }
+/* Botón de leído: solo ícono salvo que se pida el texto */
+:root:not(.read-text) .card-read-action .is-read-btn .read-txt { display: none; }
+:root:not(.read-text) .donation-card .card-read-action .btn-card-action.is-read-btn,
+.donation-card .card-read-action .btn-card-action.save-btn { padding-left: calc(8px * var(--panel-head-scale)); padding-right: calc(8px * var(--panel-head-scale)); min-width: calc(30px * var(--panel-head-scale)); justify-content: center; }
