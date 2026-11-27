@@ -222,6 +222,11 @@
                     <span id="read-view-text">Leídas</span>
                     <span class="count-badge" id="badge-read-count">0</span>
                 </button>
+                <button class="btn btn-sm btn-outline" id="btn-toggle-saved-view" title="Ver las donaciones que guardaste" aria-pressed="false">
+                    <i class="fa-solid fa-bookmark" id="saved-view-icon"></i>
+                    <span id="saved-view-text">Guardados</span>
+                    <span class="count-badge" id="badge-saved-count">0</span>
+                </button>
 
                 <!-- Vista: unificada (todo junto) o dividida (una columna por plataforma) -->
                 <div class="layout-toggle">
@@ -302,6 +307,7 @@
             <div class="modal-footer focus-footer">
                 <select id="focus-rank-select" class="focus-rank-select hidden" title="Dar un rango a mano" aria-label="Dar un rango a mano"></select>
                 <button class="btn btn-outline btn-focus-block" id="btn-focus-block"><i class="fa-solid fa-user-slash"></i> <span>Bloquear</span></button>
+                <button class="btn btn-outline btn-focus-save" id="btn-focus-save" data-act="save"><i class="fa-regular fa-bookmark"></i> <span>Guardar</span></button>
                 <button class="btn btn-outline" id="btn-focus-speak"><i class="fa-solid fa-volume-high"></i> Leer en Voz Alta</button>
                 <button class="btn btn-primary" id="btn-focus-toggle-read"><i class="fa-solid fa-check-circle"></i> Marcar como Leído</button>
             </div>
@@ -1959,6 +1965,7 @@
                             <option value="all">Todos los estados</option>
                             <option value="unread">Solo Pendientes</option>
                             <option value="read">Solo Leídos</option>
+                            <option value="saved">Solo Guardadas</option>
                         </select>
                     </div>
                     <div class="db-filter-row db-filter-row2">

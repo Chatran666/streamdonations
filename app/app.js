@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tier: str(d.tier, 40).replace(/[^A-Za-z0-9-]/g, ''),
             avatar,
             isTest: !!d.isTest,
-            ...(d.blocked ? { blocked: true } : {})
+            ...(d.blocked ? { blocked: true } : {}),
+            ...(d.saved ? { saved: true } : {})
         };
     }
 
@@ -84,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         soundEnabled: false, // vienen apagados: se prenden con los botones del encabezado
         ttsEnabled: false,
         showAmounts: false, // false = solo mensajes, true = muestra $
+        showOnlySaved: false, // vista "Guardados": las guardadas, leídas o no
         showOnlyRead: false, // false = solo pendientes (los leídos desaparecen), true = ver historial de leídos
         toolbarVisible: true, // visibilidad de la barra de filtros del medio
         selectedVoice: null,
@@ -416,8 +418,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Función de persistencia automática en base de datos local
     function saveDonationsToStorage() {
         // Las donaciones de prueba desaparecen apenas las tildás (la del frasquito, además, nunca se guarda)
-        if (state.donations.some(d => d.isTest && d.isRead)) {
-            state.donations = state.donations.filter(d => !(d.isTest && d.isRead));
+        if (state.donations.some(d => d.isTest && d.isRead && !d.saved)) {
+            state.donations = state.donations.filter(d => !(d.isTest && d.isRead && !d.saved));
             if (typeof updateTestCount === 'function') { try { updateTestCount(); } catch (e) {} }
         }
         if (typeof syncNoteChanges === 'function') { try { syncNoteChanges(); } catch (e) {} }
@@ -1597,7 +1599,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return state.donations.filter(item => {
             // Si estamos en modo "Pendientes", solo muestra !item.isRead.
             // Si estamos en modo "Chats Leídos", solo muestra item.isRead.
-            if (state.showOnlyRead ? !item.isRead : item.isRead) {
+            if (state.showOnlySaved) {
+                if (!item.saved) return false;
+            } else if (state.showOnlyRead ? !item.isRead : item.isRead) {
                 return false;
             }
 
@@ -1690,10 +1694,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const items = filtered.filter(d => platformKey(d.platform) === k);
             col.badge.textContent = items.length;
             const info = PLATFORMS[k];
-            renderList(col.list, items, state.showOnlyRead ? `No hay ${info.unit} leídos de ${info.label}.` : `No hay ${info.unit} pendientes de ${info.label}.`);
+            renderList(col.list, items, state.showOnlySaved ? `No hay ${info.unit} guardados de ${info.label}.` : state.showOnlyRead ? `No hay ${info.unit} leídos de ${info.label}.` : `No hay ${info.unit} pendientes de ${info.label}.`);
         });
 
-        const emptyUnified = state.showOnlyRead 
+        const emptyUnified = state.showOnlySaved
+            ? 'Todavía no guardaste ninguna donación.'
+            : state.showOnlyRead
             ? 'No hay chats en el historial de leídos.' 
             : 'No hay donaciones pendientes activas.';
 
@@ -1704,9 +1710,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (items.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <i class="fa-solid fa-inbox"></i>
+                    <i class="fa-solid ${state.showOnlySaved ? 'fa-bookmark' : 'fa-inbox'}"></i>
                     <p>${emptyText}</p>
-                    <span>${state.showOnlyRead ? 'Los mensajes marcados como leídos aparecerán aquí.' : 'Los eventos nuevos aparecerán automáticamente.'}</span>
+                    <span>${state.showOnlySaved ? 'Tocá el marcador de una tarjeta para guardarla acá. Queda guardada aunque la marques como leída.' : state.showOnlyRead ? 'Los mensajes marcados como leídos aparecerán aquí.' : 'Los eventos nuevos aparecerán automáticamente.'}</span>
                 </div>
             `;
             return;
@@ -1748,6 +1754,13 @@ document.addEventListener('DOMContentLoaded', () => {
             : `<button class="btn-card-action is-read-btn" data-act="toggle-read" data-id="${item.id}" title="Marcar como leído y quitar de la vista">
                    <i class="fa-solid fa-check ico-check"></i>${EYE_SVG} Marcar leída
                </button>`;
+        const saveBtn = item.saved
+            ? `<button class="btn-card-action save-btn is-saved" data-act="save" data-id="${item.id}" title="Guardada. Tocá para quitarla de Guardados" aria-pressed="true">
+                   <i class="fa-solid fa-bookmark"></i> Guardada
+               </button>`
+            : `<button class="btn-card-action save-btn" data-act="save" data-id="${item.id}" title="Guardar esta donación" aria-pressed="false" aria-label="Guardar">
+                   <i class="fa-regular fa-bookmark"></i>
+               </button>`;
 
         // Estilo (rango y/o donación grande): los bordes animados solo mientras está pendiente
         const rk = item.blocked ? null : rankFor(item.nick, 'panel', item.isTest);
@@ -1777,7 +1790,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="card-read-action">
-                        ${readActionBtn}
+                        ${saveBtn}${readActionBtn}
                     </div>
                 </div>
                 ${item.message ? `<div class="card-message${sty.msg && !item.isRead ? ' sfx-host' : ''}">${item.isRead ? '' : ringHTML(sty.msg)}${messageHTML(item.message)}</div>` : ''}
@@ -2400,6 +2413,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const readCount = state.donations.filter(d => d.isRead).length;
         if (els.badgeReadCount) els.badgeReadCount.textContent = readCount;
+        const savedCountEl = document.getElementById('badge-saved-count');
+        if (savedCountEl) savedCountEl.textContent = state.donations.filter(d => d.saved).length;
 
         const pending = list => list.filter(d => !d.isRead).length;
         const money = list => formatSummary(summarize(list.filter(d => base.includes(d))));
@@ -2478,12 +2493,20 @@ document.addEventListener('DOMContentLoaded', () => {
         els.focusPlatformTag.innerHTML = `<i class="${pInfo.icon}"></i> ${pInfo.label.toUpperCase()}`;
         els.focusCardBody.style.setProperty('--focus-accent', pInfo.color);
 
+        updateFocusSaveBtn(item);
         els.btnFocusToggleRead.innerHTML = item.isRead 
             ? `<i class="fa-solid fa-arrow-rotate-left"></i> Restaurar a pendientes` 
             : `<i class="fa-solid fa-check-circle ico-check"></i>${EYE_SVG} Marcar como Leído`;
 
         els.modalFocus.classList.remove('hidden');
     };
+
+    function updateFocusSaveBtn(item) {
+        const b = $('btn-focus-save'); if (!b || !item) return;
+        b.dataset.id = item.id;
+        b.classList.toggle('is-saved', !!item.saved);
+        b.innerHTML = item.saved ? '<i class="fa-solid fa-bookmark"></i> <span>Guardada</span>' : '<i class="fa-regular fa-bookmark"></i> <span>Guardar</span>';
+    }
 
     window.closeFocusModal = function() {
         els.modalFocus.classList.add('hidden');
@@ -2612,6 +2635,16 @@ document.addEventListener('DOMContentLoaded', () => {
             render();
             showToast(item.isRead ? 'Chat marcado como leído' : 'Chat restaurado a pendientes', 'info');
         }
+    };
+
+    window.toggleSavedState = function(id) {
+        const item = state.donations.find(d => d.id === id);
+        if (!item) return;
+        if (item.saved) delete item.saved; else item.saved = true;
+        saveDonationsToStorage();
+        render();
+        if (state.activeFocusId === id) updateFocusSaveBtn(item);
+        showToast(item.saved ? 'Guardada. La encontrás en "Guardados"' : 'Quitada de Guardados', item.saved ? 'success' : 'info');
     };
 
     window.speakCardMessage = function(id) {
@@ -3701,6 +3734,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Botón para alternar entre "Chats Pendientes" e "Historial de Chats Leídos"
     if (els.btnToggleReadView) {
         els.btnToggleReadView.addEventListener('click', () => {
+            setSavedView(false);
             state.showOnlyRead = !state.showOnlyRead;
             if (state.showOnlyRead) {
                 els.btnToggleReadView.classList.add('active-archive');
@@ -3713,6 +3747,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (els.readViewText) els.readViewText.textContent = 'Leídas';
                 showToast('Mostrando las donaciones pendientes', 'info');
             }
+            render();
+        });
+    }
+
+    // Vista "Guardados" (las guardadas, estén leídas o no)
+    function setSavedView(on) {
+        state.showOnlySaved = !!on;
+        const b = document.getElementById('btn-toggle-saved-view');
+        if (b) { b.classList.toggle('active-archive', state.showOnlySaved); b.setAttribute('aria-pressed', state.showOnlySaved ? 'true' : 'false'); }
+        const tx = document.getElementById('saved-view-text');
+        if (tx) tx.textContent = state.showOnlySaved ? 'Ver pendientes' : 'Guardados';
+    }
+    const btnSavedView = document.getElementById('btn-toggle-saved-view');
+    if (btnSavedView) {
+        btnSavedView.addEventListener('click', () => {
+            const on = !state.showOnlySaved;
+            if (on && state.showOnlyRead) {
+                state.showOnlyRead = false;
+                els.btnToggleReadView.classList.remove('active-archive');
+                if (els.readViewIcon) els.readViewIcon.className = 'fa-solid fa-box-archive';
+                if (els.readViewText) els.readViewText.textContent = 'Leídas';
+            }
+            setSavedView(on);
+            showToast(on ? 'Mostrando las donaciones guardadas' : 'Mostrando las donaciones pendientes', 'info');
             render();
         });
     }
@@ -3813,7 +3871,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear & Mark Read Buttons
     els.btnMarkAllRead.addEventListener('click', () => {
         if (!state.showOnlyRead) {
-            const unread = state.donations.filter(d => !d.isRead);
+            const unread = state.donations.filter(d => !d.isRead && (!state.showOnlySaved || d.saved));
             if (unread.length === 0) {
                 showToast('No hay chats pendientes para marcar', 'info');
                 return;
@@ -3946,6 +4004,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (platformFilter !== 'all' && d.platform !== platformFilter) return false;
             if (statusFilter === 'unread' && d.isRead) return false;
             if (statusFilter === 'read' && !d.isRead) return false;
+            if (statusFilter === 'saved' && !d.saved) return false;
             if (dFrom !== null && !(d.timestamp >= dFrom)) return false;
             if (dTo !== null && !(d.timestamp <= dTo)) return false;
             if (minAmt !== null && Number.isFinite(minAmt) && !((toARS(d) != null && !isNaN(toARS(d)) ? toARS(d) : Number(d.amount) || 0) >= minAmt)) return false;
@@ -4011,7 +4070,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="db-item-platform-tag ${platformKey(d.platform)}">${platformLabel}</span>
                         <div class="db-item-info">
                             <div class="db-item-header">
-                                <span class="db-item-nick">${mark(d.nick || 'Anónimo')}</span>
+                                <span class="db-item-nick">${mark(d.nick || 'Anónimo')}</span>${d.saved ? '<i class="fa-solid fa-bookmark db-saved-ico" title="Guardada"></i>' : ''}
                                 <span class="db-item-amount">${formattedAmt}</span>
                                 <span class="db-item-date">${dateStr}</span>
                             </div>
@@ -4055,7 +4114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         list = list.filter(d => !d.isTest).sort((a, b) => a.timestamp - b.timestamp);
         if (!list.length) { showToast('No hay donaciones para exportar', 'info'); return; }
         const pad = n => String(n).padStart(2, '0');
-        const head = ['Fecha', 'Hora', 'Plataforma', 'Usuario', 'Monto', 'Moneda', 'Monto en pesos (aprox.)', 'Mensaje', 'Leída', 'Bloqueado'];
+        const head = ['Fecha', 'Hora', 'Plataforma', 'Usuario', 'Monto', 'Moneda', 'Monto en pesos (aprox.)', 'Mensaje', 'Leída', 'Bloqueado', 'Guardada'];
         const rows = list.map(d => {
             const dt = new Date(d.timestamp);
             const ars = toARS(d);
@@ -4065,7 +4124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 platformInfo(d.platform).label, d.nick,
                 String(Math.round((d.amount || 0) * 100) / 100).replace('.', ','), d.currency,
                 ars == null || isNaN(ars) ? '' : String(Math.round(ars)), d.message,
-                d.isRead ? 'Sí' : 'No', d.blocked ? 'Sí' : ''
+                d.isRead ? 'Sí' : 'No', d.blocked ? 'Sí' : '', d.saved ? 'Sí' : ''
             ].map(csvCell).join(';');
         });
         const csv = '﻿' + head.join(';') + '\r\n' + rows.join('\r\n') + '\r\n';
@@ -5840,7 +5899,7 @@ document.addEventListener('DOMContentLoaded', () => {
             set('--bg-header', `rgba(${rgbStr(th.header)}, ${th.fx ? 0.55 : 0.9})`);
             set('--bg-toolbar', `rgba(${rgbStr(th.toolbar)}, ${th.fx ? 0.5 : 0.85})`);
         }
-        if (th.mode === 'light' || THEMES[th.key].classic) {
+        if (th.mode === 'light' || (THEMES[th.key] || {}).classic) {
             r.style.removeProperty('--item-bg');
             r.style.removeProperty('--field-bg');
         } else {
@@ -7778,6 +7837,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = el.dataset.id;
         switch (el.dataset.act) {
             case 'toggle-read': e.stopPropagation(); window.toggleReadState(id); break;
+            case 'save': e.stopPropagation(); window.toggleSavedState(id); break;
             case 'release': e.stopPropagation(); releaseHold(id); break;
             case 'user': e.stopPropagation(); openUserMenu(id, el); break;
             case 'focus': if (!e.target.closest('.card-read-action, .msg-link')) window.openFocusModal(id); break;

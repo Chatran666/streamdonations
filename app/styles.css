@@ -3459,3 +3459,20 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 /* Zócalo con franja de color claro elegido a mano: links oscuros */
 :root[data-pcard-ink="dark"][data-pdesign="zocalo"] .card-message .msg-link.known { color: #1D4ED8 !important; background: rgba(29, 78, 216, 0.08) !important; border-color: rgba(29, 78, 216, 0.5) !important; }
 :root[data-pcard-ink="dark"][data-pdesign="zocalo"] .card-message .msg-link.unknown { color: #92400E !important; background: rgba(180, 83, 9, 0.08) !important; border-color: rgba(180, 83, 9, 0.5) !important; }
+
+/* ===== Guardados: marcador en la tarjeta ===== */
+.card-read-action { display: flex; gap: 6px; align-items: flex-start; }
+.donation-card .card-read-action .btn-card-action.save-btn:not(.is-saved) { padding-left: calc(8px * var(--panel-head-scale)); padding-right: calc(8px * var(--panel-head-scale)); }
+.donation-card .card-read-action .btn-card-action.save-btn.is-saved,
+:root[data-pdesign] .donation-card .card-read-action .btn-card-action.save-btn.is-saved,
+.btn-focus-save.is-saved {
+    background: #F5B400 !important; color: #1F1500 !important; border-color: #F5B400 !important;
+    box-shadow: 0 0 0 2px rgba(245, 180, 0, 0.25); font-weight: 700;
+}
+.donation-card .card-read-action .btn-card-action.save-btn.is-saved:hover, .btn-focus-save.is-saved:hover { background: #FFC933 !important; }
+.btn-card-action.save-btn.is-saved i { animation: sdSavePop .28s cubic-bezier(.2,1.6,.4,1); }
+@keyframes sdSavePop { from { transform: scale(.4); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .btn-card-action.save-btn.is-saved i { animation: none; } }
+.db-saved-ico { color: #F5B400; font-size: .8em; margin-left: 6px; }
+.focus-footer .btn-focus-save { margin-left: auto; } .focus-footer .btn-focus-save + .btn { margin-left: 8px; }
+:root[data-pdesign="franja"] .donation-card .card-header .card-read-action .btn-card-action.save-btn.is-saved { background: #1F1500 !important; color: #FFC933 !important; border-color: #1F1500 !important; }
