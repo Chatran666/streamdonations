@@ -268,7 +268,7 @@
                     <div class="obs-header-right">
                         <span class="obs-tag ${d.platform || 'ceneka'}" data-el="platform">${({ youtube: '<i class="fa-brands fa-youtube"></i>', twitch: '<i class="fa-brands fa-twitch"></i>', kick: '<i class="fa-solid fa-bolt"></i>' })[d.platform] || '<i class="fa-solid fa-mug-hot"></i>'}${platformLabel}</span>
                         <div class="obs-amount${amtColor ? ' has-amt-color' : ''}${sty.amount ? ' tfx tfx-' + sty.amount.fx : ''}" data-el="amount" style="${amtColor ? '--amt-color:' + amtColor + ';' : ''}${sty.amount ? vars(sty.amount) : ''}"><span class="amt-full">${formattedAmt}</span><span class="amt-split"><b>${numPart}</b><small>${escapeHTML(curLabel)}</small></span></div>
-                        <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar como leído y ocultar">
+                        <button class="obs-btn-dismiss" data-dismiss="${alertId}" title="Marcar leída">
                             <i class="fa-solid fa-check ico-check"></i>${EYE_SVG}
                         </button>
                     </div>
