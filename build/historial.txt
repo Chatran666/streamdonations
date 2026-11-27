@@ -1,3 +1,9 @@
+Novedades de la 2.10.1:
+- Nuevo: Guardados. Cada tarjeta tiene un marcador para guardar la donación; queda en dorado y la encontrás en el botón "Guardados", aunque la marques como leída.
+- La base de datos tiene el filtro "Solo Guardadas" y la planilla exportada suma la columna "Guardada".
+- Los botones de las tarjetas (guardar y leído) ahora son solo íconos; al dejar el mouse encima dicen qué hacen. El ícono de leído (tilde u ojo) se elige igual para el panel y OBS.
+- Corrección de errores y mejoras.
+
 Novedades de la 2.10.0:
 - Revisión completa de legibilidad: en los 20 diseños, con todos los temas, plataformas y montos, todo el texto se lee bien (también sobre video claro y con el tema claro).
 - Si elegís un color de tarjeta claro, la letra cambia sola a oscura (y al revés).
