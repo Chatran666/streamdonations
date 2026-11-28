@@ -1647,6 +1647,58 @@
 
 
 
+                        <div class="adv">
+                        <div class="pane-subtitle"><i class="fa-solid fa-star"></i> Segunda fuente: Destacadas</div>
+                        <p class="pane-note">Una fuente aparte para ponerla en otro lugar de la pantalla (por ejemplo, arriba del juego). Muestra solo las donaciones destacadas; esas también siguen saliendo en la fuente de siempre. Se oculta igual que las demás: cuando la marcás como leída.</p>
+                        <label class="setting-row toggle-row">
+                            <div><strong>Usar la fuente Destacadas</strong><small>Prendela, guardá y después copiá su link para agregarla en OBS.</small></div>
+                            <span class="toggle-switch"><input type="checkbox" id="cfg-feat-on"><span class="toggle-slider"></span></span>
+                        </label>
+                        <div id="feat-box">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="cfg-feat-min">Destacar desde este monto</label>
+                                    <div class="feat-min-row">
+                                        <input type="number" id="cfg-feat-min" min="0" step="1" placeholder="Ej: 10000">
+                                        <select id="cfg-feat-unit" aria-label="Moneda del monto">
+                                            <option value="local">en tu moneda</option>
+                                            <option value="usd">en dólares (US$)</option>
+                                        </select>
+                                    </div>
+                                    <small>0 = ninguna por monto (solo las personas de abajo). "Tu moneda" es la de tus donaciones; las que llegan en dólares, Bits o KICKs cuentan si cargaste la cotización. En dólares compara directo los Super Chats, Bits y KICKs.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cfg-feat-design">Diseño de las destacadas</label>
+                                    <select id="cfg-feat-design"></select>
+                                    <small>Puede ser distinto al de la fuente de siempre.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cfg-feat-style">Efecto</label>
+                                    <select id="cfg-feat-style" class="style-select"></select>
+                                    <small>Los estilos se arman en Diseño → Destacar.</small>
+                                </div>
+                            </div>
+                            <label class="setting-row toggle-row compact">
+                                <div><strong>Tarjeta sin fondo</strong><small>Transparente, para que se vea el juego detrás. Las letras llevan sombra para que se lean igual.</small></div>
+                                <span class="toggle-switch"><input type="checkbox" id="cfg-feat-clear"><span class="toggle-slider"></span></span>
+                            </label>
+                            <div class="form-group">
+                                <label for="feat-user-input">Personas que siempre van a Destacadas</label>
+                                <div class="feat-min-row">
+                                    <input type="text" id="feat-user-input" maxlength="80" placeholder="Nombre exacto (sin importar mayúsculas)">
+                                    <button type="button" class="btn btn-outline btn-sm" id="btn-feat-user-add"><i class="fa-solid fa-plus"></i> Agregar</button>
+                                </div>
+                                <div class="feat-users" id="feat-users"></div>
+                                <small>También podés tocar el nombre de alguien en el panel → "Mandar siempre a Destacadas".</small>
+                            </div>
+                            <div class="obsws-actions">
+                                <button type="button" class="btn btn-primary btn-sm" id="btn-feat-copy"><i class="fa-solid fa-link"></i> Copiar link de Destacadas</button>
+                                <button type="button" class="btn btn-outline btn-sm" id="btn-feat-add"><i class="fa-solid fa-wand-magic-sparkles"></i> Agregar a OBS automático</button>
+                            </div>
+                            <small class="pane-note"><i class="fa-solid fa-triangle-exclamation"></i> El link lleva tu clave: no lo muestres en pantalla.</small>
+                        </div>
+                        </div>
+
                         <div class="pane-subtitle"><i class="fa-solid fa-window-maximize"></i> Ventana "Modo OBS"</div>
                         <label class="setting-row toggle-row">
                             <div><strong>Barra de plataformas arriba de OBS</strong><small>Una barrita arriba en la ventana OBS (Todas · Ceneka · YouTube · Twitch · Kick) para ver solo las de una red y leerlas primero. Apagalo para ver todas juntas sin que ocupe lugar.</small></div>

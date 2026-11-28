@@ -126,6 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Efecto visual para donaciones grandes
             fxEnabled: false, fxMin: 10000, fxType: 'pulse', fxColor: '#FFD700', fxPanel: true, fxObs: true,
             fxStyle: 'arcoiris', // estilo para las donaciones grandes
+            // Segunda fuente de OBS: "Destacadas" (las grandes y las de las personas que elijas)
+            featOn: false, featMin: 0, featUnit: 'local', featUsers: [], featDesign: 'same', featClear: true, featStyle: 'arcoiris',
             styles: null, // se llenan con los estilos de fábrica al cargar
             // Rangos de donadores (por lo donado en los últimos N días)
             // Color del monto según cuánto donó
@@ -365,6 +367,8 @@ document.addEventListener('DOMContentLoaded', () => {
         state.settings._styles111 = true;
         state.settings.styles = cleanStyles(state.settings.styles);
         if (state.settings.fxStyle && !state.settings.styles.some(x => x.id === state.settings.fxStyle)) state.settings.fxStyle = '';
+        if (state.settings.featStyle && !state.settings.styles.some(x => x.id === state.settings.featStyle)) state.settings.featStyle = '';
+        if (!Array.isArray(state.settings.featUsers)) state.settings.featUsers = [];
         state.settings.ranks = cleanRanks(state.settings.ranks);
         state.settings.amtColors = cleanAmtColors(state.settings.amtColors);
         state.settings.obsLayout = cleanObsLayout(state.settings.obsLayout);
@@ -575,6 +579,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const bs = big ? styleById(big.style) : null;
         if (bs) Object.assign(out, bs.parts);
         return Object.keys(out).length ? out : null;
+    }
+    // ---- Fuente "Destacadas": ¿esta donación va también a la segunda fuente de OBS? ----
+    function featValue(d) {
+        // El monto en la moneda elegida: la local (la de tus donaciones) o dólares
+        if (state.settings.featUnit === 'usd') {
+            const u = toUSD(d);
+            if (u !== null) return u;
+            if (isForeignCurrency(d)) return null;
+            const rate = parseFloat(state.settings.usdRate) || 0;
+            return rate > 0 ? (parseFloat(d.amount) || 0) / rate : null;
+        }
+        return toARS(d);
+    }
+    function isFeatured(d) {
+        const st = state.settings;
+        if (!d || !st.featOn || d.blocked) return false;
+        if (!d.isTest && (st.featUsers || []).some(n => nickKey(n) === nickKey(d.nick))) return true;
+        const min = parseFloat(st.featMin) || 0;
+        if (min <= 0) return false;
+        const v = featValue(d);
+        return v !== null && v >= min;
+    }
+    function featStyleFor(d) {
+        const base = mergedStyle(d, 'obs') || {};
+        const fs = state.settings.featStyle ? styleById(state.settings.featStyle) : null;
+        return fs ? Object.assign({}, base, fs.parts) : base;
     }
     const ringHTML = (p) => p ? `<span class="sfx-ring sfx-${p.fx}" style="${partVars(p)}" aria-hidden="true"></span>` : '';
     const tfxAttr = (p) => p ? { cls: ` tfx tfx-${p.fx}`, style: partVars(p) } : { cls: '', style: '' };
@@ -1511,7 +1541,8 @@ document.addEventListener('DOMContentLoaded', () => {
             rank: (r => r ? { name: r.name, icon: r.icon, color: r.color, count: r.count, showName: r.showName, badgeColor: r.badgeColor, badgeFx: r.badgeFx } : null)(rankFor(d.nick, 'obs', d.isTest)),
             obsHideMessage: !!state.settings.obsHideMessage,
             obsDuration: state.settings.obsDuration || 0,
-            accum: accumFor(d)
+            accum: accumFor(d),
+            ...(isFeatured(d) ? { feat: true, featSty: featStyleFor(d) } : {})
         };
     }
     // Total que donó esa persona (en este directo, hoy o en 30 días), para el chip "acum." de OBS
@@ -2578,6 +2609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <label class="um-row"><span><i class="fa-solid fa-crown"></i> Rango a mano</span>
                 <select id="um-rank">${manual.length ? '<option value="-1">Ninguno</option>' + manual.map(x => `<option value="${x.i}"${cur && cur.i === x.i ? ' selected' : ''}>${escapeHTML(x.r.name)}</option>`).join('') : '<option value="-1">Creá uno en Opciones → Diseño → Destacar</option>'}</select></label>
             ${!state.settings.ranksEnabled && manual.length ? '<small class="pane-note">Los rangos están apagados en Opciones → Diseño → Destacar.</small>' : ''}
+            ${state.settings.featOn && !test ? `<button type="button" class="um-btn" id="um-feat"><i class="fa-solid fa-star"></i> ${(state.settings.featUsers || []).some(n => nickKey(n) === key) ? 'Quitar de Destacadas' : 'Mandar siempre a Destacadas'}</button>` : ''}
             <button type="button" class="um-btn" id="um-filter"><i class="fa-solid fa-magnifying-glass"></i> Ver sus donaciones</button>
             <button type="button" class="um-btn${blk ? '' : ' danger'}" id="um-block"><i class="fa-solid fa-user-slash"></i> ${blk ? 'Desbloquear' : 'Bloquear'}</button>`;
         if (menu.parentElement !== document.body) document.body.appendChild(menu);
@@ -2597,6 +2629,8 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast((rr ? `${escapeHTML(item.nick)} ahora es ${escapeHTML(rr.name)}` : `${escapeHTML(item.nick)} ya no tiene rango a mano`) + (test ? ' (prueba)' : ''), 'success');
             closeUserMenu();
         });
+        const ft = $('um-feat');
+        if (ft) ft.addEventListener('click', () => { toggleFeatUser(item.nick); closeUserMenu(); });
         const fb = $('um-filter');
         if (fb) fb.addEventListener('click', () => { els.inputSearch.value = item.nick; state.filter.search = item.nick; render(); closeUserMenu(); els.inputSearch.focus(); });
         const bb = $('um-block');
@@ -3457,11 +3491,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function pushToOverlay(donation) {
         if (!donation) return;
         // Si hay un monto mínimo configurado y la donación es menor, no se envía a OBS
-        if (belowMin(donation, state.settings.obsMinAmount)) {
+        // (las destacadas igual van a la fuente "Destacadas", aunque no lleguen al mínimo)
+        const below = belowMin(donation, state.settings.obsMinAmount);
+        if (below && !isFeatured(donation)) {
             return;
         }
 
         const payload = overlayPayload(donation);
+        if (below) payload.featOnly = true;
 
         const msg = { type: 'NEW_DONATION', data: payload };
 
@@ -4883,7 +4920,9 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-fx-min').value = st.fxMin || '';
         stylesDraft = cleanStyles(st.styles).map(x => JSON.parse(JSON.stringify(x)));
         fillStyleSelect($('cfg-fx-style'), st.fxStyle || '');
+        fillStyleSelect($('cfg-feat-style'), st.featStyle || '');
         renderStyleChips();
+        fillFeatForm(st);
         $('cfg-fx-panel').checked = st.fxPanel !== false;
         $('cfg-fx-obs').checked = st.fxObs !== false;
         $('cfg-obs-pstyle').value = st.obsPlatformStyle || 'tag';
@@ -5130,10 +5169,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Si cambian las opciones de links o de mensajes en OBS, se actualizan las alertas que ya están en pantalla
+    // ---- Formulario de la fuente "Destacadas" ----
+    let featUsersDraft = [];
+    function renderFeatUsers() {
+        const w = $('feat-users'); if (!w) return;
+        w.innerHTML = featUsersDraft.length
+            ? featUsersDraft.map((n, i) => `<span class="feat-user"><i class="fa-solid fa-star"></i> ${escapeHTML(n)}<button type="button" data-feat-del="${i}" title="Quitar" aria-label="Quitar"><i class="fa-solid fa-xmark"></i></button></span>`).join('')
+            : '<span class="pane-note">Nadie todavía.</span>';
+    }
+    function fillFeatForm(st) {
+        $('cfg-feat-on').checked = !!st.featOn;
+        $('cfg-feat-min').value = st.featMin || '';
+        $('cfg-feat-unit').value = st.featUnit === 'usd' ? 'usd' : 'local';
+        const ds = $('cfg-feat-design');
+        if (!ds.options.length) ds.innerHTML = '<option value="same">Igual que la fuente de siempre</option>' + OBS_DESIGNS.map(d => `<option value="${d.k}">${escapeHTML(d.label)}</option>`).join('');
+        ds.value = st.featDesign === 'same' || OBS_DESIGNS.some(d => d.k === st.featDesign) ? st.featDesign : 'same';
+        $('cfg-feat-clear').checked = st.featClear !== false;
+        featUsersDraft = (st.featUsers || []).slice();
+        renderFeatUsers();
+        $('feat-box').classList.toggle('feat-off', !st.featOn);
+    }
+    (function initFeatForm() {
+        const inp = $('feat-user-input');
+        const add = () => {
+            const n = String(inp.value || '').trim().slice(0, 80);
+            if (!n) return;
+            if (!featUsersDraft.some(x => nickKey(x) === nickKey(n))) featUsersDraft.push(n);
+            inp.value = ''; renderFeatUsers(); inp.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        $('btn-feat-user-add').addEventListener('click', add);
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+        $('feat-users').addEventListener('click', e => {
+            const b = e.target.closest('[data-feat-del]'); if (!b) return;
+            featUsersDraft.splice(parseInt(b.dataset.featDel), 1); renderFeatUsers();
+            $('feat-users').dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        $('cfg-feat-on').addEventListener('change', () => $('feat-box').classList.toggle('feat-off', !$('cfg-feat-on').checked));
+    })();
+    // Desde el menú del nombre: agrega o quita a alguien de Destacadas (se guarda en el momento)
+    function toggleFeatUser(nick) {
+        const st = state.settings, k = nickKey(nick);
+        const has = (st.featUsers || []).some(n => nickKey(n) === k);
+        st.featUsers = has ? st.featUsers.filter(n => nickKey(n) !== k) : (st.featUsers || []).concat([String(nick).slice(0, 80)]);
+        persistSettings();
+        obsWsSyncAll();
+        showToast(has ? `${escapeHTML(nick)} ya no va siempre a Destacadas` : `${escapeHTML(nick)} va a salir siempre en Destacadas`, 'success');
+    }
+
     function refreshOverlayMessages() {
         const items = state.donations
             .filter(d => !d.isRead)
-            .map(d => { const pl = overlayPayload(d); return { id: d.id, nick: pl.nick, message: pl.message, rank: pl.rank, sty: pl.sty || {}, obsHideMessage: !!state.settings.obsHideMessage }; });
+            .map(d => { const pl = overlayPayload(d); return { id: d.id, nick: pl.nick, message: pl.message, rank: pl.rank, sty: pl.sty || {}, featSty: pl.featSty || pl.sty || {}, obsHideMessage: !!state.settings.obsHideMessage }; });
         const payload = { ts: Date.now(), items };
         obsWsSend({ type: 'UPDATE_ALERTS', data: payload });
         try { localStorage.setItem('obs_alerts_update', JSON.stringify(payload)); } catch (e) {}
@@ -5199,6 +5285,15 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxMin = Math.max(0, parseFloat($('cfg-fx-min').value) || 0);
         st.styles = cleanStyles(stylesDraft);
         st.fxStyle = st.styles.some(x => x.id === $('cfg-fx-style').value) ? $('cfg-fx-style').value : '';
+        const featBefore = JSON.stringify([st.featOn, st.featMin, st.featUnit, st.featUsers, st.featDesign, st.featClear, st.featStyle]);
+        st.featOn = $('cfg-feat-on').checked;
+        st.featMin = Math.max(0, parseFloat($('cfg-feat-min').value) || 0);
+        st.featUnit = $('cfg-feat-unit').value === 'usd' ? 'usd' : 'local';
+        st.featUsers = featUsersDraft.slice(0, 200);
+        st.featDesign = $('cfg-feat-design').value === 'same' || OBS_DESIGNS.some(d => d.k === $('cfg-feat-design').value) ? $('cfg-feat-design').value : 'same';
+        st.featClear = $('cfg-feat-clear').checked;
+        st.featStyle = st.styles.some(x => x.id === $('cfg-feat-style').value) ? $('cfg-feat-style').value : '';
+        const featChanged = JSON.stringify([st.featOn, st.featMin, st.featUnit, st.featUsers, st.featDesign, st.featClear, st.featStyle]) !== featBefore;
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
         st.obsLayout = readObsLayoutForm();
@@ -5305,6 +5400,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAudioUnlockBanner();
         forceGoalSync();
         if (JSON.stringify([st.obsLinkMode, st.obsHideMessage, st.stripTracking, st.bannedWords, st.censorObs]) !== obsBefore) { refreshOverlayMessages(); render(); }
+        if (featChanged) { sendObsStyle(); obsWsSyncAll(); }
         render();
         closeSettings();
         if (st.language !== langBefore) { setTimeout(() => location.reload(), 150); return; }
@@ -6857,6 +6953,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cardColor: lk.obsCardColor || '',
             textColor: lk.obsCustomText || '',
             cardAlpha: (v => v >= 0 && v <= 100 ? v / 100 : null)(cardAlphaDraft != null ? cardAlphaDraft : Number(state.settings.obsCardAlpha)),
+            // Cómo se ve la fuente "Destacadas"
+            feat: { design: state.settings.featDesign || 'same', clear: state.settings.featClear !== false },
             ts: Date.now()
         };
         lastObsStylePayload = payload;
@@ -7287,6 +7385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function refreshStyleSelects() {
         const fs = $('cfg-fx-style'); fillStyleSelect(fs, fs.value);
+        const ffs = $('cfg-feat-style'); if (ffs) fillStyleSelect(ffs, ffs.value);
         renderStyleChips();
         syncRanksDraft(); renderRanksForm();
     }
@@ -7387,6 +7486,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stylesDraft = stylesDraft.filter(x => x.id !== id);
             ranksDraft.forEach(r => { if (r.style === id) r.style = ''; });
             if ($('cfg-fx-style').value === id) fillStyleSelect($('cfg-fx-style'), '');
+            if ($('cfg-feat-style') && $('cfg-feat-style').value === id) fillStyleSelect($('cfg-feat-style'), '');
             edStyle = stylesDraft[0] || null; styleChanged();
         });
         $('style-name').addEventListener('input', () => {
@@ -7502,8 +7602,8 @@ document.addEventListener('DOMContentLoaded', () => {
         obsWsSend({ type: 'RESET' }, only);
         if (lastObsStylePayload) obsWsSend({ type: 'STYLE_UPDATE', data: lastObsStylePayload }, only);
         if (wsGoal) obsWsSend({ type: 'GOAL_UPDATE', data: wsGoal }, only);
-        state.donations.filter(d => !d.isRead && !belowMin(d, state.settings.obsMinAmount)).reverse()
-            .forEach(d => obsWsSend({ type: 'NEW_DONATION', data: overlayPayload(d) }, only));
+        state.donations.filter(d => !d.isRead && (!belowMin(d, state.settings.obsMinAmount) || isFeatured(d))).reverse()
+            .forEach(d => obsWsSend({ type: 'NEW_DONATION', data: Object.assign(overlayPayload(d), belowMin(d, state.settings.obsMinAmount) ? { featOnly: true } : {}) }, only));
     }
     function obsWsClose() {
         clearTimeout(obsWs.retry); obsWs.retry = null;
@@ -7564,16 +7664,18 @@ document.addEventListener('DOMContentLoaded', () => {
             obsWsSyncAll(via);
         } else if (msg.type === 'MARK_READ' && typeof msg.id === 'string') markReadFromObs(msg.id.replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 80) || 'x');
     }
-    function obsSourceUrl() {
+    function obsSourceUrl(feat) {
+        const z = feat ? '&zona=destacadas' : '';
         // Versión 2: la fuente la sirve la propia app (no lleva la contraseña de OBS)
-        if (sdRelay.info) return 'http://127.0.0.1:' + sdRelay.info.port + '/obs.html#relay=' + sdRelay.info.port + '&k=' + sdRelay.info.token;
+        if (sdRelay.info) return 'http://127.0.0.1:' + sdRelay.info.port + '/obs.html#relay=' + sdRelay.info.port + '&k=' + sdRelay.info.token + z;
         const c = obsWsCfg();
         const base = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'obs.html';
-        return base + '#ws=' + c.port + (c.pw ? '&k=' + encodeURIComponent(c.pw) : '');
+        return base + '#ws=' + c.port + (c.pw ? '&k=' + encodeURIComponent(c.pw) : '') + z;
     }
-    async function obsWsAddSource() {
-        const name = 'StreamDonations';
-        const url = obsSourceUrl();
+    async function obsWsAddSource(feat) {
+        feat = feat === true;
+        const name = feat ? 'StreamDonations Destacadas' : 'StreamDonations';
+        const url = obsSourceUrl(feat);
         try {
             const sc = await obsWsRequest('GetCurrentProgramScene');
             const sceneName = sc.currentProgramSceneName || sc.sceneName;
@@ -7610,7 +7712,19 @@ document.addEventListener('DOMContentLoaded', () => {
             obsWs.authFailed = false;
             obsWsConnect();
         });
-        $('btn-obsws-add').addEventListener('click', obsWsAddSource);
+        $('btn-obsws-add').addEventListener('click', () => obsWsAddSource());
+        // Fuente "Destacadas"
+        $('btn-feat-copy').addEventListener('click', () => {
+            if (TAURI && !sdRelay.info) { showToast('El servidor interno todavía no arrancó', 'warning'); return; }
+            const url = obsSourceUrl(true);
+            (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+                () => { const sz = obsSourceSize(); showToast(`Link de Destacadas copiado. En OBS: Fuentes → + → Navegador → pegalo en URL (ancho ${sz.w}, alto ${sz.h}). No lo muestres en pantalla: lleva tu clave.`, 'success'); },
+                () => prompt('Copiá el link:', url));
+        });
+        $('btn-feat-add').addEventListener('click', () => {
+            if (!obsWs.ready) { showToast('Primero conectá la app con OBS (OBS → Automático con OBS), o usá "Copiar link".', 'warning'); return; }
+            obsWsAddSource(true);
+        });
         $('btn-obsws-copy').addEventListener('click', () => {
             const url = obsSourceUrl();
             (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(

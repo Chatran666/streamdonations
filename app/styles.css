@@ -3479,3 +3479,15 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 /* Botones de leído y guardar: solo ícono (el texto queda en el globito) */
 .donation-card .card-read-action .btn-card-action.is-read-btn,
 .donation-card .card-read-action .btn-card-action.save-btn { padding-left: calc(8px * var(--panel-head-scale)); padding-right: calc(8px * var(--panel-head-scale)); min-width: calc(30px * var(--panel-head-scale)); justify-content: center; }
+
+/* ===== Fuente "Destacadas" (Opciones → OBS) ===== */
+.feat-min-row { display: flex; gap: 8px; align-items: center; }
+.feat-min-row input { flex: 1; min-width: 0; }
+.feat-min-row select { flex: 0 0 auto; width: auto; }
+#feat-box.feat-off { opacity: .5; pointer-events: none; }
+.feat-users { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.feat-user { display: inline-flex; align-items: center; gap: 6px; padding: 4px 4px 4px 10px; border-radius: 999px; background: rgba(245, 180, 0, .14); border: 1px solid rgba(245, 180, 0, .45); font-size: .85rem; }
+.feat-user > i { color: #F5B400; font-size: .75em; }
+.feat-user button { border: 0; background: transparent; color: inherit; cursor: pointer; width: 22px; height: 22px; border-radius: 50%; opacity: .7; }
+.feat-user button:hover { opacity: 1; background: rgba(255,255,255,.1); }
+#feat-box > .form-group, #feat-box > .obsws-actions { margin-top: 14px; }

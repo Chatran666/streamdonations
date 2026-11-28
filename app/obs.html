@@ -584,6 +584,12 @@
         :root.obs-ws.text-shadow .obs-alert,
         :root.obs-ws.text-shadow #obs-goal { text-shadow: 0 1px 2px rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.9), 0 0 6px rgba(var(--obs-shadow-rgb, 0, 0, 0), 0.55); }
         :root.obs-ws #obs-scroll-area::-webkit-scrollbar { display: none !important; }
+        /* Fuente "Destacadas" sin fondo: sin sombras de caja y letra clara con contorno, para leerse sobre cualquier juego */
+        :root.feat-clear .obs-alert, :root.feat-clear[data-design] .obs-alert { background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; }
+        :root.feat-clear .obs-nick > span:not(.tfx), :root.feat-clear .obs-msg, :root.feat-clear .obs-sub { color: #fff !important; -webkit-text-fill-color: #fff; }
+        :root.feat-clear .obs-alert .obs-nick > span:not(.tfx), :root.feat-clear .obs-alert .obs-msg, :root.feat-clear .obs-alert .obs-sub, :root.feat-clear .obs-alert [data-el="amount"]:not(.tfx) {
+            text-shadow: 0 0 2px #000, 0 0 3px #000, 0 1px 3px #000, 0 0 10px rgba(0, 0, 0, 0.7) !important; }
+        :root.feat-clear .obs-msg { background: rgba(0, 0, 0, 0.28) !important; }
 
         :root.obs-chroma, :root.obs-chroma body { background: var(--obs-chroma) !important; }
         :root.obs-chroma #obs-bg { display: none !important; }

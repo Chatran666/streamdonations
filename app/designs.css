@@ -482,3 +482,5 @@
 :root[data-mode="light"][data-design="cristal"] .obs-amount { background: rgba(255, 255, 255, 0.7) !important; border-color: rgba(15, 23, 42, 0.18) !important; }
 :root[data-mode="light"][data-design="franja"] .obs-avatar, :root[data-mode="light"][data-design="capsula"] .obs-avatar { color: var(--cur-ink) !important; }
 :root[data-design="subtitulo"] .obs-alert .obs-accum, :root[data-design="subtitulo"] .obs-alert .rank-name { text-shadow: none !important; }
+/* Texto con degradé (estilos Arcoíris, Fuego…): la sombra se vería encima del color, así que va sin sombra (el contorno lo pone un filtro) */
+:root .obs-alert .tfx-rainbow, :root .obs-alert .tfx-gradient, :root[data-design] .obs-alert .tfx-rainbow, :root[data-design] .obs-alert .tfx-gradient { text-shadow: none !important; }

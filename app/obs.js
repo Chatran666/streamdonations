@@ -31,6 +31,9 @@
         const RELAY_MODE = /^\d{1,5}$/.test(WS_PARAMS.get('relay') || '') && /^[0-9a-f]{24,64}$/.test(WS_PARAMS.get('k') || '');
         const WS_MODE = RELAY_MODE || /^\d{1,5}$/.test(WS_PARAMS.get('ws') || '');
         if (WS_MODE) document.documentElement.classList.add('obs-ws');
+        // Segunda fuente "Destacadas" (#...&zona=destacadas): solo muestra las donaciones destacadas, con su propio diseño
+        const FEAT_ZONE = WS_MODE && WS_PARAMS.get('zona') === 'destacadas';
+        if (FEAT_ZONE) document.documentElement.classList.add('feat-zone');
         const obsLink = { sock: null, ready: false, n: 0 };
         async function sha256b64(text) {
             const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -221,6 +224,9 @@
 
         function renderAlert(d) {
             if (!d) return;
+            // La fuente Destacadas muestra solo las destacadas; la de siempre, todas menos las que van solo a Destacadas
+            if (FEAT_ZONE ? !d.feat : d.featOnly) return;
+            if (FEAT_ZONE) d = Object.assign({}, d, { sty: d.featSty });
 
             // Deduplicar por ID si ya existe en pantalla
             // Todo lo que llega se limpia antes de mostrarlo
@@ -554,7 +560,7 @@
                 if (!el) return;
                 const nickEl = el.querySelector('.obs-nick span:first-child');
                 if (nickEl && typeof item.nick === 'string' && item.nick) nickEl.textContent = item.nick;
-                const sty = 'sty' in item ? cleanSty(item.sty) : null;
+                const sty = 'sty' in item ? cleanSty(FEAT_ZONE && item.featSty ? item.featSty : item.sty) : null;
                 if (sty) {
                     // El estilo cambió: se vuelven a poner los efectos de la tarjeta, el mensaje, el nick y el monto
                     el.querySelectorAll(':scope > .sfx-ring, .obs-msg > .sfx-ring').forEach(x => x.remove());
@@ -704,6 +710,14 @@
 
         function applyStyle(st) {
             if (!st || (st.ts && st.ts < lastStyleTs)) return;
+            if (FEAT_ZONE) document.documentElement.classList.toggle('feat-clear', !!(st.feat && st.feat.clear));
+            if (FEAT_ZONE && st.feat) {
+                // Destacadas: su diseño y, si se eligió, la tarjeta sin fondo (se ve el juego detrás)
+                st = Object.assign({}, st);
+                if (st.feat.design && st.feat.design !== 'same') st.design = st.feat.design;
+                if (st.feat.clear) { st.cardAlpha = 0; st.obsBg = { type: 'theme' }; st.textShadow = true; }
+                st.filterBar = false; // la barra de plataformas no va en esta fuente
+            }
             lastStyleTs = st.ts || Date.now();
             const sc = Math.min(2.5, Math.max(0.7, parseFloat(st.scale) || 1));
             const fb = !PREVIEW && st.filterBar !== false;
@@ -1035,6 +1049,7 @@
         let lastGoalJson = '';
         function renderGoal(g) {
             if (!g) return;
+            if (FEAT_ZONE) g = { enabled: false }; // la meta queda solo en la fuente de siempre
             document.body.classList.toggle('has-goal', !!g.enabled);
             layoutTop();
             if (!g.enabled) return;
