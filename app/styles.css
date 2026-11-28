@@ -3509,3 +3509,7 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .raw-table th, .raw-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(127, 127, 127, .15); vertical-align: top; word-break: break-word; }
 .raw-table td:first-child { white-space: nowrap; opacity: .75; font-family: ui-monospace, Consolas, monospace; }
 .raw-table tr.raw-hit td { background: rgba(245, 180, 0, .14); font-weight: 600; }
+.raw-h { margin: 14px 0 0; font-size: .9rem; opacity: .85; }
+.raw-card .modal-body { max-height: 68vh; overflow: auto; }
+.raw-card .raw-wrap { max-height: none; overflow: visible; margin-top: 6px; }
+.raw-card .raw-h { margin: 16px 0 0 !important; }

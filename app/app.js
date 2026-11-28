@@ -3112,13 +3112,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- Datos crudos de la última donación de Ceneka (solo en memoria, para ver qué manda la API) ----
     let lastCenekaRaw = null;
-    function noteCenekaRaw(via, obj) {
-        try { lastCenekaRaw = { via, at: Date.now(), data: JSON.parse(JSON.stringify(obj || {})) }; } catch (e) {}
+    function noteCenekaRaw(via, obj, conn) {
+        try { lastCenekaRaw = { via, at: Date.now(), data: JSON.parse(JSON.stringify(obj || {})), conn: conn || null, detail: null }; } catch (e) {}
+    }
+    // StreamElements: el detalle completo de esa donación (puede traer más datos que el aviso en vivo)
+    function fetchSETipDetail(r) {
+        const d = r && r.data, c = r && r.conn;
+        const tipId = d && d.data && d.data.tipId, ch = d && d.channel;
+        if (!c || !c.token || !/^[0-9a-f]{24}$/i.test(tipId || '') || !/^[0-9a-f]{24}$/i.test(ch || '')) return Promise.resolve(null);
+        return fetch(`https://api.streamelements.com/kappa/v2/tips/${ch}/${tipId}`, { headers: { Authorization: 'Bearer ' + c.token, Accept: 'application/json' } })
+            .then(res => res.ok ? res.json() : { _error: 'StreamElements respondió ' + res.status })
+            .catch(() => ({ _error: 'No se pudo consultar a StreamElements' }));
     }
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     function maskEmail(v) { const [u, d] = String(v).split('@'); return (u.slice(0, 2) + '•••@' + d); }
-    function showCenekaRaw() {
-        const rows = [];
+    async function showCenekaRaw() {
+        if (lastCenekaRaw && lastCenekaRaw.via === 'StreamElements' && !lastCenekaRaw.detail) {
+            const b = $('btn-ceneka-raw'); if (b) b.disabled = true;
+            lastCenekaRaw.detail = await fetchSETipDetail(lastCenekaRaw) || { _error: 'Esta donación no trae número para pedir el detalle' };
+            if (b) b.disabled = false;
+        }
+        let rows = [];
         let mail = false;
         const walk = (o, path, depth) => {
             if (rows.length > 120 || depth > 5) return;
@@ -3130,6 +3144,10 @@ document.addEventListener('DOMContentLoaded', () => {
             rows.push(`<tr${isMail || /mail/i.test(path) ? ' class="raw-hit"' : ''}><td>${escapeHTML(path)}</td><td>${escapeHTML(v.length > 140 ? v.slice(0, 140) + '…' : v)}</td></tr>`);
         };
         if (lastCenekaRaw) walk(lastCenekaRaw.data, '', 0);
+        const liveRows = rows; rows = [];
+        if (lastCenekaRaw && lastCenekaRaw.detail) walk(lastCenekaRaw.detail, '', 0);
+        const detailRows = rows;
+        const table = (r) => `<div class="raw-wrap"><table class="raw-table"><thead><tr><th>Dato</th><th>Valor</th></tr></thead><tbody>${r.join('')}</tbody></table></div>`;
         const old = $('modal-raw'); if (old) old.remove();
         const m = document.createElement('div');
         m.className = 'modal-overlay'; m.id = 'modal-raw'; m.setAttribute('role', 'dialog');
@@ -3138,7 +3156,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="modal-body">${lastCenekaRaw
                 ? `<p class="raw-verdict ${mail ? 'ok' : 'no'}">${mail ? '<i class="fa-solid fa-circle-check"></i> Llegó un mail (se muestra tapado). Se puede usar para reconocer a la persona.' : '<i class="fa-solid fa-circle-xmark"></i> No llegó ningún mail. Solo el nombre que escribió la persona.'}</p>
                    <small class="pane-note">Llegó por ${escapeHTML(lastCenekaRaw.via)} a las ${new Date(lastCenekaRaw.at).toLocaleTimeString()}. Esto queda solo en memoria: se borra al cerrar la app.</small>
-                   <div class="raw-wrap"><table class="raw-table"><thead><tr><th>Dato</th><th>Valor</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`
+                   <h4 class="raw-h">Aviso en vivo</h4>${table(liveRows)}
+                   ${detailRows.length ? `<h4 class="raw-h">Detalle completo (pedido a StreamElements)</h4>${table(detailRows)}` : ''}`
                 : '<p>Todavía no llegó ninguna donación de Ceneka desde que abriste la app. Hacé una (puede ser de $1) y volvé a tocar el botón.</p>'}</div>
             <div class="modal-footer"><button class="btn btn-primary" id="btn-raw-close">Cerrar</button></div></div>`;
         document.body.appendChild(m);
@@ -3425,7 +3444,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch (a.type) {
             case 'tip':       // Donaciones (Ceneka manda las suyas como "tip")
-                if (!opts.recovered) noteCenekaRaw('StreamElements', a);
+                if (!opts.recovered) noteCenekaRaw('StreamElements', a, conn);
                 item = { platform: 'ceneka', nick, amount, currency: d.currency || 'ARS', message };
                 break;
             case 'superchat': // Super Chats de YouTube
