@@ -1,0 +1,33 @@
+# Instalador de prueba: arma el .exe y lo deja como archivo del run (NO publica nada ni avisa a las apps)
+name: Instalador de prueba
+on:
+  push:
+    branches: ['prueba-*']
+permissions:
+  contents: read
+jobs:
+  instalador:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a # v2
+        with:
+          workspaces: src-tauri
+      - name: Armar el instalador
+        run: |
+          V=$(node -p "require('./package.json').version")
+          npm ci
+          npx tauri build
+          mkdir -p dist
+          cp "$(ls src-tauri/target/release/bundle/nsis/*-setup.exe | head -1)" "dist/StreamDonations-Setup-$V.exe"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: instalador-prueba
+          path: dist/*.exe
+          retention-days: 7
