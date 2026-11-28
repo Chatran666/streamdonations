@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fxEnabled: false, fxMin: 10000, fxType: 'pulse', fxColor: '#FFD700', fxPanel: true, fxObs: true,
             fxStyle: 'arcoiris', // estilo para las donaciones grandes
             // Segunda fuente de OBS: "Destacadas" (las grandes y las de las personas que elijas)
-            featOn: false, featMin: 0, featUnit: 'local', featUsers: [], featDesign: 'same', featClear: true, featStyle: 'arcoiris',
+            featOn: false, featMin: 0, featUsers: [], featDesign: 'same', featClear: true, featStyle: 'arcoiris',
             styles: null, // se llenan con los estilos de fábrica al cargar
             // Rangos de donadores (por lo donado en los últimos N días)
             // Color del monto según cuánto donó
@@ -159,7 +159,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             showAmounts: false,
             voiceName: '', // Voz elegida para la lectura (vacío = primera voz en español)
-            usdRate: 0, // Cotización: pesos por US$1 (0 = no convertir)
+            usdRate: 0, // Cotización a mano: tu moneda por US$1 (0 = no convertir)
+            fxCountry: '', // País (define tu moneda). Vacío = el de Windows
+            fxMode: 'auto', // 'auto' = la app busca la cotización sola; 'manual' = la que escribas
+            fxArType: 'oficial', // Argentina: qué dólar usar (oficial, bolsa = MEP, blue, mayorista, tarjeta)
             sessionStart: Date.now(), // Inicio del directo actual (botón "Directo")
             goalEnabled: false,
             goalTitle: '',
@@ -321,6 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saved) {
             const parsed = JSON.parse(saved);
             if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) { state.settings = { ...state.settings, ...parsed }; savedFxOn = parsed.fxEnabled === true && !Array.isArray(parsed.styles); }
+            // Quien ya usaba la app (antes de elegir país) la tenía en pesos argentinos: se queda en Argentina
+            if (parsed && typeof parsed === 'object' && parsed.fxCountry === undefined && (parsed.tutorialDone || parsed.hideWelcome || parsed.seChannels || parsed.usdRate !== undefined)) state.settings.fxCountry = 'AR';
         }
     } catch (e) {}
     // 2.9.11: el diseño "Compacto" se sacó; quien lo tenía pasa a "Tarjeta"
@@ -581,17 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Object.keys(out).length ? out : null;
     }
     // ---- Fuente "Destacadas": ¿esta donación va también a la segunda fuente de OBS? ----
-    function featValue(d) {
-        // El monto en la moneda elegida: la local (la de tus donaciones) o dólares
-        if (state.settings.featUnit === 'usd') {
-            const u = toUSD(d);
-            if (u !== null) return u;
-            if (isForeignCurrency(d)) return null;
-            const rate = parseFloat(state.settings.usdRate) || 0;
-            return rate > 0 ? (parseFloat(d.amount) || 0) / rate : null;
-        }
-        return toARS(d);
-    }
+    function featValue(d) { return toARS(d); } // en tu moneda (lo que llega en otra se convierte con la cotización)
     function isFeatured(d) {
         const st = state.settings;
         if (!d || !st.featOn || d.blocked) return false;
@@ -628,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const days = Math.min(3650, Math.max(1, parseInt(st.ranksDays) || 30));
         const dayKey = Math.floor(Date.now() / 3600000); // se recalcula al menos cada hora
         const last = state.donations[0];
-        const key = [state.donations.length, last && last.id, days, dayKey, st.usdRate, st.kickUsd].join('|');
+        const key = [state.donations.length, last && last.id, days, dayKey, ratePerUsd(), st.kickUsd].join('|');
         const cache = test ? testRankCache : rankCache;
         if (cache.key === key) return cache.totals;
         const since = Date.now() - days * 86400000;
@@ -708,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!r) return '';
         const icons = iconHTML(r.icon, r.count);
         const days = parseInt(state.settings.ranksDays) || 30;
-        const tip = r.manual ? `${r.name} · rango dado a mano` : `${r.name} · ${formatMoney(Math.round(r.total), 'ARS')} en ${days} días`;
+        const tip = r.manual ? `${r.name} · rango dado a mano` : `${r.name} · ${formatMoney(Math.round(r.total), 'LOCAL')} en ${days} días`;
         return `<span class="rank-badge" style="--rank-color:${r.color}" title="${escapeHTML(tip)}">${icons}${r.showName ? rankNameHTML(r, part) : ''}</span>`;
     }
 
@@ -1051,7 +1046,140 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Tier Calculation Helpers (YouTube & Ceneka) ---
     function isForeignCurrency(d) {
-        return !!(d && d.currency && String(d.currency).toUpperCase() !== 'ARS');
+        return !!(d && d.currency && String(d.currency).toUpperCase() !== localCurrency());
+    }
+
+    // ==========================================================================
+    // MONEDA Y COTIZACIONES (automáticas, de varias fuentes, con respaldo)
+    // ==========================================================================
+    const FX_COUNTRIES = [
+        ['AR', 'Argentina', 'ARS'], ['BO', 'Bolivia', 'BOB'], ['CL', 'Chile', 'CLP'], ['CO', 'Colombia', 'COP'], ['CR', 'Costa Rica', 'CRC'],
+        ['EC', 'Ecuador', 'USD'], ['SV', 'El Salvador', 'USD'], ['ES', 'España', 'EUR'], ['US', 'Estados Unidos', 'USD'], ['GT', 'Guatemala', 'GTQ'],
+        ['HN', 'Honduras', 'HNL'], ['MX', 'México', 'MXN'], ['NI', 'Nicaragua', 'NIO'], ['PA', 'Panamá', 'USD'], ['PY', 'Paraguay', 'PYG'],
+        ['PE', 'Perú', 'PEN'], ['PR', 'Puerto Rico', 'USD'], ['DO', 'República Dominicana', 'DOP'], ['UY', 'Uruguay', 'UYU'], ['VE', 'Venezuela', 'VES'],
+        ['BR', 'Brasil', 'BRL'], ['CA', 'Canadá', 'CAD'], ['GB', 'Reino Unido', 'GBP'], ['EU', 'Otro país con euro', 'EUR']
+    ];
+    const AR_TYPES = ['oficial', 'bolsa', 'blue', 'mayorista', 'tarjeta'];
+    function detectCountry() {
+        // Primero la zona horaria de Windows (más confiable que el idioma: hay quien usa Windows en inglés)
+        try {
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+            const TZ = { 'America/Argentina': 'AR', 'America/Buenos_Aires': 'AR', 'America/Cordoba': 'AR', 'America/Mendoza': 'AR', 'America/Mexico_City': 'MX', 'America/Monterrey': 'MX', 'America/Tijuana': 'MX', 'America/Cancun': 'MX', 'America/Merida': 'MX', 'America/Chihuahua': 'MX',
+                'America/Santiago': 'CL', 'America/Bogota': 'CO', 'America/Lima': 'PE', 'America/Montevideo': 'UY', 'America/Asuncion': 'PY', 'America/La_Paz': 'BO', 'America/Caracas': 'VE', 'America/Guayaquil': 'EC', 'America/Costa_Rica': 'CR',
+                'America/El_Salvador': 'SV', 'America/Guatemala': 'GT', 'America/Tegucigalpa': 'HN', 'America/Managua': 'NI', 'America/Panama': 'PA', 'America/Puerto_Rico': 'PR', 'America/Santo_Domingo': 'DO', 'Europe/Madrid': 'ES', 'Atlantic/Canary': 'ES', 'Europe/London': 'GB', 'America/Sao_Paulo': 'BR' };
+            const k = Object.keys(TZ).find(z => tz === z || tz.startsWith(z + '/'));
+            if (k) return TZ[k];
+        } catch (e) {}
+        const langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']).map(String);
+        for (const l of langs) { const m = /[-_]([A-Za-z]{2})$/.exec(l); if (m && FX_COUNTRIES.some(c => c[0] === m[1].toUpperCase())) return m[1].toUpperCase(); }
+        return 'AR';
+    }
+    function fxCountry() { const c = state.settings.fxCountry; return FX_COUNTRIES.some(x => x[0] === c) ? c : detectCountry(); }
+    function localCurrency() { return (FX_COUNTRIES.find(x => x[0] === fxCountry()) || FX_COUNTRIES[0])[2]; }
+    let fxData = { rates: null, ratesSrc: '', ratesAt: 0, ars: null, arsSrc: '', arsAt: 0 };
+    try { const c = JSON.parse(localStorage.getItem('sd_fx') || 'null'); if (c && typeof c === 'object') fxData = Object.assign(fxData, c); } catch (e) {}
+    // Unidades de tu moneda por US$1 (0 = no se sabe)
+    function ratePerUsd() {
+        const st = state.settings, cur = localCurrency(), manual = parseFloat(st.usdRate) || 0;
+        if (cur === 'USD') return 1;
+        if (st.fxMode === 'manual') return manual;
+        if (cur === 'ARS' && fxData.ars) {
+            const t = AR_TYPES.includes(st.fxArType) ? st.fxArType : 'oficial';
+            const v = fxData.ars[t] || fxData.ars.oficial;
+            if (v > 0) return v;
+        }
+        const g = fxData.rates && fxData.rates[cur];
+        return g > 0 ? g : manual;
+    }
+    // Cuánto vale 1 unidad de otra moneda (EUR, MXN…) en dólares (null = no se sabe)
+    function usdPerUnit(cur) {
+        cur = String(cur || '').toUpperCase();
+        if (cur === 'USD') return 1;
+        if (cur === localCurrency()) { const r = ratePerUsd(); return r > 0 ? 1 / r : null; }
+        const g = fxData.rates && fxData.rates[cur];
+        return g > 0 ? 1 / g : null;
+    }
+    function fxFetch(url, ms) {
+        const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const t = setTimeout(() => { try { ctl && ctl.abort(); } catch (e) {} }, ms || 8000);
+        return fetch(url, { signal: ctl ? ctl.signal : undefined, cache: 'no-store' }).then(r => { clearTimeout(t); if (!r.ok) throw new Error(r.status); return r.json(); });
+    }
+    const num = v => { const n = parseFloat(v); return Number.isFinite(n) && n > 0 ? n : 0; };
+    // Todas las monedas contra el dólar: tres fuentes, la primera que conteste
+    const RATE_SOURCES = [
+        ['ExchangeRate-API', () => fxFetch('https://open.er-api.com/v6/latest/USD').then(j => j && j.rates)],
+        ['Currency API (jsDelivr)', () => fxFetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json').then(j => j && j.usd)],
+        ['Currency API (espejo)', () => fxFetch('https://latest.currency-api.pages.dev/v1/currencies/usd.min.json').then(j => j && j.usd)]
+    ];
+    // Argentina: los distintos dólares (precio de venta)
+    const AR_SOURCES = [
+        ['DolarAPI', () => fxFetch('https://dolarapi.com/v1/dolares').then(list => { const o = {}; (list || []).forEach(x => { if (AR_TYPES.includes(x.casa)) o[x.casa] = num(x.venta); }); return o; })],
+        ['CriptoYa', () => fxFetch('https://criptoya.com/api/dolar').then(j => ({ oficial: num(j.oficial && (j.oficial.ask || j.oficial.price)), bolsa: num(j.mep && j.mep.al30 && j.mep.al30.ci && j.mep.al30.ci.price), blue: num(j.blue && j.blue.ask), mayorista: num(j.mayorista && j.mayorista.price), tarjeta: num(j.tarjeta && j.tarjeta.price) }))],
+        ['Bluelytics', () => fxFetch('https://api.bluelytics.com.ar/v2/latest').then(j => ({ oficial: num(j.oficial && j.oficial.value_sell), blue: num(j.blue && j.blue.value_sell) }))],
+        ['BCRA', () => fxFetch('https://api.bcra.gob.ar/estadisticascambiarias/v1.0/Cotizaciones/USD').then(j => { const v = num(j && j.results && j.results[0] && j.results[0].detalle && j.results[0].detalle[0] && j.results[0].detalle[0].tipoCotizacion); return { oficial: v, mayorista: v }; })]
+    ];
+    async function firstOk(list, ok) {
+        for (const [name, fn] of list) { try { const v = await fn(); if (ok(v)) return [name, v]; } catch (e) {} }
+        return null;
+    }
+    let fxBusy = false;
+    async function refreshFx(force) {
+        if (fxBusy) return;
+        const fresh = (t) => Date.now() - (t || 0) < 55 * 60000;
+        const needAr = localCurrency() === 'ARS';
+        if (!force && fresh(fxData.ratesAt) && (!needAr || fresh(fxData.arsAt))) return;
+        fxBusy = true; updateFxStatus();
+        const before = ratePerUsd();
+        const g = await firstOk(RATE_SOURCES, v => v && typeof v === 'object' && num(v.ARS || v.ars) > 0);
+        if (g) {
+            const r = {}; Object.keys(g[1]).forEach(k => { const v = num(g[1][k]); if (v && /^[a-z]{3}$/i.test(k)) r[k.toUpperCase()] = v; });
+            fxData.rates = r; fxData.ratesSrc = g[0]; fxData.ratesAt = Date.now();
+        }
+        if (needAr) {
+            const a = await firstOk(AR_SOURCES, v => v && num(v.oficial) > 0);
+            if (a) { fxData.ars = Object.assign({}, fxData.ars || {}, Object.fromEntries(Object.entries(a[1]).filter(([, v]) => v > 0))); fxData.arsSrc = a[0]; fxData.arsAt = Date.now(); }
+        }
+        fxBusy = false;
+        try { localStorage.setItem('sd_fx', JSON.stringify(fxData)); } catch (e) {}
+        updateFxStatus();
+        if (Math.abs(ratePerUsd() - before) > 1e-9) onRatesChanged();
+    }
+    // Muestra/oculta filas según país y modo (en el formulario)
+    function fxRows() {
+        const ar = $('cfg-fx-country') && $('cfg-fx-country').value === 'AR';
+        const manual = $('cfg-fx-mode') && $('cfg-fx-mode').value === 'manual';
+        const usd = (FX_COUNTRIES.find(c => c[0] === ($('cfg-fx-country') || {}).value) || [])[2] === 'USD';
+        if ($('fx-ar-row')) $('fx-ar-row').classList.toggle('hidden', !ar || manual || usd);
+        if ($('fx-manual-row')) $('fx-manual-row').classList.toggle('fx-dim', !manual);
+        if ($('cfg-fx-mode')) $('cfg-fx-mode').closest('.form-group').classList.toggle('hidden', usd);
+        if ($('fx-manual-row')) $('fx-manual-row').classList.toggle('hidden', usd);
+    }
+    // El símbolo de tu moneda al lado de los montos ($, €, S/…)
+    function applyCurSymbols() {
+        let sym = '$';
+        try { sym = new Intl.NumberFormat('es-AR', { style: 'currency', currency: localCurrency(), currencyDisplay: 'narrowSymbol' }).formatToParts(1).find(p => p.type === 'currency').value; } catch (e) {}
+        document.querySelectorAll('.min-card-input > span').forEach(el => { el.textContent = sym; });
+    }
+    function onRatesChanged() {
+        try { rankCache.key = ''; testRankCache.key = ''; } catch (e) {}
+        try { render(); forceGoalSync(); } catch (e) {}
+    }
+    function fmtRate(v) { return v >= 100 ? Math.round(v).toLocaleString('es-AR') : (Math.round(v * 100) / 100).toLocaleString('es-AR'); }
+    function updateFxStatus() {
+        const el = document.getElementById('fx-status'); if (!el) return;
+        const cur = localCurrency(), r = ratePerUsd();
+        const auto = state.settings.fxMode !== 'manual';
+        const src = cur === 'ARS' && fxData.ars ? fxData.arsSrc : fxData.ratesSrc;
+        const at = cur === 'ARS' && fxData.ars ? fxData.arsAt : fxData.ratesAt;
+        if (cur === 'USD') { el.innerHTML = '<i class="fa-solid fa-circle-check"></i> Tu moneda es el dólar: no hace falta cotización.'; el.className = 'fx-status ok'; return; }
+        if (fxBusy) { el.innerHTML = '<i class="fa-solid fa-rotate fa-spin"></i> Buscando la cotización…'; el.className = 'fx-status'; return; }
+        if (r > 0) {
+            el.innerHTML = `<i class="fa-solid fa-circle-check"></i> US$1 = ${escapeHTML(formatARS(r, true))}` + (auto && src ? ` · ${escapeHTML(src)}, ${new Date(at).toLocaleString([], { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}` : auto ? '' : ' (a mano)');
+            el.className = 'fx-status ok';
+        } else {
+            el.innerHTML = auto ? '<i class="fa-solid fa-triangle-exclamation"></i> No se pudo conseguir la cotización (¿sin internet?). Se vuelve a intentar sola; mientras tanto podés ponerla a mano.' : '<i class="fa-solid fa-triangle-exclamation"></i> Escribí la cotización para pasar los dólares a tu moneda.';
+            el.className = 'fx-status warn';
+        }
     }
 
     // --- Plataformas soportadas ---
@@ -1143,7 +1271,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cur === 'USD') return amount;
         if (cur === 'BITS') return amount * 0.01; // 1 Bit = US$0,01 para el streamer
         if (cur === 'KICKS') return amount * (parseFloat(state.settings.kickUsd) || 0);
-        return null;
+        if (cur === localCurrency()) return null; // tu moneda no se pasa a dólares para sumar
+        const u = usdPerUnit(cur);
+        return u !== null ? amount * u : null;
     }
 
     // Valor en pesos de una donación. Devuelve null si está en otra moneda y no hay cotización cargada.
@@ -1151,7 +1281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!d) return 0;
         const amount = parseFloat(d.amount) || 0;
         if (!isForeignCurrency(d)) return amount;
-        const rate = parseFloat(state.settings.usdRate) || 0;
+        const rate = ratePerUsd();
         const usd = toUSD(d);
         if (usd !== null && rate > 0) return usd * rate;
         return null;
@@ -1178,13 +1308,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return v !== null && v < min;
     }
 
-    function formatARS(n) {
-        return '$' + Math.round(n || 0).toLocaleString('es-AR');
+    // Un monto en tu moneda (pesos argentinos: $1.234)
+    function formatARS(n, decimals) {
+        const cur = localCurrency();
+        if (cur === 'ARS') return '$' + (decimals && n < 100 ? (Math.round((n || 0) * 100) / 100) : Math.round(n || 0)).toLocaleString('es-AR');
+        const dec = decimals || ['USD', 'EUR', 'GBP', 'CAD', 'PEN', 'BRL'].includes(cur) && Math.abs(n) < 100 ? 2 : 0;
+        try { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: cur, currencyDisplay: 'narrowSymbol', maximumFractionDigits: dec, minimumFractionDigits: 0 }).format(n || 0); }
+        catch (e) { return cur + ' ' + Math.round(n || 0).toLocaleString('es-AR'); }
     }
 
     function formatMoney(n, currency) {
         const cur = String(currency || 'ARS').toUpperCase();
-        if (cur === 'ARS') return formatARS(n);
+        if (cur === localCurrency() || (cur === 'LOCAL')) return formatARS(n);
+        if (cur === 'ARS') return 'AR$' + Math.round(n || 0).toLocaleString('es-AR');
         if (cur === 'BITS') return Math.round(n || 0).toLocaleString('es-AR') + ' bits';
         if (cur === 'KICKS') return Math.round(n || 0).toLocaleString('es-AR') + ' KICKs';
         const prefix = cur === 'USD' ? 'US$' : cur + ' ';
@@ -1558,7 +1694,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!!x.isTest === !!d.isTest && !x.blocked && nickKey(x.nick) === k && (x.timestamp || 0) >= since) t += toARS(x) || 0;
         });
         if (!seen) t += toARS(d) || 0;
-        return t > 0 ? formatMoney(Math.round(t), 'ARS') : '';
+        return t > 0 ? formatMoney(Math.round(t), 'LOCAL') : '';
     }
     function panelNick(n) { return censorText(n, 'panel'); }
 
@@ -2604,7 +2740,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rk = rankFor(item.nick, 'panel', item.isTest);
         menu.innerHTML = `
             <div class="um-head"><strong>${escapeHTML(item.nick)}</strong>${rankBadgeHTML(rk)}</div>
-            <div class="um-stats">${mine.length} donaci${mine.length === 1 ? 'ón' : 'ones'}${test ? ' de prueba' : ''} · ${formatMoney(Math.round(total), 'ARS')} en total</div>
+            <div class="um-stats">${mine.length} donaci${mine.length === 1 ? 'ón' : 'ones'}${test ? ' de prueba' : ''} · ${formatMoney(Math.round(total), 'LOCAL')} en total</div>
             ${test ? '<p class="um-test-note"><i class="fa-solid fa-flask"></i> Prueba: lo que hagas acá no toca tus rangos ni bloqueos de verdad y se borra junto con las donaciones de prueba.</p>' : ''}
             <label class="um-row"><span><i class="fa-solid fa-crown"></i> Rango a mano</span>
                 <select id="um-rank">${manual.length ? '<option value="-1">Ninguno</option>' + manual.map(x => `<option value="${x.i}"${cur && cur.i === x.i ? ' selected' : ''}>${escapeHTML(x.r.name)}</option>`).join('') : '<option value="-1">Creá uno en Opciones → Diseño → Destacar</option>'}</select></label>
@@ -3545,6 +3681,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     connectAllSE();
+
+    // Cotizaciones: al abrir y cada media hora (si hay cambios se recalculan totales, meta y destacadas)
+    applyCurSymbols();
+    ['cfg-fx-country', 'cfg-fx-mode'].forEach(id => { const el = $(id); if (el) el.addEventListener('change', fxRows); });
+    { const b = $('btn-fx-refresh'); if (b) b.addEventListener('click', () => refreshFx(true).then(() => showToast(ratePerUsd() > 0 ? 'Cotización actualizada' : 'No se pudo conseguir la cotización', ratePerUsd() > 0 ? 'success' : 'warning'))); }
+    setTimeout(() => refreshFx(false), 1500);
+    setInterval(() => refreshFx(false), 30 * 60000);
 
     // --- MODO OBS (Overlay Popup Engine & OBS Studio Source) ---
     function pushToOverlay(donation) {
@@ -5035,6 +5178,14 @@ document.addEventListener('DOMContentLoaded', () => {
         $('cfg-min-display-amount').value = st.minDisplayAmount || '';
         $('cfg-min-obs-amount').value = st.obsMinAmount || '';
         $('cfg-usd-rate').value = st.usdRate || '';
+        {
+            const cs = $('cfg-fx-country');
+            if (!cs.options.length) cs.innerHTML = FX_COUNTRIES.map(c => `<option value="${c[0]}">${escapeHTML(c[1])} (${c[2]})</option>`).join('');
+            cs.value = fxCountry();
+            $('cfg-fx-mode').value = st.fxMode === 'manual' ? 'manual' : 'auto';
+            $('cfg-fx-ar').value = AR_TYPES.includes(st.fxArType) ? st.fxArType : 'oficial';
+            fxRows(); updateFxStatus();
+        }
         $('cfg-obs-hide-message').checked = !!st.obsHideMessage;
         $('cfg-obs-filter-bar').checked = st.obsFilterBar !== false;
         $('cfg-show-top-donor').checked = st.showTopDonor === true;
@@ -5239,7 +5390,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function fillFeatForm(st) {
         $('cfg-feat-on').checked = !!st.featOn;
         $('cfg-feat-min').value = st.featMin || '';
-        $('cfg-feat-unit').value = st.featUnit === 'usd' ? 'usd' : 'local';
         const ds = $('cfg-feat-design');
         if (!ds.options.length) ds.innerHTML = '<option value="same">Igual que la fuente de siempre</option>' + OBS_DESIGNS.map(d => `<option value="${d.k}">${escapeHTML(d.label)}</option>`).join('');
         ds.value = st.featDesign === 'same' || OBS_DESIGNS.some(d => d.k === st.featDesign) ? st.featDesign : 'same';
@@ -5344,15 +5494,14 @@ document.addEventListener('DOMContentLoaded', () => {
         st.fxMin = Math.max(0, parseFloat($('cfg-fx-min').value) || 0);
         st.styles = cleanStyles(stylesDraft);
         st.fxStyle = st.styles.some(x => x.id === $('cfg-fx-style').value) ? $('cfg-fx-style').value : '';
-        const featBefore = JSON.stringify([st.featOn, st.featMin, st.featUnit, st.featUsers, st.featDesign, st.featClear, st.featStyle]);
+        const featBefore = JSON.stringify([st.featOn, st.featMin, st.featUsers, st.featDesign, st.featClear, st.featStyle]);
         st.featOn = $('cfg-feat-on').checked;
         st.featMin = Math.max(0, parseFloat($('cfg-feat-min').value) || 0);
-        st.featUnit = $('cfg-feat-unit').value === 'usd' ? 'usd' : 'local';
         st.featUsers = featUsersDraft.slice(0, 200);
         st.featDesign = $('cfg-feat-design').value === 'same' || OBS_DESIGNS.some(d => d.k === $('cfg-feat-design').value) ? $('cfg-feat-design').value : 'same';
         st.featClear = $('cfg-feat-clear').checked;
         st.featStyle = st.styles.some(x => x.id === $('cfg-feat-style').value) ? $('cfg-feat-style').value : '';
-        const featChanged = JSON.stringify([st.featOn, st.featMin, st.featUnit, st.featUsers, st.featDesign, st.featClear, st.featStyle]) !== featBefore;
+        const featChanged = JSON.stringify([st.featOn, st.featMin, st.featUsers, st.featDesign, st.featClear, st.featStyle]) !== featBefore;
         st.fxPanel = $('cfg-fx-panel').checked;
         st.fxObs = $('cfg-fx-obs').checked;
         st.obsLayout = readObsLayoutForm();
@@ -5403,6 +5552,11 @@ document.addEventListener('DOMContentLoaded', () => {
         st.minDisplayAmount = Math.max(0, parseFloat($('cfg-min-display-amount').value) || 0);
         st.obsMinAmount = Math.max(0, parseFloat($('cfg-min-obs-amount').value) || 0);
         st.usdRate = Math.max(0, parseFloat($('cfg-usd-rate').value) || 0);
+        const fxBefore = [fxCountry(), st.fxMode, st.fxArType].join('|');
+        st.fxCountry = FX_COUNTRIES.some(c => c[0] === $('cfg-fx-country').value) ? $('cfg-fx-country').value : '';
+        st.fxMode = $('cfg-fx-mode').value === 'manual' ? 'manual' : 'auto';
+        st.fxArType = AR_TYPES.includes($('cfg-fx-ar').value) ? $('cfg-fx-ar').value : 'oficial';
+        if ([fxCountry(), st.fxMode, st.fxArType].join('|') !== fxBefore) setTimeout(() => { applyCurSymbols(); refreshFx(true).then(onRatesChanged); }, 0);
         st.obsHideMessage = $('cfg-obs-hide-message').checked;
         st.obsFilterBar = $('cfg-obs-filter-bar').checked;
         st.showTopDonor = $('cfg-show-top-donor').checked;
@@ -7394,7 +7548,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="rank-row amt-row" style="--rank-color:${color}">
                 <label class="rank-field"><span>desde $</span><input type="number" id="amt-min-${i}" min="0" step="500" value="${min}" aria-label="Monto desde, en pesos"></label>
                 <input type="color" id="amt-color-${i}" class="bg-color-input" value="${color}" title="Color del monto">
-                <span class="amount-badge amt-preview" id="amt-preview-${i}" style="--accent-color:${color}">${escapeHTML(formatMoney(min || 1000, 'ARS'))}</span>
+                <span class="amount-badge amt-preview" id="amt-preview-${i}" style="--accent-color:${color}">${escapeHTML(formatMoney(min || 1000, 'LOCAL'))}</span>
                 <button type="button" class="btn btn-outline-danger btn-sm" data-amt-remove="${i}" title="Quitar este color"><i class="fa-solid fa-xmark"></i></button>
             </div>`;
         }).join('');
@@ -7420,7 +7574,7 @@ document.addEventListener('DOMContentLoaded', () => {
             syncAmtDraft();
             const i = +m[2], r = amtDraft[i], pv = $('amt-preview-' + i);
             const color = HEX_RE.test(r.color) ? r.color : '#34D399';
-            if (pv) { pv.style.setProperty('--accent-color', color); pv.textContent = formatMoney(Math.max(0, parseInt(r.min) || 0) || 1000, 'ARS'); }
+            if (pv) { pv.style.setProperty('--accent-color', color); pv.textContent = formatMoney(Math.max(0, parseInt(r.min) || 0) || 1000, 'LOCAL'); }
             const row = e.target.closest('.rank-row'); if (row) row.style.setProperty('--rank-color', color);
         });
     }
