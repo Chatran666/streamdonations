@@ -3513,3 +3513,10 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .raw-card .modal-body { max-height: 68vh; overflow: auto; }
 .raw-card .raw-wrap { max-height: none; overflow: visible; margin-top: 6px; }
 .raw-card .raw-h { margin: 16px 0 0 !important; }
+/* Tu moneda y la cotización */
+.fx-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 14px; }
+.fx-status { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 10px; font-size: .88rem; background: rgba(127,127,127,.12); }
+.fx-status.ok { background: rgba(34,197,94,.12); color: #4ADE80; }
+.fx-status.warn { background: rgba(245,158,11,.12); color: #FBBF24; }
+:root[data-mode="light"] .fx-status.ok { color: #15803D; } :root[data-mode="light"] .fx-status.warn { color: #92400E; }
+.fx-dim { opacity: .6; }
