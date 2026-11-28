@@ -3498,3 +3498,14 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .feat-section > .pane-subtitle { color: #F5B400; border-bottom: 1px solid rgba(245, 180, 0, 0.25); padding-bottom: 10px; margin-bottom: 10px; }
 .feat-section > .pane-subtitle i { color: #F5B400; }
 :root[data-mode="light"] .feat-section > .pane-subtitle, :root[data-mode="light"] .feat-section > .pane-subtitle i { color: #8A6300; }
+/* Ventana "Datos de la última donación de Ceneka" */
+.raw-card { max-width: 720px; width: calc(100% - 32px); }
+.raw-verdict { display: flex; gap: 8px; align-items: center; font-weight: 600; padding: 10px 12px; border-radius: 10px; margin: 0 0 8px; }
+.raw-verdict.ok { background: rgba(34, 197, 94, .12); color: #4ADE80; }
+.raw-verdict.no { background: rgba(245, 158, 11, .12); color: #FBBF24; }
+:root[data-mode="light"] .raw-verdict.ok { color: #15803D; } :root[data-mode="light"] .raw-verdict.no { color: #92400E; }
+.raw-wrap { max-height: 50vh; overflow: auto; margin-top: 10px; border: 1px solid rgba(127, 127, 127, .25); border-radius: 10px; }
+.raw-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.raw-table th, .raw-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(127, 127, 127, .15); vertical-align: top; word-break: break-word; }
+.raw-table td:first-child { white-space: nowrap; opacity: .75; font-family: ui-monospace, Consolas, monospace; }
+.raw-table tr.raw-hit td { background: rgba(245, 180, 0, .14); font-weight: 600; }

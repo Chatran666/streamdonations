@@ -3110,6 +3110,44 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshPlatformVisibility();
     }
 
+    // ---- Datos crudos de la última donación de Ceneka (solo en memoria, para ver qué manda la API) ----
+    let lastCenekaRaw = null;
+    function noteCenekaRaw(via, obj) {
+        try { lastCenekaRaw = { via, at: Date.now(), data: JSON.parse(JSON.stringify(obj || {})) }; } catch (e) {}
+    }
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    function maskEmail(v) { const [u, d] = String(v).split('@'); return (u.slice(0, 2) + '•••@' + d); }
+    function showCenekaRaw() {
+        const rows = [];
+        let mail = false;
+        const walk = (o, path, depth) => {
+            if (rows.length > 120 || depth > 5) return;
+            if (o && typeof o === 'object') { Object.keys(o).forEach(k => walk(o[k], path ? path + '.' + k : k, depth + 1)); return; }
+            let v = o === null || o === undefined ? '' : String(o);
+            const isMail = EMAIL_RE.test(v.trim());
+            if (isMail) { mail = true; v = maskEmail(v.trim()); }
+            else if (/mail/i.test(path) && v) mail = true;
+            rows.push(`<tr${isMail || /mail/i.test(path) ? ' class="raw-hit"' : ''}><td>${escapeHTML(path)}</td><td>${escapeHTML(v.length > 140 ? v.slice(0, 140) + '…' : v)}</td></tr>`);
+        };
+        if (lastCenekaRaw) walk(lastCenekaRaw.data, '', 0);
+        const old = $('modal-raw'); if (old) old.remove();
+        const m = document.createElement('div');
+        m.className = 'modal-overlay'; m.id = 'modal-raw'; m.setAttribute('role', 'dialog');
+        m.innerHTML = `<div class="modal-card raw-card">
+            <div class="modal-header"><h2><i class="fa-solid fa-magnifying-glass"></i> Datos de la última donación de Ceneka</h2></div>
+            <div class="modal-body">${lastCenekaRaw
+                ? `<p class="raw-verdict ${mail ? 'ok' : 'no'}">${mail ? '<i class="fa-solid fa-circle-check"></i> Llegó un mail (se muestra tapado). Se puede usar para reconocer a la persona.' : '<i class="fa-solid fa-circle-xmark"></i> No llegó ningún mail. Solo el nombre que escribió la persona.'}</p>
+                   <small class="pane-note">Llegó por ${escapeHTML(lastCenekaRaw.via)} a las ${new Date(lastCenekaRaw.at).toLocaleTimeString()}. Esto queda solo en memoria: se borra al cerrar la app.</small>
+                   <div class="raw-wrap"><table class="raw-table"><thead><tr><th>Dato</th><th>Valor</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`
+                : '<p>Todavía no llegó ninguna donación de Ceneka desde que abriste la app. Hacé una (puede ser de $1) y volvé a tocar el botón.</p>'}</div>
+            <div class="modal-footer"><button class="btn btn-primary" id="btn-raw-close">Cerrar</button></div></div>`;
+        document.body.appendChild(m);
+        const close = () => m.remove();
+        $('btn-raw-close').addEventListener('click', close);
+        m.addEventListener('click', e => { if (e.target === m) close(); });
+    }
+    { const b = $('btn-ceneka-raw'); if (b) b.addEventListener('click', showCenekaRaw); }
+
     function handleStreamlabsEvent(eventData) {
         if (!eventData || !eventData.type) return;
         const items = Array.isArray(eventData.message) ? eventData.message : [eventData.message];
@@ -3126,6 +3164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (eventData.type === 'donation') {
                 // Donaciones de Ceneka (y cualquier otra donación que reciba Streamlabs)
                 const amount = parseNumber(m.amount);
+                noteCenekaRaw('Streamlabs', m);
                 if (isCrossServiceDuplicate('ceneka', m.from || m.name, amount)) return;
                 addDonation({
                     id: sid,
@@ -3386,6 +3425,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switch (a.type) {
             case 'tip':       // Donaciones (Ceneka manda las suyas como "tip")
+                if (!opts.recovered) noteCenekaRaw('StreamElements', a);
                 item = { platform: 'ceneka', nick, amount, currency: d.currency || 'ARS', message };
                 break;
             case 'superchat': // Super Chats de YouTube
