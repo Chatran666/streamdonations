@@ -3491,3 +3491,10 @@ select option, select optgroup { background-color: var(--modal-bg, #121722); col
 .feat-user button { border: 0; background: transparent; color: inherit; cursor: pointer; width: 22px; height: 22px; border-radius: 50%; opacity: .7; }
 .feat-user button:hover { opacity: 1; background: rgba(255,255,255,.1); }
 #feat-box > .form-group, #feat-box > .obsws-actions { margin-top: 14px; }
+/* Bloque de la fuente Destacadas: recuadro propio, separado del resto de OBS */
+.feat-section { position: relative; margin: 30px 0 30px; padding: 6px 20px 20px; border: 1px solid rgba(245, 180, 0, 0.4); border-radius: 14px;
+    background: linear-gradient(180deg, rgba(245, 180, 0, 0.07), rgba(245, 180, 0, 0.02) 140px, transparent); }
+.feat-section::before { content: ""; position: absolute; left: 18px; right: 18px; top: -1px; height: 3px; border-radius: 0 0 3px 3px; background: linear-gradient(90deg, transparent, #F5B400 20%, #F5B400 80%, transparent); }
+.feat-section > .pane-subtitle { color: #F5B400; border-bottom: 1px solid rgba(245, 180, 0, 0.25); padding-bottom: 10px; margin-bottom: 10px; }
+.feat-section > .pane-subtitle i { color: #F5B400; }
+:root[data-mode="light"] .feat-section > .pane-subtitle, :root[data-mode="light"] .feat-section > .pane-subtitle i { color: #8A6300; }
